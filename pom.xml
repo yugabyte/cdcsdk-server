@@ -119,14 +119,11 @@
     </properties>
 
     <modules>
-        <module>debezium-bom</module>
         <module>debezium-parent</module>
         <module>support/checkstyle</module>
         <module>support/ide-configs</module>
         <module>support/revapi</module>
-        <module>debezium-microbenchmark</module>
         <module>cdcsdk-server</module>
-        <module>debezium-testing</module>
     </modules>
 
     <distributionManagement>

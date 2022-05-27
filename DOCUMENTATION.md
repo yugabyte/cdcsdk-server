@@ -33,7 +33,11 @@ The archive has the following layout:
 ### Unpack and Run Instructions.
 
     export CDCSDK_VERSION=<x.y.z>
-    wget https://github.com/yugabyte/debezium/releases/download/v${CDC_VERSION}/cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
+    wget https://github.com/yugabyte/cdcsdk-server/releases/download/v${CDCSDK_VERSION}/cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
+
+    # OR Using gh cli
+
+    gh release download v{CDCSDK_VERSION} -A tar.gz --repo yugabyte/cdcsdk-server
 
     tar xvf cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
     cd cdcsdk-server && mkdir data
