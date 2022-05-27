@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import io.debezium.DebeziumException;
 import io.debezium.config.CommonConnectorConfig;
+import io.debezium.embedded.EmbeddedEngine;
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.DebeziumEngine.ChangeConsumer;
@@ -70,6 +71,8 @@ public class DebeziumServer {
     private static final String PROP_KEY_FORMAT = PROP_FORMAT_PREFIX + "key";
     private static final String PROP_VALUE_FORMAT = PROP_FORMAT_PREFIX + "value";
     private static final String PROP_TERMINATION_WAIT = PROP_PREFIX + "termination.wait";
+    private static final String PROP_OFFSET_STORAGE = PROP_SOURCE_PREFIX + EmbeddedEngine.OFFSET_STORAGE;
+    private static final String MEMORY_OFFSET_STORAGE = "org.apache.kafka.connect.storage.MemoryOffsetBackingStore";
 
     private static final String FORMAT_JSON = Json.class.getSimpleName().toLowerCase();
     private static final String FORMAT_AVRO = Avro.class.getSimpleName().toLowerCase();
@@ -131,6 +134,12 @@ public class DebeziumServer {
             props.setProperty(CommonConnectorConfig.TOMBSTONES_ON_DELETE.name(), Boolean.FALSE.toString());
         }
         props.setProperty("name", name);
+        // Set backing store to MemoryOffsetBackingStorage if not set.
+        final Optional<String> backingStorage = config.getOptionalValue(PROP_OFFSET_STORAGE, String.class);
+        if (!backingStorage.isPresent()) {
+            props.setProperty(EmbeddedEngine.OFFSET_STORAGE.name(), MEMORY_OFFSET_STORAGE);
+            LOGGER.info("CDCSDK Server is running in stateless mode");
+        }
         LOGGER.debug("Configuration for DebeziumEngine: {}", props);
 
         engine = DebeziumEngine.create(keyFormat, valueFormat)

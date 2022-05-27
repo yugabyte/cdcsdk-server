@@ -40,7 +40,7 @@ The archive has the following layout:
     gh release download v{CDCSDK_VERSION} -A tar.gz --repo yugabyte/cdcsdk-server
 
     tar xvf cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
-    cd cdcsdk-server && mkdir data
+    cd cdcsdk-server
 
     # Configure the application. Check next section
     touch conf/application.properties
@@ -64,8 +64,6 @@ debezium.sink.kafka.producer.bootstrap.servers=127.0.0.1:9092
 debezium.sink.kafka.producer.key.serializer=org.apache.kafka.common.serialization.StringSerializer
 debezium.sink.kafka.producer.value.serializer=org.apache.kafka.common.serialization.StringSerializer
 debezium.source.connector.class=io.debezium.connector.yugabytedb.YugabyteDBConnector
-debezium.source.offset.storage.file.filename=data/offsets.dat
-debezium.source.offset.flush.interval.ms=0
 debezium.source.database.hostname=127.0.0.1
 debezium.source.database.port=5433
 debezium.source.database.user=yugabyte
