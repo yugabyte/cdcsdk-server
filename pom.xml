@@ -87,6 +87,7 @@
         <version.jandex>1.0.8</version.jandex>
         <version.revapi-java.plugin>0.21.0</version.revapi-java.plugin>
         <version.build-helper.plugin>1.9.1</version.build-helper.plugin>
+        <version.s3.wagon>1.3.3</version.s3.wagon>
 
         <!-- Which Maven Central infra should be used -->
         <release.endpoint>https://s01.oss.sonatype.org/</release.endpoint>
@@ -162,9 +163,20 @@
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
+        <repository>
+            <id>maven.yugabyte.repo</id>
+            <url>s3://repository.yugabyte.com/maven/release</url>
+        </repository>
     </repositories>
 
     <build>
+         <extensions>
+            <extension>
+                <groupId>com.github.seahen</groupId>
+                <artifactId>maven-s3-wagon</artifactId>
+                <version>${version.s3.wagon}</version>
+           </extension>
+        </extensions>
         <pluginManagement>
             <plugins>
                 <plugin>
