@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.server;
+package org.yb.cdcsdk.server;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,8 +17,11 @@ import javax.inject.Inject;
 import org.awaitility.Awaitility;
 import org.fest.assertions.Assertions;
 import org.junit.jupiter.api.Test;
+import org.yb.cdcsdk.server.DebeziumServer;
 
 import io.debezium.DebeziumException;
+import io.debezium.server.TestConfigSource;
+import io.debezium.server.TestConsumer;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.util.Collect;
 import io.debezium.util.Testing;

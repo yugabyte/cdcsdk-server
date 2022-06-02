@@ -14,8 +14,8 @@ import javax.inject.Inject;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
+import org.yb.cdcsdk.server.DebeziumServer;
 
-import io.debezium.server.DebeziumServer;
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.testing.testcontainers.PostgresTestResourceLifecycleManager;

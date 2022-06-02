@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.server;
+package org.yb.cdcsdk.server;
 
 import java.time.Duration;
 
@@ -15,7 +15,10 @@ import org.fest.assertions.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.yb.cdcsdk.server.DebeziumServer;
 
+import io.debezium.server.TestConfigSource;
+import io.debezium.server.TestConsumer;
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.testing.testcontainers.PostgresTestResourceLifecycleManager;

@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.server;
+package org.yb.cdcsdk.server;
 
 import java.util.Optional;
 import java.util.Properties;
@@ -37,6 +37,7 @@ import io.debezium.engine.DebeziumEngine.ChangeConsumer;
 import io.debezium.engine.format.Avro;
 import io.debezium.engine.format.Json;
 import io.debezium.engine.format.Protobuf;
+import io.debezium.server.ConnectorLifecycle;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.Startup;
