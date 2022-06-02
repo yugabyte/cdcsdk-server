@@ -17,7 +17,6 @@ import javax.inject.Inject;
 import org.awaitility.Awaitility;
 import org.fest.assertions.Assertions;
 import org.junit.jupiter.api.Test;
-import org.yb.cdcsdk.server.DebeziumServer;
 
 import io.debezium.DebeziumException;
 import io.debezium.server.TestConfigSource;

@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
-import org.yb.cdcsdk.server.DebeziumServer;
 
 import io.debezium.server.DebeziumServerApicurioProfile;
 import io.debezium.server.TestConfigSource;

@@ -5,6 +5,7 @@
     - [Unpack and Run Instructions.](#unpack-and-run-instructions)
   - [Configuration](#configuration)
     - [Configuration using Environment Variables](#configuration-using-environment-variables)
+  - [HTTP Client](#http-client)
   - [Health Checks](#health-checks)
     - [Running the health check](#running-the-health-check)
 
@@ -83,6 +84,14 @@ For detailed documentation of the configuration, check [debezium docs](https://d
 Configuration using environment variables maybe useful when running in containers. The rule of thumb
 is to convert the keys to UPPER CASE and replace `.` with `_`. For example, `debezium.source.database.port`
 has to be changed to `DEBEZIUM_SOURCE_DATABASE_PORT`
+
+## HTTP Client
+The HTTP Client will stream changes to any HTTP Server for additional processing with the original design goal to have Debezium act as a Knative Event Source.
+|Property|Default|Description|
+|--------|-------|-----------|
+|debezium.sink.type||Must be set to `http`|
+|debezium.sink.http.url||The HTTP Server URL to stream events to. This can also be set by defining the K_SINK environment variable, which is used by the Knative source framework.|
+|debezium.sink.http.timeout.ms|60000|The number of seconds to wait for a response from the server before timing out. (default of 60s)|
 
 ## Health Checks
 

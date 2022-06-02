@@ -24,3 +24,9 @@ profile to default. The file should look like:
 **Note that these credentials and temporary and you may have to regularly pick
 up new credentials**
 
+## Integration Tests
+
+
+    mvn integration-test
+    # Run a specific integration test
+    mvn integration-test -Dit.test=HttpIT -DfailIfNoTests=false
