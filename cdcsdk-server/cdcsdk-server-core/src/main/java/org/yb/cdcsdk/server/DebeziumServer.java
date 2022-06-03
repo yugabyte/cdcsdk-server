@@ -60,6 +60,7 @@ public class DebeziumServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(DebeziumServer.class);
 
     private static final String PROP_PREFIX = "debezium.";
+    private static final String CDCSDK_PROP_PREFIX = "cdcsdk.";
     private static final String PROP_SOURCE_PREFIX = PROP_PREFIX + "source.";
     private static final String PROP_SINK_PREFIX = PROP_PREFIX + "sink.";
     private static final String PROP_FORMAT_PREFIX = PROP_PREFIX + "format.";
@@ -80,6 +81,9 @@ public class DebeziumServer {
     private static final String FORMAT_PROTOBUF = Protobuf.class.getSimpleName().toLowerCase();
 
     private static final Pattern SHELL_PROPERTY_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+_+[a-zA-Z0-9_]+$");
+
+    private static final String PROP_THREADS = CDCSDK_PROP_PREFIX + "threads";
+    private static final Integer DEFAULT_NUM_THREADS = 1;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -134,6 +138,10 @@ public class DebeziumServer {
         if (!consumer.supportsTombstoneEvents()) {
             props.setProperty(CommonConnectorConfig.TOMBSTONES_ON_DELETE.name(), Boolean.FALSE.toString());
         }
+
+        Integer numThreads = config.getOptionalValue(PROP_THREADS, Integer.class).orElse(DEFAULT_NUM_THREADS);
+        LOGGER.info("Number of threads: {}", numThreads);
+
         props.setProperty("name", name);
         // Set backing store to MemoryOffsetBackingStorage if not set.
         final Optional<String> backingStorage = config.getOptionalValue(PROP_OFFSET_STORAGE, String.class);
@@ -143,22 +151,28 @@ public class DebeziumServer {
         }
         LOGGER.debug("Configuration for DebeziumEngine: {}", props);
 
-        engine = DebeziumEngine.create(keyFormat, valueFormat)
-                .notifying(consumer)
-                .using(props)
-                .using((DebeziumEngine.ConnectorCallback) health)
-                .using((DebeziumEngine.CompletionCallback) health)
-                .build();
+        executor = Executors.newFixedThreadPool(numThreads);
 
-        executor.execute(() -> {
-            try {
-                engine.run();
-            }
-            finally {
-                Quarkus.asyncExit();
-            }
-        });
-        LOGGER.info("Engine executor started");
+        for (int index = 0; index < numThreads; index++) {
+            props.setProperty("taskId", String.valueOf(index));
+            props.setProperty("maxTasks", String.valueOf(numThreads));
+            props.setProperty("offset.storage.file.filename", "data/" + String.valueOf(index));
+            engine = DebeziumEngine.create(keyFormat, valueFormat)
+                    .notifying(consumer)
+                    .using(props)
+                    .using((DebeziumEngine.ConnectorCallback) health)
+                    .using((DebeziumEngine.CompletionCallback) health)
+                    .build();
+            executor.execute(() -> {
+                try {
+                    engine.run();
+                }
+                finally {
+                    Quarkus.asyncExit();
+                }
+            });
+            LOGGER.info("Engine executor {} started", index);
+        }
     }
 
     private void configToProperties(Config config, Properties props, String oldPrefix, String newPrefix) {
