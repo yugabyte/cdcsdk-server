@@ -23,7 +23,7 @@
 
         <version.debezium>1.7.0.Final</version.debezium>
         <!-- YugabyteDB Dependencies -->
-        <version.yugabytedb>1.7.0.5</version.yugabytedb>
+        <version.yugabytedb>1.7.0.6</version.yugabytedb>
 
  
         <version.commons.logging>1.2</version.commons.logging>

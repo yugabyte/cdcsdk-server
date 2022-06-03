@@ -165,8 +165,12 @@
             </snapshots>
         </repository>
         <repository>
-            <id>maven.yugabyte.repo</id>
+            <id>maven.release.yugabyte.repo</id>
             <url>s3://repository.yugabyte.com/maven/release</url>
+        </repository>
+        <repository>
+            <id>maven.yugabyte.repo</id>
+            <url>s3://repository.yugabyte.com/maven/</url>
         </repository>
     </repositories>
 
