@@ -14,7 +14,7 @@
     <modules>
         <module>cdcsdk-server-bom</module>
         <module>cdcsdk-server-core</module>
-        <module>cdcsdk-server-kinesis</module>
+ <!--        <module>cdcsdk-server-kinesis</module>
         <module>cdcsdk-server-pubsub</module>
         <module>cdcsdk-server-pulsar</module>
         <module>cdcsdk-server-eventhubs</module>
@@ -24,7 +24,8 @@
         <module>cdcsdk-server-pravega</module>
         <module>cdcsdk-server-nats-streaming</module>
         <module>cdcsdk-server-null</module>
-        <module>cdcsdk-server-http</module>
+        <module>cdcsdk-server-http</module> -->
+        <module>cdcsdk-server-cloud-storage</module>
     </modules>
 
     <dependencyManagement>
