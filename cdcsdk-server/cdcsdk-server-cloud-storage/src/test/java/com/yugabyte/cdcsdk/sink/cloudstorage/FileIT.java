@@ -11,13 +11,15 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yb.cdcsdk.server.DebeziumServer;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,18 +40,29 @@ import io.quarkus.test.junit.QuarkusTest;
 @QuarkusTest
 @QuarkusTestResource(PostgresTestResourceLifecycleManager.class)
 public class FileIT {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlushingChangeConsumer.class);
+
     @Inject
     DebeziumServer server;
 
     private static final int MESSAGE_COUNT = 4;
 
+    java.io.File workingDirectory;
+
     @Test
     public void testFile() throws IOException {
         Testing.Print.enable();
 
+        workingDirectory = new java.io.File("/tmp/fileIT_test");
+
         Awaitility.await().atMost(Duration.ofSeconds(60)).until(() -> {
-            List<String> lines = Files.readAllLines(Paths.get("/tmp/file_test/stream_.json"), Charset.defaultCharset());
-            return lines.size() == MESSAGE_COUNT;
+            java.io.File[] fileNames = workingDirectory.listFiles();
+            int totalLines = 0;
+
+            for (java.io.File f : fileNames) {
+                totalLines += Files.readAllLines(f.toPath(), Charset.defaultCharset()).size();
+            }
+            return totalLines == MESSAGE_COUNT;
         });
 
         // Testing payload section
@@ -82,8 +95,6 @@ public class FileIT {
          * }
          */
 
-        List<String> lines = Files.readAllLines(Paths.get("/tmp/file_test/stream_.json"), Charset.defaultCharset());
-
         List<String> expected_data = List.of(
                 "{\"id\":1001,\"first_name\":\"Sally\",\"last_name\":\"Thomas\",\"email\":\"sally.thomas@acme.com\"}",
                 "{\"id\":1002,\"first_name\":\"George\",\"last_name\":\"Bailey\",\"email\":\"gbailey@foobar.com\"}",
@@ -92,7 +103,14 @@ public class FileIT {
 
         Iterator<String> expected = expected_data.iterator();
 
-        for (String line : lines) {
+        java.io.File[] fileNames = workingDirectory.listFiles();
+        List<String> allLines = new ArrayList<>();
+
+        for (java.io.File f : fileNames) {
+            allLines.addAll(Files.readAllLines(f.toPath(), Charset.defaultCharset()));
+        }
+
+        for (String line : allLines) {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(line);
             JsonNode after = node.get("payload").get("after");
