@@ -18,8 +18,9 @@ public class FileTestConfigSource extends TestConfigSource {
         Map<String, String> fileTest = new HashMap<>();
 
         fileTest.put("debezium.sink.type", "file");
-        fileTest.put("cdcsdk.sink.file.basedir", "/tmp/file_test");
-        fileTest.put("cdcsdk.sink.file.pattern", "stream_");
+        fileTest.put("cdcsdk.sink.storage.basedir", "/tmp/fileIT_test");
+        fileTest.put("cdcsdk.sink.storage.pattern", "stream_{EPOCH}");
+        fileTest.put("cdcsdk.sink.storage.flushRecords", "1");
         fileTest.put("debezium.format.value", "json"); // Need to explicitly pass in the cloudevents format
 
         fileTest.put("debezium.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
