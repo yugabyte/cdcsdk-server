@@ -20,12 +20,13 @@
         <version.pravega>0.9.1</version.pravega>
         <version.nats>2.8.0</version.nats>
         <version.stan>2.2.3</version.stan>
+        <aws.version>1.11.1015</aws.version>
 
         <version.debezium>1.7.0.Final</version.debezium>
         <!-- YugabyteDB Dependencies -->
         <version.yugabytedb>1.7.0.6</version.yugabytedb>
 
- 
+
         <version.commons.logging>1.2</version.commons.logging>
     </properties>
 
@@ -163,7 +164,7 @@
                 <version>${version.debezium}</version>
                 <type>test</type>
             </dependency>
- 
+
             <!-- Debezium dependencies -->
             <dependency>
                 <groupId>io.debezium</groupId>
@@ -269,6 +270,18 @@
                 <groupId>io.pravega</groupId>
                 <artifactId>pravega-client</artifactId>
                 <version>${version.pravega}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-bom</artifactId>
+                <version>${aws.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-sts</artifactId>
+                <version>${aws.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
