@@ -27,6 +27,7 @@ public class S3TestConfigSource extends TestConfigSource {
         s3Test.put("debezium.source.database.server.name", "testc");
         s3Test.put("debezium.source.schema.include.list", "inventory");
         s3Test.put("debezium.source.table.include.list", "inventory.customers");
+        s3Test.put("quarkus.log.level", "debug");
 
         config = s3Test;
     }

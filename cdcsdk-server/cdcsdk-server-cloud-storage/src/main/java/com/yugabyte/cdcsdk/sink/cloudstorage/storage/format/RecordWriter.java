@@ -17,8 +17,6 @@ package com.yugabyte.cdcsdk.sink.cloudstorage.storage.format;
 
 import java.io.Closeable;
 
-import org.apache.kafka.connect.sink.SinkRecord;
-
 /**
  * Storage specific RecordWriter.
  */
@@ -28,7 +26,9 @@ public interface RecordWriter extends Closeable {
      *
      * @param record the record to persist.
      */
-    void write(SinkRecord record);
+    void write(byte[] value);
+
+    void write(byte[] value, int offset, int length);
 
     /**
      * Close this writer.

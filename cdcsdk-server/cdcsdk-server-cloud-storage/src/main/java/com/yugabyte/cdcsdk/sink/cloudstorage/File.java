@@ -2,10 +2,10 @@ package com.yugabyte.cdcsdk.sink.cloudstorage;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Named;
@@ -21,7 +21,7 @@ public class File extends FlushingChangeConsumer {
 
     private Writer writer = null;
 
-    protected void createWriter(String base, String path, Map<String, String> props) throws IOException {
+    protected void createWriter(String base, String path) throws IOException {
         Path baseDirPath = Paths.get(baseDir);
         FileUtils.forceMkdir(baseDirPath.toFile());
 
@@ -34,11 +34,7 @@ public class File extends FlushingChangeConsumer {
         this.writer.close();
     }
 
-    public void write(String value) throws IOException {
-        this.writer.write(value);
-    }
-
-    public void flush() throws IOException {
-        this.writer.flush();
+    public void write(InputStream is) throws IOException {
+        // this.writer.write(value);
     }
 }

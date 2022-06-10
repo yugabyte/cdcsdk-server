@@ -44,12 +44,4 @@ public class JsonFormat implements Format<S3SinkConnectorConfig, String> {
     public RecordWriterProvider<S3SinkConnectorConfig> getRecordWriterProvider() {
         return new JsonRecordWriterProvider(storage, converter);
     }
-
-    @Override
-    @Deprecated
-    public Object getHiveFactory() {
-        throw new UnsupportedOperationException(
-                "Hive integration is not currently supported in S3 Connector");
-    }
-
 }

@@ -17,14 +17,14 @@ package com.yugabyte.cdcsdk.sink.cloudstorage.s3;
 
 import java.io.IOException;
 
-import org.apache.kafka.connect.sink.SinkRecord;
-
 /**
  * Interface which duplicates RecordWriter, yet with
  * IOException throwing signatures.
  */
 public interface IORecordWriter {
-    void write(SinkRecord sinkRecord) throws IOException;
+    void write(byte[] bytes) throws IOException;
+
+    void write(byte[] bytes, int offset, int length) throws IOException;
 
     void close() throws IOException;
 

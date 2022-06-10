@@ -6,14 +6,10 @@
 package com.yugabyte.cdcsdk.sink.cloudstorage;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import javax.annotation.PostConstruct;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -22,6 +18,9 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.yugabyte.cdcsdk.sink.cloudstorage.buffer.BufferStorage;
+import com.yugabyte.cdcsdk.sink.cloudstorage.buffer.InMemoryBuffer;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
@@ -62,21 +61,18 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
 
     private final Clock clock = Clock.system();
 
-    private static final String PROP_PREFIX = "cdcsdk.sink.storage.";
-    private static final String PROP_BASE_DIR = "basedir";
-    private static final String PROP_PATTERN = "pattern";
-    private static final String PROP_FLUSH_BYTES = "flushMB";
-    private static final String PROP_FLUSH_RECORDS = "flushRecords";
-    private static final String PROP_FLUSH_SECONDS = "flushSeconds";
-
-    private static final Pattern SHELL_PROPERTY_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+_+[a-zA-Z0-9_]+$");
+    protected static final String PROP_PREFIX = "cdcsdk.sink.storage.";
+    protected static final String PROP_BASE_DIR = "basedir";
+    protected static final String PROP_PATTERN = "pattern";
+    protected static final String PROP_FLUSH_BYTES = "flushMB";
+    protected static final String PROP_FLUSH_RECORDS = "flushRecords";
+    protected static final String PROP_FLUSH_SECONDS = "flushSeconds";
 
     private long lineSeparatorLength = 0;
 
-    private Map<String, String> props = new HashMap<>();
+    private BufferStorage buffer;
 
-    @PostConstruct
-    void connect() throws IOException {
+    protected void connect() throws IOException {
         final Config config = ConfigProvider.getConfig();
         this.baseDir = config.getValue(PROP_PREFIX + PROP_BASE_DIR, String.class);
         this.pattern = config.getValue(PROP_PREFIX + PROP_PATTERN, String.class);
@@ -93,13 +89,9 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
                 .ifPresent(t -> flushDuration = Duration.millis(Long.parseLong(t)));
 
         this.lineSeparatorLength = System.lineSeparator().getBytes(Charset.defaultCharset()).length;
-
-        this.configToMap(config, PROP_PREFIX, "");
-
-        LOGGER.info("Properties:");
-        props.forEach((k, v) -> LOGGER.info("{}:{}", k, v));
-        this.newWriter();
         previousFlushInstant = clock.currentTimeAsInstant();
+        LOGGER.info("ChangeConsumer Buffer initialized");
+        buffer = new InMemoryBuffer("tmp");
     }
 
     @Override
@@ -115,8 +107,8 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
             if (record.value() != null) {
                 String value = (String) record.value();
                 try {
-                    this.write(value);
-                    this.write(System.lineSeparator());
+                    this.buffer.getOutputStream().write(value.getBytes());
+                    this.buffer.getOutputStream().write(System.lineSeparator().getBytes());
                     long bytesWritten = value.getBytes(Charset.defaultCharset()).length + lineSeparatorLength;
                     totalBytesWritten += bytesWritten;
                     currentBytesWritten += bytesWritten;
@@ -136,9 +128,9 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
 
     protected void maybeFlush() throws IOException {
         if (currentBytesWritten >= flushBytesWritten || currentRecordsWritten >= flushRecordsWritten) {
-            this.flush();
-            this.closeWriter();
             this.newWriter();
+            this.write(buffer.convertToInputStream());
+            this.closeWriter();
 
             LOGGER.info("Total Statistics: BytesWritten: {}, RecordsWritten: {}", this.totalBytesWritten,
                     this.totalRecordsWritten);
@@ -153,31 +145,13 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
         final String base = NamePatternResolver.resolvePath(sync_datetime, this.baseDir);
         final String path = NamePatternResolver.resolvePath(sync_datetime, this.pattern);
 
-        this.createWriter(base, path, this.props);
+        this.createWriter(base, path);
         LOGGER.info("Created new writer at {}", sync_datetime);
     }
 
-    private void configToMap(Config config, String oldPrefix, String newPrefix) {
-        for (String name : config.getPropertyNames()) {
-            String updatedPropertyName = null;
-            if (SHELL_PROPERTY_NAME_PATTERN.matcher(name).matches()) {
-                updatedPropertyName = name.replace("_", ".").toLowerCase();
-            }
-            if (updatedPropertyName != null && updatedPropertyName.startsWith(oldPrefix)) {
-                this.props.put(newPrefix + updatedPropertyName.substring(oldPrefix.length()),
-                        config.getValue(name, String.class));
-            }
-            else if (name.startsWith(oldPrefix)) {
-                this.props.put(newPrefix + name.substring(oldPrefix.length()), config.getValue(name, String.class));
-            }
-        }
-    }
-
-    protected abstract void createWriter(String base, String path, Map<String, String> props) throws IOException;
+    protected abstract void createWriter(String base, String path) throws IOException;
 
     protected abstract void closeWriter() throws IOException;
 
-    public abstract void write(String value) throws IOException;
-
-    public abstract void flush() throws IOException;
+    public abstract void write(InputStream is) throws IOException;
 }
