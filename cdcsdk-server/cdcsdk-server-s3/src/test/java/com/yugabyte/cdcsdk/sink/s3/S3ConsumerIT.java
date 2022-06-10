@@ -164,8 +164,10 @@ public class S3ConsumerIT {
             S3Object object = s3Client.getObject(new GetObjectRequest(s3Config.getBucketName(), file));
             InputStream objectData = object.getObjectContent();
             BufferedReader reader = new BufferedReader(new InputStreamReader(objectData));
-            while (reader.ready()) {
-                allLines.add(reader.readLine());
+            String line = reader.readLine();
+            while (line != null) {
+                allLines.add(line);
+                line = reader.readLine();
             }
             // Process the objectData stream.
             objectData.close();
