@@ -19,8 +19,6 @@ import static com.yugabyte.cdcsdk.sink.cloudstorage.s3.util.S3ErrorUtils.throwCo
 
 import java.io.IOException;
 
-import org.apache.kafka.connect.sink.SinkRecord;
-
 import com.yugabyte.cdcsdk.sink.cloudstorage.s3.IORecordWriter;
 import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.RecordWriter;
 
@@ -41,9 +39,19 @@ public class S3RetriableRecordWriter implements RecordWriter {
     }
 
     @Override
-    public void write(SinkRecord sinkRecord) {
+    public void write(byte[] value) {
         try {
-            writer.write(sinkRecord);
+            writer.write(value);
+        }
+        catch (IOException e) {
+            throwConnectException(e);
+        }
+    }
+
+    @Override
+    public void write(byte[] bytes, int offset, int length) {
+        try {
+            writer.write(bytes, offset, length);
         }
         catch (IOException e) {
             throwConnectException(e);

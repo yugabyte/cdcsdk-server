@@ -24,7 +24,4 @@ package com.yugabyte.cdcsdk.sink.cloudstorage.storage.format;
  */
 public interface Format<C, T> {
     RecordWriterProvider<C> getRecordWriterProvider();
-
-    @Deprecated
-    Object getHiveFactory();
 }
