@@ -1,4 +1,4 @@
-package com.yugabyte.cdcsdk.sink.cloudstorage;
+package com.yugabyte.cdcsdk.sink.s3;
 
 import java.util.HashMap;
 import java.util.Map;

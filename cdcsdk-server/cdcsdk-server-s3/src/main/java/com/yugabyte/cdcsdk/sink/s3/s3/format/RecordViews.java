@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3.format;
+package com.yugabyte.cdcsdk.sink.s3.s3.format;
 
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;

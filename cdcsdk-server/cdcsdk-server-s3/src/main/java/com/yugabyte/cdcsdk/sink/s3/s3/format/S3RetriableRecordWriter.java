@@ -13,14 +13,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3.format;
+package com.yugabyte.cdcsdk.sink.s3.s3.format;
 
-import static com.yugabyte.cdcsdk.sink.cloudstorage.s3.util.S3ErrorUtils.throwConnectException;
+import static com.yugabyte.cdcsdk.sink.s3.s3.util.S3ErrorUtils.throwConnectException;
 
 import java.io.IOException;
 
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.IORecordWriter;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.RecordWriter;
+import com.yugabyte.cdcsdk.sink.s3.s3.IORecordWriter;
+import com.yugabyte.cdcsdk.sink.s3.storage.format.RecordWriter;
 
 /**
  * Wrapper class which may convert an IOException to either a ConnectException

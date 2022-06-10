@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3.util;
+package com.yugabyte.cdcsdk.sink.s3.s3.util;
 
 import java.io.IOException;
 

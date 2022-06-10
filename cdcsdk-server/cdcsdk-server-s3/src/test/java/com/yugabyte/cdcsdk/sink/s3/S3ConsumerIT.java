@@ -4,7 +4,7 @@
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage;
+package com.yugabyte.cdcsdk.sink.s3;
 
 import static org.junit.Assert.assertEquals;
 
@@ -32,9 +32,9 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3Storage;
-import com.yugabyte.cdcsdk.sink.cloudstorage.util.S3Utils;
+import com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig;
+import com.yugabyte.cdcsdk.sink.s3.s3.S3Storage;
+import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
 
 import io.debezium.testing.testcontainers.PostgresTestResourceLifecycleManager;
 import io.debezium.util.Testing;

@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.storage.format;
+package com.yugabyte.cdcsdk.sink.s3.storage.format;
 
 import java.io.Closeable;
 

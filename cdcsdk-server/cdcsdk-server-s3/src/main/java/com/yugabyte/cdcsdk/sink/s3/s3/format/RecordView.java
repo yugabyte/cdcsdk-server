@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3.format;
+package com.yugabyte.cdcsdk.sink.s3.s3.format;
 
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.sink.SinkRecord;

@@ -13,15 +13,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3;
+package com.yugabyte.cdcsdk.sink.s3.s3;
 
-import static com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig.AWS_ACCESS_KEY_ID_CONFIG;
-import static com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig.AWS_SECRET_ACCESS_KEY_CONFIG;
-import static com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig.REGION_CONFIG;
-import static com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig.S3_PATH_STYLE_ACCESS_ENABLED_CONFIG;
-import static com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig.S3_RETRY_BACKOFF_CONFIG;
-import static com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig.S3_RETRY_MAX_BACKOFF_TIME_MS;
-import static com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig.WAN_MODE_CONFIG;
+import static com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig.AWS_ACCESS_KEY_ID_CONFIG;
+import static com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig.AWS_SECRET_ACCESS_KEY_CONFIG;
+import static com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig.REGION_CONFIG;
+import static com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig.S3_PATH_STYLE_ACCESS_ENABLED_CONFIG;
+import static com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig.S3_RETRY_BACKOFF_CONFIG;
+import static com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig.S3_RETRY_MAX_BACKOFF_TIME_MS;
+import static com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig.WAN_MODE_CONFIG;
 
 import java.io.OutputStream;
 import java.util.Map;
@@ -48,7 +48,7 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.Tag;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.format.json.JsonFormat;
+import com.yugabyte.cdcsdk.sink.s3.s3.format.json.JsonFormat;
 
 /**
  * S3 implementation of the storage interface for Connect sinks.
