@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AmazonClientException;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yugabyte.cdcsdk.sink.s3.FlushingChangeConsumer;
 import com.yugabyte.cdcsdk.sink.s3.s3.format.S3RetriableRecordWriter;
 import com.yugabyte.cdcsdk.sink.s3.storage.config.StorageCommonConfig;
@@ -108,7 +107,7 @@ public class ChangeConsumer extends FlushingChangeConsumer {
     private RecordWriter getRecordWriter(final S3SinkConnectorConfig conf, final String filename) {
         return new S3RetriableRecordWriter(
                 new com.yugabyte.cdcsdk.sink.s3.s3.IORecordWriter() {
-                    final S3OutputStream s3out = storage.create(filename, true, JsonFormat.class);
+                    final S3OutputStream s3out = storage.create(filename, true);
                     final OutputStream s3outWrapper = s3out.wrapForCompression();
 
                     @Override
