@@ -48,7 +48,6 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.Tag;
-import com.yugabyte.cdcsdk.sink.s3.s3.format.json.JsonFormat;
 
 /**
  * S3 implementation of the storage interface for Connect sinks.
@@ -189,10 +188,10 @@ public class S3Storage implements Storage<S3SinkConnectorConfig, ObjectListing> 
 
     @Override
     public OutputStream create(String path, S3SinkConnectorConfig conf, boolean overwrite) {
-        return create(path, overwrite, JsonFormat.class);
+        return create(path, overwrite);
     }
 
-    public S3OutputStream create(String path, boolean overwrite, Class<?> formatClass) {
+    public S3OutputStream create(String path, boolean overwrite) {
         if (!overwrite) {
             throw new UnsupportedOperationException(
                     "Creating a file without overwriting is not currently supported in S3 Connector");

@@ -49,11 +49,9 @@ import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
-import com.yugabyte.cdcsdk.sink.s3.s3.format.json.JsonFormat;
 import com.yugabyte.cdcsdk.sink.s3.storage.ComposableConfig;
 import com.yugabyte.cdcsdk.sink.s3.storage.config.StorageCommonConfig;
 import com.yugabyte.cdcsdk.sink.s3.storage.config.StorageSinkConnectorConfig;
-import com.yugabyte.cdcsdk.sink.s3.storage.format.Format;
 
 public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
 
@@ -142,13 +140,6 @@ public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
 
     public static final String S3_PATH_STYLE_ACCESS_ENABLED_CONFIG = "s3.path.style.access.enabled";
     public static final boolean S3_PATH_STYLE_ACCESS_ENABLED_DEFAULT = true;
-
-    public static final String STORE_KAFKA_KEYS_CONFIG = "store.kafka.keys";
-    public static final String STORE_KAFKA_HEADERS_CONFIG = "store.kafka.headers";
-    public static final String KEYS_FORMAT_CLASS_CONFIG = "keys.format.class";
-    public static final Class<? extends Format> KEYS_FORMAT_CLASS_DEFAULT = JsonFormat.class;
-    public static final String HEADERS_FORMAT_CLASS_CONFIG = "headers.format.class";
-    public static final Class<? extends Format> HEADERS_FORMAT_CLASS_DEFAULT = JsonFormat.class;
 
     private final String name;
 
