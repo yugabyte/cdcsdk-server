@@ -15,9 +15,9 @@ public class S3TestConfigSource extends TestConfigSource {
         s3Test.put("debezium.sink.type", "s3");
         s3Test.put("cdcsdk.sink.storage.s3.bucket.name", "cdcsdk-test");
         s3Test.put("cdcsdk.sink.storage.s3.region", "us-west-2");
-        s3Test.put("cdcsdk.sink.storage.basedir", "rv_manual_test/");
+        s3Test.put("cdcsdk.sink.storage.basedir", "S3ConsumerIT/");
         s3Test.put("cdcsdk.sink.storage.pattern", "stream_{EPOCH}");
-        s3Test.put("cdcsdk.sink.storage.flushRecords", "1");
+        s3Test.put("cdcsdk.sink.storage.flushRecords", "4");
         s3Test.put("debezium.format.value", "json"); // Need to explicitly pass in the cloudevents format
 
         s3Test.put("debezium.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
@@ -30,6 +30,18 @@ public class S3TestConfigSource extends TestConfigSource {
         s3Test.put("quarkus.log.level", "debug");
 
         config = s3Test;
+    }
+
+    public Map<String, String> getMapSubset(String prefix) {
+        Map<String, String> subsetMap = new HashMap<>();
+
+        config.forEach((k, v) -> {
+            if (k.startsWith(prefix)) {
+                subsetMap.put(k.substring(prefix.length()), v);
+            }
+        });
+
+        return subsetMap;
     }
 
     @Override

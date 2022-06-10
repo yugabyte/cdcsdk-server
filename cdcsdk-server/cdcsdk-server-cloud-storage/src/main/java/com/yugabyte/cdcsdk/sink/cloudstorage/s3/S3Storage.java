@@ -246,4 +246,8 @@ public class S3Storage implements Storage<S3SinkConnectorConfig, ObjectListing> 
     public String url() {
         return url;
     }
+
+    public AmazonS3 client() {
+        return this.s3;
+    }
 }
