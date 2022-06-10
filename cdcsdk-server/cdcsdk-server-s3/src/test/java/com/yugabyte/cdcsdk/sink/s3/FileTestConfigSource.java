@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package com.yugabyte.cdcsdk.sink.cloudstorage;
+package com.yugabyte.cdcsdk.sink.s3;
 
 import java.util.HashMap;
 import java.util.Map;

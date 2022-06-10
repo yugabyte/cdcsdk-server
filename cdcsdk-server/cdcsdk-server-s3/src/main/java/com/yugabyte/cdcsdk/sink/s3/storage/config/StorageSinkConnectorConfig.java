@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.storage.config;
+package com.yugabyte.cdcsdk.sink.s3.storage.config;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -26,7 +26,7 @@ import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.common.config.ConfigDef.Width;
 
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.ComposableConfig;
+import com.yugabyte.cdcsdk.sink.s3.storage.ComposableConfig;
 
 public class StorageSinkConnectorConfig extends AbstractConfig implements ComposableConfig {
 

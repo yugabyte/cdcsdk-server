@@ -2,7 +2,7 @@
  * Copyright (c) 2022 Airbyte, Inc., all rights reserved.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.buffer;
+package com.yugabyte.cdcsdk.sink.s3.buffer;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

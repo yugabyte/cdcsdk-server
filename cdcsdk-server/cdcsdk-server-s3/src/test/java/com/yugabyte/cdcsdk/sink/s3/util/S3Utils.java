@@ -1,4 +1,4 @@
-package com.yugabyte.cdcsdk.sink.cloudstorage.util;
+package com.yugabyte.cdcsdk.sink.s3.util;
 
 import java.time.Duration;
 import java.util.ArrayList;

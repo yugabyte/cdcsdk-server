@@ -1,4 +1,4 @@
-package com.yugabyte.cdcsdk.sink.cloudstorage;
+package com.yugabyte.cdcsdk.sink.s3;
 
 import java.util.UUID;
 import java.util.regex.Pattern;

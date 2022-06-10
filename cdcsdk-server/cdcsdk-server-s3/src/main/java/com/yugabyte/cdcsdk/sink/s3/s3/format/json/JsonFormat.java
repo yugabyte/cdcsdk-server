@@ -13,17 +13,17 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3.format.json;
+package com.yugabyte.cdcsdk.sink.s3.s3.format.json;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.kafka.connect.json.JsonConverter;
 
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3Storage;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.Format;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.RecordWriterProvider;
+import com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig;
+import com.yugabyte.cdcsdk.sink.s3.s3.S3Storage;
+import com.yugabyte.cdcsdk.sink.s3.storage.format.Format;
+import com.yugabyte.cdcsdk.sink.s3.storage.format.RecordWriterProvider;
 
 public class JsonFormat implements Format<S3SinkConnectorConfig, String> {
     private final S3Storage storage;

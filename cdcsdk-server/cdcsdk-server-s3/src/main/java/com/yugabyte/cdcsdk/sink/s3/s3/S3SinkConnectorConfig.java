@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3;
+package com.yugabyte.cdcsdk.sink.s3.s3;
 
 import static org.apache.kafka.common.config.ConfigDef.Range.atLeast;
 
@@ -49,11 +49,11 @@ import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.format.json.JsonFormat;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.ComposableConfig;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.config.StorageCommonConfig;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.config.StorageSinkConnectorConfig;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.Format;
+import com.yugabyte.cdcsdk.sink.s3.s3.format.json.JsonFormat;
+import com.yugabyte.cdcsdk.sink.s3.storage.ComposableConfig;
+import com.yugabyte.cdcsdk.sink.s3.storage.config.StorageCommonConfig;
+import com.yugabyte.cdcsdk.sink.s3.storage.config.StorageSinkConnectorConfig;
+import com.yugabyte.cdcsdk.sink.s3.storage.format.Format;
 
 public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
 

@@ -1,1 +1,1 @@
-com.yugabyte.cdcsdk.sink.cloudstorage.S3TestConfigSource
+com.yugabyte.cdcsdk.sink.s3.S3TestConfigSource

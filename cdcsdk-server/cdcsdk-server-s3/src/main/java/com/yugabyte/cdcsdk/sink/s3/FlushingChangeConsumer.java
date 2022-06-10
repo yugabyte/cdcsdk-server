@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package com.yugabyte.cdcsdk.sink.cloudstorage;
+package com.yugabyte.cdcsdk.sink.s3;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,8 +19,8 @@ import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yugabyte.cdcsdk.sink.cloudstorage.buffer.BufferStorage;
-import com.yugabyte.cdcsdk.sink.cloudstorage.buffer.InMemoryBuffer;
+import com.yugabyte.cdcsdk.sink.s3.buffer.BufferStorage;
+import com.yugabyte.cdcsdk.sink.s3.buffer.InMemoryBuffer;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;

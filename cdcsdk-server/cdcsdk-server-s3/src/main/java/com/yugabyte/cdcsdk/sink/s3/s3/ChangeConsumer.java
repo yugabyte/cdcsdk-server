@@ -1,7 +1,8 @@
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3;
+package com.yugabyte.cdcsdk.sink.s3.s3;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -16,12 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AmazonClientException;
-import com.yugabyte.cdcsdk.sink.cloudstorage.FlushingChangeConsumer;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.format.json.JsonFormat;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.config.StorageCommonConfig;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.Format;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.RecordWriter;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.RecordWriterProvider;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.yugabyte.cdcsdk.sink.s3.FlushingChangeConsumer;
+import com.yugabyte.cdcsdk.sink.s3.s3.format.S3RetriableRecordWriter;
+import com.yugabyte.cdcsdk.sink.s3.storage.config.StorageCommonConfig;
+import com.yugabyte.cdcsdk.sink.s3.storage.format.RecordWriter;
 
 @Named("s3")
 @Dependent
@@ -32,8 +32,6 @@ public class ChangeConsumer extends FlushingChangeConsumer {
     private String url;
     private long timeoutMs;
     private S3Storage storage;
-    private Format<S3SinkConnectorConfig, String> format;
-    private RecordWriterProvider<S3SinkConnectorConfig> writerProvider;
 
     private static final Pattern SHELL_PROPERTY_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+_+[a-zA-Z0-9_]+$");
     private Map<String, String> props = new HashMap<>();
@@ -75,7 +73,6 @@ public class ChangeConsumer extends FlushingChangeConsumer {
                 throw new IOException("Non-existent S3 bucket: " + connectorConfig.getBucketName());
             }
             LOGGER.info("Storage validated");
-            writerProvider = new JsonFormat(storage).getRecordWriterProvider();
 
             LOGGER.info("Started S3 connector task with assigned partitions: {}", storage.toString());
         }
@@ -90,7 +87,7 @@ public class ChangeConsumer extends FlushingChangeConsumer {
         LOGGER.info(
                 "Creating new writer filename='{}'",
                 commitFilename);
-        this.writer = writerProvider.getRecordWriter(connectorConfig, commitFilename);
+        this.writer = this.getRecordWriter(connectorConfig, commitFilename);
     }
 
     @Override
@@ -106,5 +103,38 @@ public class ChangeConsumer extends FlushingChangeConsumer {
         while ((bytesRead = is.read(buffer)) != -1) {
             this.writer.write(buffer, 0, bytesRead);
         }
+    }
+
+    private RecordWriter getRecordWriter(final S3SinkConnectorConfig conf, final String filename) {
+        return new S3RetriableRecordWriter(
+                new com.yugabyte.cdcsdk.sink.s3.s3.IORecordWriter() {
+                    final S3OutputStream s3out = storage.create(filename, true, JsonFormat.class);
+                    final OutputStream s3outWrapper = s3out.wrapForCompression();
+
+                    @Override
+                    public void write(byte[] jsonStr) throws IOException {
+                        s3outWrapper.write(jsonStr);
+                        LOGGER.debug("Wrote {} bytes", jsonStr.length);
+                    }
+
+                    @Override
+                    public void write(byte[] jsonStr, int offset, int length) throws IOException {
+                        s3outWrapper.write(jsonStr, offset, length);
+                        LOGGER.debug("Wrote Offset: {}, Length: {}", offset, length);
+                    }
+
+                    @Override
+                    public void commit() throws IOException {
+                        // Flush is required here, because closing the writer will close the underlying
+                        // S3
+                        // output stream before committing any data to S3.
+                        s3out.commit();
+                        s3outWrapper.close();
+                    }
+
+                    @Override
+                    public void close() throws IOException {
+                    }
+                });
     }
 }

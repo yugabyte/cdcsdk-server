@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3.format.json;
+package com.yugabyte.cdcsdk.sink.s3.s3.format.json;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -22,13 +22,13 @@ import org.apache.kafka.connect.json.JsonConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3OutputStream;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3SinkConnectorConfig;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.S3Storage;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.format.RecordViewSetter;
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.format.S3RetriableRecordWriter;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.RecordWriter;
-import com.yugabyte.cdcsdk.sink.cloudstorage.storage.format.RecordWriterProvider;
+import com.yugabyte.cdcsdk.sink.s3.s3.S3OutputStream;
+import com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig;
+import com.yugabyte.cdcsdk.sink.s3.s3.S3Storage;
+import com.yugabyte.cdcsdk.sink.s3.s3.format.RecordViewSetter;
+import com.yugabyte.cdcsdk.sink.s3.s3.format.S3RetriableRecordWriter;
+import com.yugabyte.cdcsdk.sink.s3.storage.format.RecordWriter;
+import com.yugabyte.cdcsdk.sink.s3.storage.format.RecordWriterProvider;
 
 public class JsonRecordWriterProvider extends RecordViewSetter
         implements RecordWriterProvider<S3SinkConnectorConfig> {
@@ -49,7 +49,7 @@ public class JsonRecordWriterProvider extends RecordViewSetter
     @Override
     public RecordWriter getRecordWriter(final S3SinkConnectorConfig conf, final String filename) {
         return new S3RetriableRecordWriter(
-                new com.yugabyte.cdcsdk.sink.cloudstorage.s3.IORecordWriter() {
+                new com.yugabyte.cdcsdk.sink.s3.s3.IORecordWriter() {
                     final S3OutputStream s3out = storage.create(filename, true, JsonFormat.class);
                     final OutputStream s3outWrapper = s3out.wrapForCompression();
 

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.cloudstorage.s3.format;
+package com.yugabyte.cdcsdk.sink.s3.s3.format;
 
 import static java.util.Objects.requireNonNull;
 
-import com.yugabyte.cdcsdk.sink.cloudstorage.s3.format.RecordViews.ValueRecordView;
+import com.yugabyte.cdcsdk.sink.s3.s3.format.RecordViews.ValueRecordView;
 
 public class RecordViewSetter {
     protected RecordView recordView = new ValueRecordView();
