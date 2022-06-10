@@ -40,20 +40,22 @@ public class ChangeConsumer extends FlushingChangeConsumer {
 
     private RecordWriter writer;
 
-    private void configToMap(Config config, String oldPrefix, String newPrefix) {
+    public static Map<String, String> configToMap(Config config, String oldPrefix, String newPrefix) {
+        Map<String, String> configMap = new HashMap<>();
         for (String name : config.getPropertyNames()) {
             String updatedPropertyName = null;
             if (SHELL_PROPERTY_NAME_PATTERN.matcher(name).matches()) {
                 updatedPropertyName = name.replace("_", ".").toLowerCase();
             }
             if (updatedPropertyName != null && updatedPropertyName.startsWith(oldPrefix)) {
-                this.props.put(newPrefix + updatedPropertyName.substring(oldPrefix.length()),
+                configMap.put(newPrefix + updatedPropertyName.substring(oldPrefix.length()),
                         config.getValue(name, String.class));
             }
             else if (name.startsWith(oldPrefix)) {
-                this.props.put(newPrefix + name.substring(oldPrefix.length()), config.getValue(name, String.class));
+                configMap.put(newPrefix + name.substring(oldPrefix.length()), config.getValue(name, String.class));
             }
         }
+        return configMap;
     }
 
     @PostConstruct
@@ -61,7 +63,7 @@ public class ChangeConsumer extends FlushingChangeConsumer {
         try {
             super.connect();
             final Config config = ConfigProvider.getConfig();
-            this.configToMap(config, PROP_PREFIX, "");
+            this.props = ChangeConsumer.configToMap(config, PROP_PREFIX, "");
 
             connectorConfig = new S3SinkConnectorConfig(this.props);
             url = connectorConfig.getString(StorageCommonConfig.STORE_URL_CONFIG);
