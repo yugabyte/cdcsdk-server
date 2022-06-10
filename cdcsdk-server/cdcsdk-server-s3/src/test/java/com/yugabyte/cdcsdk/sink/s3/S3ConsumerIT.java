@@ -32,8 +32,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import com.yugabyte.cdcsdk.sink.s3.s3.S3SinkConnectorConfig;
-import com.yugabyte.cdcsdk.sink.s3.s3.S3Storage;
 import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
 
 import io.debezium.testing.testcontainers.PostgresTestResourceLifecycleManager;
