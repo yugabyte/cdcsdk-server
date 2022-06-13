@@ -25,6 +25,7 @@
         <module>cdcsdk-server-nats-streaming</module>
         <module>cdcsdk-server-null</module>
         <module>cdcsdk-server-http</module>
+        <module>cdcsdk-server-s3</module>
     </modules>
 
     <dependencyManagement>
