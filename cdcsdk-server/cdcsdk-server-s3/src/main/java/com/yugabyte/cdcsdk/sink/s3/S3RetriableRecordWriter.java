@@ -19,14 +19,12 @@ import static com.yugabyte.cdcsdk.sink.s3.S3ErrorUtils.throwConnectException;
 
 import java.io.IOException;
 
-import com.yugabyte.cdcsdk.sink.s3.storage.format.RecordWriter;
-
 /**
  * Wrapper class which may convert an IOException to either a ConnectException
  * or a RetriableException depending upon whether the exception is "retriable"
  * as determined within `throwConnectException()`.
  */
-public class S3RetriableRecordWriter implements RecordWriter {
+public class S3RetriableRecordWriter {
     private final IORecordWriter writer;
 
     public S3RetriableRecordWriter(IORecordWriter writer) {
@@ -37,7 +35,6 @@ public class S3RetriableRecordWriter implements RecordWriter {
         this.writer = writer;
     }
 
-    @Override
     public void write(byte[] value) {
         try {
             writer.write(value);
@@ -47,7 +44,6 @@ public class S3RetriableRecordWriter implements RecordWriter {
         }
     }
 
-    @Override
     public void write(byte[] bytes, int offset, int length) {
         try {
             writer.write(bytes, offset, length);
@@ -57,7 +53,6 @@ public class S3RetriableRecordWriter implements RecordWriter {
         }
     }
 
-    @Override
     public void commit() {
         try {
             writer.commit();
@@ -67,7 +62,6 @@ public class S3RetriableRecordWriter implements RecordWriter {
         }
     }
 
-    @Override
     public void close() {
         try {
             writer.close();
