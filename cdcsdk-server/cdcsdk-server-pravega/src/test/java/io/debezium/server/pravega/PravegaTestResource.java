@@ -45,7 +45,7 @@ public class PravegaTestResource implements QuarkusTestResourceLifecycleManager 
     public Map<String, String> start() {
         container.start();
 
-        String scope = ConfigProvider.getConfig().getValue("debezium.sink.pravega.scope", String.class);
+        String scope = ConfigProvider.getConfig().getValue("cdcsdk.sink.pravega.scope", String.class);
         try (final StreamManager streamManager = StreamManager.create(URI.create(getControllerUri()))) {
             streamManager.createScope(scope);
             StreamConfiguration streamConfig = StreamConfiguration.builder()

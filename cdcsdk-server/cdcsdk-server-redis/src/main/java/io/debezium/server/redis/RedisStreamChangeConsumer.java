@@ -44,7 +44,7 @@ public class RedisStreamChangeConsumer extends BaseChangeConsumer
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisStreamChangeConsumer.class);
 
-    private static final String PROP_PREFIX = "debezium.sink.redis.";
+    private static final String PROP_PREFIX = "cdcsdk.sink.redis.";
     private static final String PROP_ADDRESS = PROP_PREFIX + "address";
     private static final String PROP_USER = PROP_PREFIX + "user";
     private static final String PROP_PASSWORD = PROP_PREFIX + "password";

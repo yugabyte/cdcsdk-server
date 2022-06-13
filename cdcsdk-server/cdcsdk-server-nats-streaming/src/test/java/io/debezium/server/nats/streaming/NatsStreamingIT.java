@@ -42,8 +42,8 @@ import io.quarkus.test.junit.QuarkusTest;
 public class NatsStreamingIT {
     private static final int MESSAGE_COUNT = 4;
     private static final String SUBJECT_NAME = "testc.inventory.customers";
-    private static final String CLUSTER_ID = "debezium";
-    private static final String CLIENT_ID = "debezium-test";
+    private static final String CLUSTER_ID = "cdcsdk";
+    private static final String CLIENT_ID = "cdcsdk-test";
 
     protected static StreamingConnection sc;
     protected static Subscription subscription;

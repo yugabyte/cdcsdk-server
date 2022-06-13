@@ -27,7 +27,7 @@ public class NatsStreamingTestResourceLifecycleManager implements QuarkusTestRes
     private static final AtomicBoolean running = new AtomicBoolean(false);
     private static final GenericContainer<?> container = new GenericContainer<>(NATS_STREAMING_IMAGE)
             .withExposedPorts(NATS_STREAMING_PORT)
-            .withCommand("-SD", "-cid", "debezium")
+            .withCommand("-SD", "-cid", "cdcsdk")
             .waitingFor(new LogMessageWaitStrategy().withRegEx(".*Server is ready.*"));
 
     private static synchronized void start(boolean ignored) {

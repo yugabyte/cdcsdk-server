@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.apache.kafka.connect.runtime.standalone.StandaloneConfig;
 
-import io.debezium.server.TestConfigSource;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
 
 public class EventHubsTestConfigSource extends TestConfigSource {
 

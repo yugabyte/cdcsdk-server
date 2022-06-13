@@ -10,22 +10,23 @@ import java.util.Map;
 
 import org.apache.kafka.connect.runtime.standalone.StandaloneConfig;
 
-import io.debezium.server.TestConfigSource;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
 
 public class HttpTestConfigSource extends TestConfigSource {
 
     public HttpTestConfigSource() {
         Map<String, String> httpTest = new HashMap<>();
 
-        httpTest.put("debezium.sink.type", "http");
-        httpTest.put("debezium.format.value", "json"); // Need to explicitly pass in the cloudevents format
+        httpTest.put("cdcsdk.sink.type", "http");
+        httpTest.put("cdcsdk.format.value", "json"); // Need to explicitly pass in the cloudevents format
 
-        httpTest.put("debezium.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
-        httpTest.put("debezium.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG, OFFSET_STORE_PATH.toAbsolutePath().toString());
-        httpTest.put("debezium.source.offset.flush.interval.ms", "0");
-        httpTest.put("debezium.source.database.server.name", "testc");
-        httpTest.put("debezium.source.schema.include.list", "inventory");
-        httpTest.put("debezium.source.table.include.list", "inventory.customers");
+        httpTest.put("cdcsdk.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
+        httpTest.put("cdcsdk.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
+                OFFSET_STORE_PATH.toAbsolutePath().toString());
+        httpTest.put("cdcsdk.source.offset.flush.interval.ms", "0");
+        httpTest.put("cdcsdk.source.database.server.name", "testc");
+        httpTest.put("cdcsdk.source.schema.include.list", "inventory");
+        httpTest.put("cdcsdk.source.table.include.list", "inventory.customers");
 
         config = httpTest;
     }

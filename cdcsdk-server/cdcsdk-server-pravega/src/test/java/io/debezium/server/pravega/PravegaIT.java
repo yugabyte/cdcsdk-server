@@ -15,7 +15,8 @@ import javax.enterprise.event.Observes;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
-import io.debezium.server.TestConfigSource;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
+
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.testing.testcontainers.PostgresTestResourceLifecycleManager;

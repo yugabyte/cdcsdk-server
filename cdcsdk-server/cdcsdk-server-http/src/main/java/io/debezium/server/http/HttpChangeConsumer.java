@@ -74,7 +74,7 @@ public class HttpChangeConsumer extends BaseChangeConsumer implements DebeziumEn
         config.getOptionalValue(PROP_PREFIX + PROP_CLIENT_TIMEOUT, String.class)
                 .ifPresent(t -> timeoutDuration = Duration.ofMillis(Long.parseLong(t)));
 
-        switch (config.getValue("debezium.format.value", String.class)) {
+        switch (config.getValue("cdcsdk.format.value", String.class)) {
             case "avro":
                 contentType = "avro/bytes";
                 break;

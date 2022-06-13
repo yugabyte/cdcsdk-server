@@ -10,25 +10,25 @@ import java.util.Map;
 
 import org.apache.kafka.connect.runtime.standalone.StandaloneConfig;
 
-import io.debezium.server.TestConfigSource;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
 
 public class NatsStreamingTestConfigSource extends TestConfigSource {
 
     public NatsStreamingTestConfigSource() {
         Map<String, String> natsStreamingTest = new HashMap<>();
 
-        natsStreamingTest.put("debezium.sink.type", "nats-streaming");
-        natsStreamingTest.put("debezium.sink.nats-streaming.url",
+        natsStreamingTest.put("cdcsdk.sink.type", "nats-streaming");
+        natsStreamingTest.put("cdcsdk.sink.nats-streaming.url",
                 NatsStreamingTestResourceLifecycleManager.getNatsStreamingContainerUrl());
-        natsStreamingTest.put("debezium.sink.nats-streaming.cluster.id", "debezium");
-        natsStreamingTest.put("debezium.sink.nats-streaming.client.id", "debezium-sink");
-        natsStreamingTest.put("debezium.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
-        natsStreamingTest.put("debezium.source.database.server.name", "testc");
-        natsStreamingTest.put("debezium.source.schema.include.list", "inventory");
-        natsStreamingTest.put("debezium.source.table.include.list", "inventory.customers");
-        natsStreamingTest.put("debezium.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
+        natsStreamingTest.put("cdcsdk.sink.nats-streaming.cluster.id", "cdcsdk");
+        natsStreamingTest.put("cdcsdk.sink.nats-streaming.client.id", "cdcsdk-sink");
+        natsStreamingTest.put("cdcsdk.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
+        natsStreamingTest.put("cdcsdk.source.database.server.name", "testc");
+        natsStreamingTest.put("cdcsdk.source.schema.include.list", "inventory");
+        natsStreamingTest.put("cdcsdk.source.table.include.list", "inventory.customers");
+        natsStreamingTest.put("cdcsdk.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
                 OFFSET_STORE_PATH.toAbsolutePath().toString());
-        natsStreamingTest.put("debezium.source.offset.flush.interval.ms", "0");
+        natsStreamingTest.put("cdcsdk.source.offset.flush.interval.ms", "0");
 
         config = natsStreamingTest;
     }

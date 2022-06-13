@@ -19,7 +19,6 @@ import org.fest.assertions.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.debezium.DebeziumException;
-import io.debezium.server.TestConfigSource;
 import io.debezium.server.TestConsumer;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.util.Collect;

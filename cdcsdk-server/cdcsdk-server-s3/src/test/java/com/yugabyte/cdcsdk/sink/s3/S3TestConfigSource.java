@@ -5,29 +5,29 @@ import java.util.Map;
 
 import org.apache.kafka.connect.runtime.standalone.StandaloneConfig;
 
-import io.debezium.server.TestConfigSource;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
 
 public class S3TestConfigSource extends TestConfigSource {
 
     public S3TestConfigSource() {
         Map<String, String> s3Test = new HashMap<>();
 
-        s3Test.put("debezium.sink.type", "s3");
+        s3Test.put("cdcsdk.sink.type", "s3");
         s3Test.put("cdcsdk.sink.storage.s3.bucket.name", "cdcsdk-test");
         s3Test.put("cdcsdk.sink.storage.s3.region", "us-west-2");
-        s3Test.put("cdcsdk.sink.storage.basedir", "S3ConsumerIT/");
-        s3Test.put("cdcsdk.sink.storage.pattern", "stream_{EPOCH}");
-        s3Test.put("cdcsdk.sink.storage.flushRecords", "4");
-        s3Test.put("debezium.format.value", "json"); // Need to explicitly pass in the cloudevents format
+        s3Test.put("cdcsdk.sink.s3.basedir", "S3ConsumerIT/");
+        s3Test.put("cdcsdk.sink.s3.pattern", "stream_{EPOCH}");
+        s3Test.put("cdcsdk.sink.s3.flushRecords", "4");
+        s3Test.put("cdcsdk.format.value", "json"); // Need to explicitly pass in the cloudevents format
 
-        s3Test.put("debezium.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
-        s3Test.put("debezium.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
+        s3Test.put("cdcsdk.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
+        s3Test.put("cdcsdk.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
                 OFFSET_STORE_PATH.toAbsolutePath().toString());
-        s3Test.put("debezium.source.offset.flush.interval.ms", "0");
-        s3Test.put("debezium.source.database.server.name", "testc");
-        s3Test.put("debezium.source.schema.include.list", "inventory");
-        s3Test.put("debezium.source.table.include.list", "inventory.customers");
-        s3Test.put("quarkus.log.level", "debug");
+        s3Test.put("cdcsdk.source.offset.flush.interval.ms", "0");
+        s3Test.put("cdcsdk.source.database.server.name", "testc");
+        s3Test.put("cdcsdk.source.schema.include.list", "inventory");
+        s3Test.put("cdcsdk.source.table.include.list", "inventory.customers");
+        s3Test.put("quarkus.log.level", "trace");
 
         config = s3Test;
     }

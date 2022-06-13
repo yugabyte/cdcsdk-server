@@ -29,8 +29,8 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.PushConfig;
 import com.google.pubsub.v1.TopicName;
 import com.yugabyte.cdcsdk.server.ServerApp;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
 
-import io.debezium.server.TestConfigSource;
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.testing.testcontainers.PostgresTestResourceLifecycleManager;

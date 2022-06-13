@@ -10,21 +10,21 @@ import java.util.Map;
 
 import org.apache.kafka.connect.runtime.standalone.StandaloneConfig;
 
-import io.debezium.server.TestConfigSource;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
 
 public class PulsarTestConfigSource extends TestConfigSource {
 
     public PulsarTestConfigSource() {
         Map<String, String> pulsarTest = new HashMap<>();
 
-        pulsarTest.put("debezium.sink.type", "pulsar");
-        pulsarTest.put("debezium.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
-        pulsarTest.put("debezium.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
+        pulsarTest.put("cdcsdk.sink.type", "pulsar");
+        pulsarTest.put("cdcsdk.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
+        pulsarTest.put("cdcsdk.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
                 OFFSET_STORE_PATH.toAbsolutePath().toString());
-        pulsarTest.put("debezium.source.offset.flush.interval.ms", "0");
-        pulsarTest.put("debezium.source.database.server.name", "testc");
-        pulsarTest.put("debezium.source.schema.include.list", "inventory");
-        pulsarTest.put("debezium.source.table.include.list", "inventory.customers,inventory.nokey");
+        pulsarTest.put("cdcsdk.source.offset.flush.interval.ms", "0");
+        pulsarTest.put("cdcsdk.source.database.server.name", "testc");
+        pulsarTest.put("cdcsdk.source.schema.include.list", "inventory");
+        pulsarTest.put("cdcsdk.source.table.include.list", "inventory.customers,inventory.nokey");
 
         config = pulsarTest;
     }

@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import io.debezium.server.DebeziumServerApicurioProfile;
-import io.debezium.server.TestConfigSource;
 import io.debezium.server.TestConsumer;
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;

@@ -61,12 +61,14 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
 
     private final Clock clock = Clock.system();
 
+    public static final String PROP_SINK_PREFIX = "cdcsdk.sink.";
     public static final String PROP_PREFIX = "cdcsdk.sink.storage.";
-    protected static final String PROP_BASE_DIR = "basedir";
-    protected static final String PROP_PATTERN = "pattern";
-    protected static final String PROP_FLUSH_BYTES = "flushMB";
-    protected static final String PROP_FLUSH_RECORDS = "flushRecords";
-    protected static final String PROP_FLUSH_SECONDS = "flushSeconds";
+    protected static final String PROP_S3_PREFIX = "cdcsdk.sink.s3.";
+    protected static final String PROP_BASE_DIR = PROP_S3_PREFIX + "basedir";
+    protected static final String PROP_PATTERN = PROP_S3_PREFIX + "pattern";
+    protected static final String PROP_FLUSH_BYTES = PROP_S3_PREFIX + "flushMB";
+    protected static final String PROP_FLUSH_RECORDS = PROP_S3_PREFIX + "flushRecords";
+    protected static final String PROP_FLUSH_SECONDS = PROP_S3_PREFIX + "flushSeconds";
 
     private long lineSeparatorLength = 0;
 
@@ -74,30 +76,33 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
 
     protected void connect() throws IOException {
         final Config config = ConfigProvider.getConfig();
-        this.baseDir = config.getValue(PROP_PREFIX + PROP_BASE_DIR, String.class);
-        this.pattern = config.getValue(PROP_PREFIX + PROP_PATTERN, String.class);
+        this.baseDir = config.getValue(PROP_BASE_DIR, String.class);
+        this.pattern = config.getValue(PROP_PATTERN, String.class);
 
         flushBytesWritten = FLUSH_BYTES_WRITTEN_DEFAULT;
         flushRecordsWritten = FLUSH_RECORDS_WRITTEN_DEFAULT;
         flushDuration = Duration.millis(FLUSH_DURATION_DEFAULT);
 
-        config.getOptionalValue(PROP_PREFIX + PROP_FLUSH_BYTES, String.class)
+        config.getOptionalValue(PROP_FLUSH_BYTES, String.class)
                 .ifPresent(t -> flushBytesWritten = Long.parseLong(t));
-        config.getOptionalValue(PROP_PREFIX + PROP_FLUSH_RECORDS, String.class)
+        config.getOptionalValue(PROP_FLUSH_RECORDS, String.class)
                 .ifPresent(t -> flushRecordsWritten = Long.parseLong(t));
-        config.getOptionalValue(PROP_PREFIX + PROP_FLUSH_SECONDS, String.class)
+        config.getOptionalValue(PROP_FLUSH_SECONDS, String.class)
                 .ifPresent(t -> flushDuration = Duration.millis(Long.parseLong(t)));
 
         this.lineSeparatorLength = System.lineSeparator().getBytes(Charset.defaultCharset()).length;
+
+        buffer = new InMemoryBuffer("tmp");
+
         previousFlushInstant = clock.currentTimeAsInstant();
         LOGGER.info("ChangeConsumer Buffer initialized");
-        buffer = new InMemoryBuffer("tmp");
     }
 
     @Override
     public void handleBatch(List<ChangeEvent<Object, Object>> records,
                             DebeziumEngine.RecordCommitter<ChangeEvent<Object, Object>> committer)
             throws InterruptedException {
+        LOGGER.trace("Handle Batch with {} records", records.size());
         totalRecordsWritten += records.size();
         currentRecordsWritten += records.size();
 
@@ -114,6 +119,7 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
                     currentBytesWritten += bytesWritten;
                 }
                 catch (IOException ioe) {
+                    LOGGER.error(ioe.getMessage());
                     throw new InterruptedException(ioe.toString());
                 }
             }
@@ -122,6 +128,7 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
             this.maybeFlush();
         }
         catch (IOException ioe) {
+            LOGGER.error(ioe.getMessage());
             throw new InterruptedException(ioe.toString());
         }
     }

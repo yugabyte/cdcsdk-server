@@ -69,8 +69,12 @@ public class ServerApp {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerApp.class);
 
-    private static final String PROP_PREFIX = "debezium.";
-    private static final String CDCSDK_PROP_PREFIX = "cdcsdk.";
+    // For testing only
+    private static final String PROP_DEBEZIUM_PREFIX = "debezium.";
+    private static final String PROP_DEBEZIUM_SOURCE_PREFIX = PROP_DEBEZIUM_PREFIX + "source.";
+
+    private static final String PROP_PREFIX = "cdcsdk.";
+    private static final String PROP_SERVER_PREFIX = PROP_PREFIX + "server.";
     private static final String PROP_SOURCE_PREFIX = PROP_PREFIX + "source.";
     private static final String PROP_SINK_PREFIX = PROP_PREFIX + "sink.";
     private static final String PROP_FORMAT_PREFIX = PROP_PREFIX + "format.";
@@ -92,7 +96,7 @@ public class ServerApp {
 
     private static final Pattern SHELL_PROPERTY_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+_+[a-zA-Z0-9_]+$");
 
-    private static final String PROP_THREADS = CDCSDK_PROP_PREFIX + "threads";
+    private static final String PROP_THREADS = PROP_SERVER_PREFIX + "threads";
     private static final Integer DEFAULT_NUM_THREADS = 1;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -135,6 +139,7 @@ public class ServerApp {
 
         final Class<Any> keyFormat = (Class<Any>) getFormat(config, PROP_KEY_FORMAT);
         final Class<Any> valueFormat = (Class<Any>) getFormat(config, PROP_VALUE_FORMAT);
+        configToProperties(config, props, PROP_DEBEZIUM_SOURCE_PREFIX, "");
         configToProperties(config, props, PROP_SOURCE_PREFIX, "");
         configToProperties(config, props, PROP_FORMAT_PREFIX, "key.converter.");
         configToProperties(config, props, PROP_FORMAT_PREFIX, "value.converter.");
@@ -196,6 +201,8 @@ public class ServerApp {
                         config.getValue(name, String.class));
             }
             else if (name.startsWith(oldPrefix)) {
+                LOGGER.info("Setting {} to {}", newPrefix + name.substring(oldPrefix.length()),
+                        config.getValue(name, String.class));
                 props.setProperty(newPrefix + name.substring(oldPrefix.length()), config.getValue(name, String.class));
             }
         }
