@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package org.yb;
+package com.yugabyte.cdcsdk.server;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -63,19 +63,29 @@ import io.debezium.util.Clock;
 import io.debezium.util.VariableLatch;
 
 /**
- * A mechanism for running a single Kafka Connect {@link SourceConnector} within an application's process. An embedded connector
- * is entirely standalone and only talks with the source system; no Kafka, Kafka Connect, or Zookeeper processes are needed.
- * Applications using an embedded connector simply set one up and supply a {@link Consumer consumer function} to which the
- * connector will pass all {@link SourceRecord}s containing database change events.
+ * A mechanism for running a single Kafka Connect {@link SourceConnector} within
+ * an application's process. An embedded connector
+ * is entirely standalone and only talks with the source system; no Kafka, Kafka
+ * Connect, or Zookeeper processes are needed.
+ * Applications using an embedded connector simply set one up and supply a
+ * {@link Consumer consumer function} to which the
+ * connector will pass all {@link SourceRecord}s containing database change
+ * events.
  * <p>
- * With an embedded connector, the application that runs the connector assumes all responsibility for fault tolerance,
- * scalability, and durability. Additionally, applications must specify how the connector can store its relational database
- * schema history and offsets. By default, this information will be stored in memory and will thus be lost upon application
+ * With an embedded connector, the application that runs the connector assumes
+ * all responsibility for fault tolerance,
+ * scalability, and durability. Additionally, applications must specify how the
+ * connector can store its relational database
+ * schema history and offsets. By default, this information will be stored in
+ * memory and will thus be lost upon application
  * restart.
  * <p>
- * Embedded connectors are designed to be submitted to an {@link Executor} or {@link ExecutorService} for execution by a single
- * thread, and a running connector can be stopped either by calling {@link #stop()} from another thread or by interrupting
- * the running thread (e.g., as is the case with {@link ExecutorService#shutdownNow()}).
+ * Embedded connectors are designed to be submitted to an {@link Executor} or
+ * {@link ExecutorService} for execution by a single
+ * thread, and a running connector can be stopped either by calling
+ * {@link #stop()} from another thread or by interrupting
+ * the running thread (e.g., as is the case with
+ * {@link ExecutorService#shutdownNow()}).
  *
  * @author Randall Hauch
  */
@@ -83,7 +93,8 @@ import io.debezium.util.VariableLatch;
 public final class MTEngine implements DebeziumEngine<SourceRecord> {
 
     /**
-     * A required field for an embedded connector that specifies the unique name for the connector instance.
+     * A required field for an embedded connector that specifies the unique name for
+     * the connector instance.
      */
     public static final Field ENGINE_NAME = Field.create("name")
             .withDescription("Unique name for this connector instance.")
@@ -104,14 +115,16 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
             .required();
 
     /**
-     * A required field for an embedded connector that specifies the name of the normal Debezium connector's Java class.
+     * A required field for an embedded connector that specifies the name of the
+     * normal Debezium connector's Java class.
      */
     public static final Field CONNECTOR_CLASS = Field.create("connector.class")
             .withDescription("The Java class for the connector")
             .required();
 
     /**
-     * An optional field that specifies the name of the class that implements the {@link OffsetBackingStore} interface,
+     * An optional field that specifies the name of the class that implements the
+     * {@link OffsetBackingStore} interface,
      * and that will be used to store offsets recorded by the connector.
      */
     public static final Field OFFSET_STORAGE = Field.create("offset.storage")
@@ -121,18 +134,21 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
             .withDefault(FileOffsetBackingStore.class.getName());
 
     /**
-     * An optional field that specifies the file location for the {@link FileOffsetBackingStore}.
+     * An optional field that specifies the file location for the
+     * {@link FileOffsetBackingStore}.
      *
      * @see #OFFSET_STORAGE
      */
-    public static final Field OFFSET_STORAGE_FILE_FILENAME = Field.create(StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG)
+    public static final Field OFFSET_STORAGE_FILE_FILENAME = Field
+            .create(StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG)
             .withDescription("The file where offsets are to be stored. Required when "
                     + "'offset.storage' is set to the " +
                     FileOffsetBackingStore.class.getName() + " class.")
             .withDefault("");
 
     /**
-     * An optional field that specifies the topic name for the {@link KafkaOffsetBackingStore}.
+     * An optional field that specifies the topic name for the
+     * {@link KafkaOffsetBackingStore}.
      *
      * @see #OFFSET_STORAGE
      */
@@ -143,38 +159,45 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
             .withDefault("");
 
     /**
-     * An optional field that specifies the number of partitions for the {@link KafkaOffsetBackingStore}.
+     * An optional field that specifies the number of partitions for the
+     * {@link KafkaOffsetBackingStore}.
      *
      * @see #OFFSET_STORAGE
      */
-    public static final Field OFFSET_STORAGE_KAFKA_PARTITIONS = Field.create(DistributedConfig.OFFSET_STORAGE_PARTITIONS_CONFIG)
+    public static final Field OFFSET_STORAGE_KAFKA_PARTITIONS = Field
+            .create(DistributedConfig.OFFSET_STORAGE_PARTITIONS_CONFIG)
             .withType(ConfigDef.Type.INT)
             .withDescription("The number of partitions used when creating the offset storage topic. "
                     + "Required with other properties when 'offset.storage' is set to the "
                     + KafkaOffsetBackingStore.class.getName() + " class.");
 
     /**
-     * An optional field that specifies the replication factor for the {@link KafkaOffsetBackingStore}.
+     * An optional field that specifies the replication factor for the
+     * {@link KafkaOffsetBackingStore}.
      *
      * @see #OFFSET_STORAGE
      */
-    public static final Field OFFSET_STORAGE_KAFKA_REPLICATION_FACTOR = Field.create(DistributedConfig.OFFSET_STORAGE_REPLICATION_FACTOR_CONFIG)
+    public static final Field OFFSET_STORAGE_KAFKA_REPLICATION_FACTOR = Field
+            .create(DistributedConfig.OFFSET_STORAGE_REPLICATION_FACTOR_CONFIG)
             .withType(ConfigDef.Type.SHORT)
             .withDescription("Replication factor used when creating the offset storage topic. "
                     + "Required with other properties when 'offset.storage' is set to the "
                     + KafkaOffsetBackingStore.class.getName() + " class.");
 
     /**
-     * An optional advanced field that specifies the maximum amount of time that the embedded connector should wait
+     * An optional advanced field that specifies the maximum amount of time that the
+     * embedded connector should wait
      * for an offset commit to complete.
      */
     public static final Field OFFSET_FLUSH_INTERVAL_MS = Field.create("offset.flush.interval.ms")
-            .withDescription("Interval at which to try committing offsets, given in milliseconds. Defaults to 1 minute (60,000 ms).")
+            .withDescription(
+                    "Interval at which to try committing offsets, given in milliseconds. Defaults to 1 minute (60,000 ms).")
             .withDefault(60000L)
             .withValidation(Field::isNonNegativeInteger);
 
     /**
-     * An optional advanced field that specifies the maximum amount of time that the embedded connector should wait
+     * An optional advanced field that specifies the maximum amount of time that the
+     * embedded connector should wait
      * for an offset commit to complete.
      */
     public static final Field OFFSET_COMMIT_TIMEOUT_MS = Field.create("offset.flush.timeout.ms")
@@ -185,18 +208,21 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
             .withValidation(Field::isPositiveInteger);
 
     public static final Field OFFSET_COMMIT_POLICY = Field.create("offset.commit.policy")
-            .withDescription("The fully-qualified class name of the commit policy type. This class must implement the interface "
-                    + OffsetCommitPolicy.class.getName()
-                    + ". The default is a periodic commit policy based upon time intervals.")
+            .withDescription(
+                    "The fully-qualified class name of the commit policy type. This class must implement the interface "
+                            + OffsetCommitPolicy.class.getName()
+                            + ". The default is a periodic commit policy based upon time intervals.")
             .withDefault(io.debezium.embedded.spi.OffsetCommitPolicy.PeriodicCommitOffsetPolicy.class.getName())
             .withValidation(Field::isClassName);
 
     protected static final Field INTERNAL_KEY_CONVERTER_CLASS = Field.create("internal.key.converter")
-            .withDescription("The Converter class that should be used to serialize and deserialize key data for offsets.")
+            .withDescription(
+                    "The Converter class that should be used to serialize and deserialize key data for offsets.")
             .withDefault(JsonConverter.class.getName());
 
     protected static final Field INTERNAL_VALUE_CONVERTER_CLASS = Field.create("internal.value.converter")
-            .withDescription("The Converter class that should be used to serialize and deserialize value data for offsets.")
+            .withDescription(
+                    "The Converter class that should be used to serialize and deserialize value data for offsets.")
             .withDefault(JsonConverter.class.getName());
 
     /**
@@ -339,7 +365,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     }
 
     /**
-     * Callback function which informs users about the various stages a connector goes through during startup
+     * Callback function which informs users about the various stages a connector
+     * goes through during startup
      */
     @Deprecated
     public interface ConnectorCallback extends DebeziumEngine.ConnectorCallback {
@@ -375,28 +402,34 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         }
 
         /**
-         * Causes the current thread to wait until the {@link #handle(boolean, String, Throwable) completion occurs}
+         * Causes the current thread to wait until the
+         * {@link #handle(boolean, String, Throwable) completion occurs}
          * or until the thread is {@linkplain Thread#interrupt interrupted}.
          * <p>
          * This method returns immediately if the connector has completed already.
          *
-         * @throws InterruptedException if the current thread is interrupted while waiting
+         * @throws InterruptedException if the current thread is interrupted while
+         *                              waiting
          */
         public void await() throws InterruptedException {
             this.completed.await();
         }
 
         /**
-         * Causes the current thread to wait until the {@link #handle(boolean, String, Throwable) completion occurs},
-         * unless the thread is {@linkplain Thread#interrupt interrupted}, or the specified waiting time elapses.
+         * Causes the current thread to wait until the
+         * {@link #handle(boolean, String, Throwable) completion occurs},
+         * unless the thread is {@linkplain Thread#interrupt interrupted}, or the
+         * specified waiting time elapses.
          * <p>
          * This method returns immediately if the connector has completed already.
          *
          * @param timeout the maximum time to wait
-         * @param unit the time unit of the {@code timeout} argument
-         * @return {@code true} if the completion was received, or {@code false} if the waiting time elapsed before the completion
+         * @param unit    the time unit of the {@code timeout} argument
+         * @return {@code true} if the completion was received, or {@code false} if the
+         *         waiting time elapsed before the completion
          *         was received.
-         * @throws InterruptedException if the current thread is interrupted while waiting
+         * @throws InterruptedException if the current thread is interrupted while
+         *                              waiting
          */
         public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
             return this.completed.await(timeout, unit);
@@ -405,8 +438,10 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         /**
          * Determine if the connector has completed.
          *
-         * @return {@code true} if the connector has completed, or {@code false} if the connector is still running and this
-         *         callback has not yet been {@link #handle(boolean, String, Throwable) notified}
+         * @return {@code true} if the connector has completed, or {@code false} if the
+         *         connector is still running and this
+         *         callback has not yet been {@link #handle(boolean, String, Throwable)
+         *         notified}
          */
         public boolean hasCompleted() {
             return completed.getCount() == 0;
@@ -415,8 +450,10 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         /**
          * Get whether the connector completed normally.
          *
-         * @return {@code true} if the connector completed normally, or {@code false} if the connector produced an error that
-         *         prevented startup or premature termination (or the connector has not yet {@link #hasCompleted() completed})
+         * @return {@code true} if the connector completed normally, or {@code false} if
+         *         the connector produced an error that
+         *         prevented startup or premature termination (or the connector has not
+         *         yet {@link #hasCompleted() completed})
          */
         public boolean success() {
             return success;
@@ -425,7 +462,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         /**
          * Get the completion message.
          *
-         * @return the completion message, or null if the connector has not yet {@link #hasCompleted() completed}
+         * @return the completion message, or null if the connector has not yet
+         *         {@link #hasCompleted() completed}
          */
         public String message() {
             return message;
@@ -434,7 +472,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         /**
          * Get the completion error, if there is one.
          *
-         * @return the completion error, or null if there is no error or connector has not yet {@link #hasCompleted() completed}
+         * @return the completion error, or null if there is no error or connector has
+         *         not yet {@link #hasCompleted() completed}
          */
         public Throwable error() {
             return error;
@@ -443,7 +482,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         /**
          * Determine if there is a completion error.
          *
-         * @return {@code true} if there is a {@link #error completion error}, or {@code false} if there is no error or
+         * @return {@code true} if there is a {@link #error completion error}, or
+         *         {@code false} if there is no error or
          *         the connector has not yet {@link #hasCompleted() completed}
          */
         public boolean hasError() {
@@ -452,7 +492,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     }
 
     /**
-     * Contract passed to {@link ChangeConsumer}s, allowing them to commit single records as they have been processed
+     * Contract passed to {@link ChangeConsumer}s, allowing them to commit single
+     * records as they have been processed
      * and to signal that offsets may be flushed eventually.
      */
     @ThreadSafe
@@ -461,8 +502,10 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     }
 
     /**
-     * A contract invoked by the embedded engine when it has received a batch of change records to be processed. Allows
-     * to process multiple records in one go, acknowledging their processing once that's done.
+     * A contract invoked by the embedded engine when it has received a batch of
+     * change records to be processed. Allows
+     * to process multiple records in one go, acknowledging their processing once
+     * that's done.
      */
     @Deprecated
     public static interface ChangeConsumer extends DebeziumEngine.ChangeConsumer<SourceRecord> {
@@ -475,15 +518,20 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
              * the default implementation that is compatible with the old Consumer api.
              *
              * On every record, it calls the consumer, and then only marks the record
-             * as processed when accept returns, additionally, it handles StopConnectorExceptions
-             * and ensures that we all ways try and mark a batch as finished, even with exceptions
-             * @param records the records to be processed
-             * @param committer the committer that indicates to the system that we are finished
+             * as processed when accept returns, additionally, it handles
+             * StopConnectorExceptions
+             * and ensures that we all ways try and mark a batch as finished, even with
+             * exceptions
+             * 
+             * @param records   the records to be processed
+             * @param committer the committer that indicates to the system that we are
+             *                  finished
              *
              * @throws Exception
              */
             @Override
-            public void handleBatch(List<SourceRecord> records, DebeziumEngine.RecordCommitter<SourceRecord> committer) throws InterruptedException {
+            public void handleBatch(List<SourceRecord> records, DebeziumEngine.RecordCommitter<SourceRecord> committer)
+                    throws InterruptedException {
                 for (SourceRecord record : records) {
                     try {
                         consumer.accept(record);
@@ -508,7 +556,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     public static interface Builder extends DebeziumEngine.Builder<SourceRecord> {
 
         /**
-         * Use the specified configuration for the connector. The configuration is assumed to already be valid.
+         * Use the specified configuration for the connector. The configuration is
+         * assumed to already be valid.
          *
          * @param config the configuration
          * @return this builder object so methods can be chained together; never null
@@ -516,8 +565,10 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         Builder using(Configuration config);
 
         /**
-         * Use the specified clock when needing to determine the current time. Passing <code>null</code> or not calling this
-         * method results in the connector using the {@link Clock#system() system clock}.
+         * Use the specified clock when needing to determine the current time. Passing
+         * <code>null</code> or not calling this
+         * method results in the connector using the {@link Clock#system() system
+         * clock}.
          *
          * @param clock the clock
          * @return this builder object so methods can be chained together; never null
@@ -546,7 +597,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     }
 
     /**
-     * Obtain a new {@link Builder} instance that can be used to construct runnable {@link MTEngine} instances.
+     * Obtain a new {@link Builder} instance that can be used to construct runnable
+     * {@link MTEngine} instances.
      *
      * @return the new builder; never null
      */
@@ -576,7 +628,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     private SourceTask task;
     private final Transformations transformations;
 
-    private MTEngine(Configuration config, ClassLoader classLoader, Clock clock, DebeziumEngine.ChangeConsumer<SourceRecord> handler,
+    private MTEngine(Configuration config, ClassLoader classLoader, Clock clock,
+                     DebeziumEngine.ChangeConsumer<SourceRecord> handler,
                      DebeziumEngine.CompletionCallback completionCallback, DebeziumEngine.ConnectorCallback connectorCallback,
                      OffsetCommitPolicy offsetCommitPolicy) {
         this.config = config;
@@ -602,14 +655,18 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         Configuration valueConverterConfig = config;
         if (valueConverter instanceof JsonConverter) {
             // Make sure that the JSON converter is configured to NOT enable schemas ...
-            valueConverterConfig = config.edit().with(INTERNAL_VALUE_CONVERTER_CLASS + ".schemas.enable", false).build();
+            valueConverterConfig = config.edit().with(INTERNAL_VALUE_CONVERTER_CLASS + ".schemas.enable", false)
+                    .build();
         }
-        valueConverter.configure(valueConverterConfig.subset(INTERNAL_VALUE_CONVERTER_CLASS.name() + ".", true).asMap(), false);
+        valueConverter.configure(valueConverterConfig.subset(INTERNAL_VALUE_CONVERTER_CLASS.name() + ".", true).asMap(),
+                false);
 
         transformations = new Transformations(config);
 
-        // Create the worker config, adding extra fields that are required for validation of a worker config
-        // but that are not used within the embedded engine (since the source records are never serialized) ...
+        // Create the worker config, adding extra fields that are required for
+        // validation of a worker config
+        // but that are not used within the embedded engine (since the source records
+        // are never serialized) ...
         Map<String, String> embeddedConfig = config.asMap(ALL_FIELDS);
         embeddedConfig.put(WorkerConfig.KEY_CONVERTER_CLASS_CONFIG, JsonConverter.class.getName());
         embeddedConfig.put(WorkerConfig.VALUE_CONVERTER_CLASS_CONFIG, JsonConverter.class.getName());
@@ -631,32 +688,41 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
 
     private void fail(String msg, Throwable error) {
         if (completionResult.hasError()) {
-            // there's already a recorded failure, so keep the original one and simply log this one
+            // there's already a recorded failure, so keep the original one and simply log
+            // this one
             LOGGER.error(msg, error);
             return;
         }
-        // don't use the completion callback here because we want to store the error and message only
+        // don't use the completion callback here because we want to store the error and
+        // message only
         completionResult.handle(false, msg, error);
     }
 
     private void succeed(String msg) {
-        // don't use the completion callback here because we want to store the error and message only
+        // don't use the completion callback here because we want to store the error and
+        // message only
         completionResult.handle(true, msg, null);
     }
 
     /**
-     * Run this embedded connector and deliver database changes to the registered {@link Consumer}. This method blocks until
+     * Run this embedded connector and deliver database changes to the registered
+     * {@link Consumer}. This method blocks until
      * the connector is stopped.
      * <p>
-     * First, the method checks to see if this instance is currently {@link #run() running}, and if so immediately returns.
+     * First, the method checks to see if this instance is currently {@link #run()
+     * running}, and if so immediately returns.
      * <p>
-     * If the configuration is valid, this method starts the connector and starts polling the connector for change events.
-     * All messages are delivered in batches to the {@link Consumer} registered with this embedded connector. The batch size,
+     * If the configuration is valid, this method starts the connector and starts
+     * polling the connector for change events.
+     * All messages are delivered in batches to the {@link Consumer} registered with
+     * this embedded connector. The batch size,
      * polling
-     * frequency, and other parameters are controlled via configuration settings. This continues until this connector is
+     * frequency, and other parameters are controlled via configuration settings.
+     * This continues until this connector is
      * {@link #stop() stopped}.
      * <p>
-     * Note that there are two ways to stop a connector running on a thread: calling {@link #stop()} from another thread, or
+     * Note that there are two ways to stop a connector running on a thread: calling
+     * {@link #stop()} from another thread, or
      * interrupting the thread (e.g., via {@link ExecutorService#shutdownNow()}).
      * <p>
      * This method can be called repeatedly as needed.
@@ -672,7 +738,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
             LOGGER.info("Setting up Task name: {}, id: {}, maxTasks: {}", engineName, taskId, maxTasks);
 
             final String connectorClassName = config.getString(CONNECTOR_CLASS);
-            final Optional<DebeziumEngine.ConnectorCallback> connectorCallback = Optional.ofNullable(this.connectorCallback);
+            final Optional<DebeziumEngine.ConnectorCallback> connectorCallback = Optional
+                    .ofNullable(this.connectorCallback);
             // Only one thread can be in this part of the method at a time ...
             latch.countUp();
             try {
@@ -685,7 +752,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                 SourceConnector connector = null;
                 try {
                     @SuppressWarnings("unchecked")
-                    Class<? extends SourceConnector> connectorClass = (Class<SourceConnector>) classLoader.loadClass(connectorClassName);
+                    Class<? extends SourceConnector> connectorClass = (Class<SourceConnector>) classLoader
+                            .loadClass(connectorClassName);
                     connector = connectorClass.getDeclaredConstructor().newInstance();
                 }
                 catch (Throwable t) {
@@ -698,7 +766,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                 OffsetBackingStore offsetStore = null;
                 try {
                     @SuppressWarnings("unchecked")
-                    Class<? extends OffsetBackingStore> offsetStoreClass = (Class<OffsetBackingStore>) classLoader.loadClass(offsetStoreClassName);
+                    Class<? extends OffsetBackingStore> offsetStoreClass = (Class<OffsetBackingStore>) classLoader
+                            .loadClass(offsetStoreClassName);
                     offsetStore = offsetStoreClass.getDeclaredConstructor().newInstance();
                 }
                 catch (Throwable t) {
@@ -718,11 +787,13 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
 
                 // Set up the offset commit policy ...
                 if (offsetCommitPolicy == null) {
-                    offsetCommitPolicy = Instantiator.getInstanceWithProperties(config.getString(MTEngine.OFFSET_COMMIT_POLICY),
+                    offsetCommitPolicy = Instantiator.getInstanceWithProperties(
+                            config.getString(MTEngine.OFFSET_COMMIT_POLICY),
                             () -> getClass().getClassLoader(), config.asProperties());
                 }
 
-                // Initialize the connector using a context that does NOT respond to requests to reconfigure tasks ...
+                // Initialize the connector using a context that does NOT respond to requests to
+                // reconfigure tasks ...
                 ConnectorContext context = new ConnectorContext() {
 
                     @Override
@@ -744,13 +815,15 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                 Duration commitTimeout = Duration.ofMillis(config.getLong(OFFSET_COMMIT_TIMEOUT_MS));
 
                 try {
-                    // Start the connector with the given properties and get the task configurations ...
+                    // Start the connector with the given properties and get the task configurations
+                    // ...
                     connector.start(config.asMap());
                     connectorCallback.ifPresent(DebeziumEngine.ConnectorCallback::connectorStarted);
                     List<Map<String, String>> taskConfigs = connector.taskConfigs(maxTasks);
                     Class<? extends Task> taskClass = connector.taskClass();
                     if (taskConfigs.isEmpty()) {
-                        String msg = "Unable to start connector's task class '" + taskClass.getName() + "' with no task configuration";
+                        String msg = "Unable to start connector's task class '" + taskClass.getName()
+                                + "' with no task configuration";
                         fail(msg);
                         return;
                     }
@@ -769,7 +842,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                                 return offsetReader;
                             }
 
-                            // Purposely not marking this method with @Override as it was introduced in Kafka 2.x
+                            // Purposely not marking this method with @Override as it was introduced in
+                            // Kafka 2.x
                             // and otherwise would break builds based on Kafka 1.x
                             public Map<String, String> configs() {
                                 // TODO Auto-generated method stub
@@ -791,7 +865,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                         }
                         // Mask the passwords ...
                         Configuration config = Configuration.from(taskConfigs.get(0)).withMaskedPasswords();
-                        String msg = "Unable to initialize and start connector's task class '" + taskClass.getName() + "' with config: "
+                        String msg = "Unable to initialize and start connector's task class '" + taskClass.getName()
+                                + "' with config: "
                                 + config;
                         fail(msg, t);
                         return;
@@ -805,13 +880,16 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                         while (runningThread.get() != null) {
                             List<SourceRecord> changeRecords = null;
                             try {
-                                LOGGER.debug("Embedded engine is polling task for records on thread {}", runningThread.get());
+                                LOGGER.debug("Embedded engine is polling task for records on thread {}",
+                                        runningThread.get());
                                 changeRecords = task.poll(); // blocks until there are values ...
                                 LOGGER.debug("Embedded engine returned from polling task for records");
                             }
                             catch (InterruptedException e) {
                                 // Interrupted while polling ...
-                                LOGGER.debug("Embedded engine interrupted on thread {} while polling the task for records", runningThread.get());
+                                LOGGER.debug(
+                                        "Embedded engine interrupted on thread {} while polling the task for records",
+                                        runningThread.get());
                                 if (this.runningThread.get() == Thread.currentThread()) {
                                     // this thread is still set as the running thread -> we were not interrupted
                                     // due the stop() call -> probably someone else called the interrupt on us ->
@@ -859,7 +937,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                     finally {
                         if (handlerError != null) {
                             // There was an error in the handler so make sure it's always captured...
-                            fail("Stopping connector after error in the application's handler method: " + handlerError.getMessage(),
+                            fail("Stopping connector after error in the application's handler method: "
+                                    + handlerError.getMessage(),
                                     handlerError);
                         }
                         try {
@@ -867,7 +946,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                             LOGGER.debug("Stopping the task and engine");
                             task.stop();
                             connectorCallback.ifPresent(DebeziumEngine.ConnectorCallback::taskStopped);
-                            // Always commit offsets that were captured from the source records we actually processed ...
+                            // Always commit offsets that were captured from the source records we actually
+                            // processed ...
                             commitOffsets(offsetWriter, commitTimeout, task);
                             if (handlerError == null) {
                                 // We stopped normally ...
@@ -908,8 +988,10 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
             finally {
                 latch.countDown();
                 runningThread.set(null);
-                // after we've "shut down" the engine, fire the completion callback based on the results we collected
-                completionCallback.handle(completionResult.success(), completionResult.message(), completionResult.error());
+                // after we've "shut down" the engine, fire the completion callback based on the
+                // results we collected
+                completionCallback.handle(completionResult.success(), completionResult.message(),
+                        completionResult.error());
             }
         }
     }
@@ -917,12 +999,14 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     /**
      * Creates a new RecordCommitter that is responsible for informing the engine
      * about the updates to the given batch
-     * @param offsetWriter the offsetWriter current in use
-     * @param task the sourcetask
+     * 
+     * @param offsetWriter  the offsetWriter current in use
+     * @param task          the sourcetask
      * @param commitTimeout the time in ms until a commit times out
      * @return the new recordCommitter to be used for a given batch
      */
-    protected RecordCommitter buildRecordCommitter(OffsetStorageWriter offsetWriter, SourceTask task, Duration commitTimeout) {
+    protected RecordCommitter buildRecordCommitter(OffsetStorageWriter offsetWriter, SourceTask task,
+                                                   Duration commitTimeout) {
         return new RecordCommitter() {
 
             @Override
@@ -938,9 +1022,11 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
             }
 
             @Override
-            public synchronized void markProcessed(SourceRecord record, DebeziumEngine.Offsets sourceOffsets) throws InterruptedException {
+            public synchronized void markProcessed(SourceRecord record, DebeziumEngine.Offsets sourceOffsets)
+                    throws InterruptedException {
                 SourceRecordOffsets offsets = (SourceRecordOffsets) sourceOffsets;
-                SourceRecord recordWithUpdatedOffsets = new SourceRecord(record.sourcePartition(), offsets.getOffsets(), record.topic(),
+                SourceRecord recordWithUpdatedOffsets = new SourceRecord(record.sourcePartition(), offsets.getOffsets(),
+                        record.topic(),
                         record.kafkaPartition(), record.keySchema(), record.key(), record.valueSchema(), record.value(),
                         record.timestamp(), record.headers());
                 markProcessed(recordWithUpdatedOffsets);
@@ -954,7 +1040,8 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     }
 
     /**
-     * Implementation of {@link DebeziumEngine.Offsets} which can be used to construct a {@link SourceRecord}
+     * Implementation of {@link DebeziumEngine.Offsets} which can be used to
+     * construct a {@link SourceRecord}
      * with its offsets.
      */
     protected class SourceRecordOffsets implements DebeziumEngine.Offsets {
@@ -963,7 +1050,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         /**
          * Performs {@link HashMap#put(Object, Object)} on the offsets map.
          *
-         * @param key key with which to put the value
+         * @param key   key with which to put the value
          * @param value value to be put with the key
          */
         @Override
@@ -982,12 +1069,14 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     }
 
     /**
-     * Determine if we should flush offsets to storage, and if so then attempt to flush offsets.
+     * Determine if we should flush offsets to storage, and if so then attempt to
+     * flush offsets.
      *
-     * @param offsetWriter the offset storage writer; may not be null
-     * @param policy the offset commit policy; may not be null
+     * @param offsetWriter  the offset storage writer; may not be null
+     * @param policy        the offset commit policy; may not be null
      * @param commitTimeout the timeout to wait for commit results
-     * @param task the task which produced the records for which the offsets have been committed
+     * @param task          the task which produced the records for which the
+     *                      offsets have been committed
      */
     protected void maybeFlush(OffsetStorageWriter offsetWriter, OffsetCommitPolicy policy, Duration commitTimeout,
                               SourceTask task)
@@ -1002,11 +1091,13 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     /**
      * Flush offsets to storage.
      *
-     * @param offsetWriter the offset storage writer; may not be null
+     * @param offsetWriter  the offset storage writer; may not be null
      * @param commitTimeout the timeout to wait for commit results
-     * @param task the task which produced the records for which the offsets have been committed
+     * @param task          the task which produced the records for which the
+     *                      offsets have been committed
      */
-    protected void commitOffsets(OffsetStorageWriter offsetWriter, Duration commitTimeout, SourceTask task) throws InterruptedException {
+    protected void commitOffsets(OffsetStorageWriter offsetWriter, Duration commitTimeout, SourceTask task)
+            throws InterruptedException {
         long started = clock.currentTimeInMillis();
         long timeout = started + commitTimeout.toMillis();
         if (!offsetWriter.beginFlush()) {
@@ -1057,10 +1148,12 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     }
 
     /**
-     * Stop the execution of this embedded connector. This method does not block until the connector is stopped; use
+     * Stop the execution of this embedded connector. This method does not block
+     * until the connector is stopped; use
      * {@link #await(long, TimeUnit)} for this purpose.
      *
-     * @return {@code true} if the connector was {@link #run() running} and will eventually stop, or {@code false} if it was not
+     * @return {@code true} if the connector was {@link #run() running} and will
+     *         eventually stop, or {@code false} if it was not
      *         running when this method is called
      * @see #await(long, TimeUnit)
      */
@@ -1070,16 +1163,20 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
         Thread thread = this.runningThread.getAndSet(null);
         if (thread != null) {
             try {
-                // Making sure the event source coordinator has enough time to shut down before forcefully stopping it
+                // Making sure the event source coordinator has enough time to shut down before
+                // forcefully stopping it
                 Duration timeout = Duration.ofMillis(Long
-                        .valueOf(System.getProperty(WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_PROP, Long.toString(WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_DEFAULT.toMillis()))));
+                        .valueOf(System.getProperty(WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_PROP,
+                                Long.toString(WAIT_FOR_COMPLETION_BEFORE_INTERRUPT_DEFAULT.toMillis()))));
                 LOGGER.info("Waiting for {} for connector to stop", timeout);
                 latch.await(timeout.toMillis(), TimeUnit.MILLISECONDS);
             }
             catch (InterruptedException e) {
             }
-            LOGGER.debug("Interrupting the embedded engine's thread {} (already interrupted: {})", thread, thread.isInterrupted());
-            // Interrupt the thread in case it is blocked while polling the task for records ...
+            LOGGER.debug("Interrupting the embedded engine's thread {} (already interrupted: {})", thread,
+                    thread.isInterrupted());
+            // Interrupt the thread in case it is blocked while polling the task for records
+            // ...
             thread.interrupt();
             return true;
         }
@@ -1092,15 +1189,19 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     }
 
     /**
-     * Wait for the connector to complete processing. If the processor is not running, this method returns immediately; however,
-     * if the processor is {@link #stop() stopped} and restarted before this method is called, this method will return only
+     * Wait for the connector to complete processing. If the processor is not
+     * running, this method returns immediately; however,
+     * if the processor is {@link #stop() stopped} and restarted before this method
+     * is called, this method will return only
      * when it completes the second time.
      *
      * @param timeout the maximum amount of time to wait before returning
-     * @param unit the unit of time; may not be null
-     * @return {@code true} if the connector completed within the timeout (or was not running), or {@code false} if it is still
+     * @param unit    the unit of time; may not be null
+     * @return {@code true} if the connector completed within the timeout (or was
+     *         not running), or {@code false} if it is still
      *         running when the timeout occurred
-     * @throws InterruptedException if this thread is interrupted while waiting for the completion of the connector
+     * @throws InterruptedException if this thread is interrupted while waiting for
+     *                              the completion of the connector
      */
     public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
         return latch.await(timeout, unit);

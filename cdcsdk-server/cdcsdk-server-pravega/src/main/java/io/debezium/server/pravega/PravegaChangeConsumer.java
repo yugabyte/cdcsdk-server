@@ -39,7 +39,7 @@ public class PravegaChangeConsumer extends BaseChangeConsumer implements ChangeC
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PravegaChangeConsumer.class);
 
-    private static final String PROP_PREFIX = "debezium.sink.pravega.";
+    private static final String PROP_PREFIX = "cdcsdk.sink.pravega.";
     private static final String PROP_CONTROLLER = PROP_PREFIX + "controller.uri";
     private static final String PROP_SCOPE = PROP_PREFIX + "scope";
     private static final String PROP_TXN = PROP_PREFIX + "transaction";

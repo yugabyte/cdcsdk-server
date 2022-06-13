@@ -18,7 +18,6 @@ import org.awaitility.Awaitility;
 import org.fest.assertions.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.yb.cdcsdk.server.DebeziumServer;
 
 import com.google.cloud.ServiceOptions;
 import com.google.cloud.pubsub.v1.AckReplyConsumer;
@@ -29,8 +28,9 @@ import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.PushConfig;
 import com.google.pubsub.v1.TopicName;
+import com.yugabyte.cdcsdk.server.ServerApp;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
 
-import io.debezium.server.TestConfigSource;
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.testing.testcontainers.PostgresTestResourceLifecycleManager;
@@ -73,7 +73,7 @@ public class PubSubIT {
     }
 
     @Inject
-    DebeziumServer server;
+    ServerApp server;
 
     private static final List<PubsubMessage> messages = Collections.synchronizedList(new ArrayList<>());
 

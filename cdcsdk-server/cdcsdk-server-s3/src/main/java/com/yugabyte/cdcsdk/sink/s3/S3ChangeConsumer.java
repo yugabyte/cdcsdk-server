@@ -46,6 +46,8 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
                         config.getValue(name, String.class));
             }
             else if (name.startsWith(oldPrefix)) {
+                LOGGER.trace("Config - {}:{}", newPrefix + name.substring(oldPrefix.length()),
+                        config.getValue(name, String.class));
                 configMap.put(newPrefix + name.substring(oldPrefix.length()), config.getValue(name, String.class));
             }
         }
@@ -70,7 +72,12 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
             LOGGER.info("Storage validated");
         }
         catch (AmazonClientException e) {
+            LOGGER.error(e.getMessage());
             throw new IOException(e);
+        }
+        catch (Exception exc) {
+            LOGGER.error(exc.getMessage());
+            throw exc;
         }
     }
 

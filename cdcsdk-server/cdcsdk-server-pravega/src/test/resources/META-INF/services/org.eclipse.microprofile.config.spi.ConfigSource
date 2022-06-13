@@ -1,1 +1,1 @@
-io.debezium.server.TestConfigSource
+com.yugabyte.cdcsdk.server.TestConfigSource

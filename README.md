@@ -1,171 +1,283 @@
-[![License](http://img.shields.io/:license-apache%202.0-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.debezium/debezium-parent/badge.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.debezium%22)
-[![User chat](https://img.shields.io/badge/chat-users-brightgreen.svg)](https://gitter.im/debezium/user)
-[![Developer chat](https://img.shields.io/badge/chat-devs-brightgreen.svg)](https://gitter.im/debezium/dev)
-[![Google Group](https://img.shields.io/:mailing%20list-debezium-brightgreen.svg)](https://groups.google.com/forum/#!forum/debezium)
-[![Stack Overflow](http://img.shields.io/:stack%20overflow-debezium-brightgreen.svg)](http://stackoverflow.com/questions/tagged/debezium)
 
-Copyright Debezium Authors.
-Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
-The Antlr grammars within the debezium-ddl-parser module are licensed under the [MIT License](https://opensource.org/licenses/MIT).
+# Yugabyte CDCSDK Server [BETA]
 
-English | [Chinese](README_ZH.md) | [Japanese](README_JA.md)
+Yugabyte CDCSDK Server is an open source project that provides a streaming platform for change data capture from YugabyteDb. The server is based on the [Debezium|debezium.io].
+CDCSDK Server uses [debezium-yugabytedb-connector|https://github.com/yugabyte/debezium-connector-yugabytedb] to capture change data events.
+It supports a YugabyteDb instance as a source and supports the following sinks:
+* Kafka
+* HTTP REST Endpoint
+* AWS S3
 
-# Debezium
-
-Debezium is an open source project that provides a low latency data streaming platform for change data capture (CDC). You setup and configure Debezium to monitor your databases, and then your applications consume events for each row-level change made to the database. Only committed changes are visible, so your application doesn't have to worry about transactions or changes that are rolled back. Debezium provides a single model of all change events, so your application does not have to worry about the intricacies of each kind of database management system. Additionally, since Debezium records the history of data changes in durable, replicated logs, your application can be stopped and restarted at any time, and it will be able to consume all of the events it missed while it was not running, ensuring that all events are processed correctly and completely.
-
-Monitoring databases and being notified when data changes has always been complicated. Relational database triggers can be useful, but are specific to each database and often limited to updating state within the same database (not communicating with external processes). Some databases offer APIs or frameworks for monitoring changes, but there is no standard so each database's approach is different and requires a lot of knowledged and specialized code. It still is very challenging to ensure that all changes are seen and processed in the same order while minimally impacting the database.
-
-Debezium provides modules that do this work for you. Some modules are generic and work with multiple database management systems, but are also a bit more limited in functionality and performance. Other modules are tailored for specific database management systems, so they are often far more capable and they leverage the specific features of the system.
+- [Yugabyte CDCSDK Server [BETA]](#yugabyte-cdcsdk-server-beta)
+  - [Basic architecture](#basic-architecture)
+    - [Engine is the Unit of Work](#engine-is-the-unit-of-work)
+    - [CDCSDK Server](#cdcsdk-server)
+  - [Operations](#operations)
+    - [Topology](#topology)
+    - [Networking](#networking)
+  - [Building Debezium](#building-debezium)
+    - [Why Docker?](#why-docker)
+    - [Configure your Docker environment](#configure-your-docker-environment)
+    - [Building the code](#building-the-code)
+    - [Don't have Docker running locally for builds?](#dont-have-docker-running-locally-for-builds)
+    - [Building just the artifacts, without running tests, CheckStyle, etc.](#building-just-the-artifacts-without-running-tests-checkstyle-etc)
+    - [Running tests of the Postgres connector using the wal2json or pgoutput logical decoding plug-ins](#running-tests-of-the-postgres-connector-using-the-wal2json-or-pgoutput-logical-decoding-plug-ins)
+    - [Running tests of the Postgres connector with specific Apicurio Version](#running-tests-of-the-postgres-connector-with-specific-apicurio-version)
+    - [Running tests of the Postgres connector against an external database, e.g. Amazon RDS](#running-tests-of-the-postgres-connector-against-an-external-database-eg-amazon-rds)
+    - [Running tests of the Oracle connector using Oracle XStream](#running-tests-of-the-oracle-connector-using-oracle-xstream)
+    - [Running tests of the Oracle connector with a non-CDB database](#running-tests-of-the-oracle-connector-with-a-non-cdb-database)
+  - [Contributing](#contributing)
 
 ## Basic architecture
 
-Debezium is a change data capture (CDC) platform that achieves its durability, reliability, and fault tolerance qualities by reusing Kafka and Kafka Connect. Each connector deployed to the Kafka Connect distributed, scalable, fault tolerant service monitors a single upstream database server, capturing all of the changes and recording them in one or more Kafka topics (typically one topic per database table). Kafka ensures that all of these data change events are replicated and totally ordered, and allows many clients to independently consume these same data change events with little impact on the upstream system. Additionally, clients can stop consuming at any time, and when they restart they resume exactly where they left off. Each client can determine whether they want exactly-once or at-least-once delivery of all data change events, and all data change events for each database/table are delivered in the same order they occurred in the upstream database.
+### Engine is the Unit of Work
+A [Debezium Engine](https://debezium.io/documentation/reference/1.9/development/engine.html) implementation is the unit of work. It implements a pipeline consisting of a source, sink and simple transforms. The only supported source is YugabyteDB.
+The source is assigned a set of tablets that is polled at a configurable interval. An engine’s workflow is as follows:
+* Connect to CDCSDK stream
+* Get a list of tables and filter based on the include list.
+* Get and record a list of tablets.
+* Poll tablets in sequence every polling interval
 
-Applications that don't need or want this level of fault tolerance, performance, scalability, and reliability can instead use Debezium's *embedded connector engine* to run a connector directly within the application space. They still want the same data change events, but prefer to have the connectors send them directly to the application rather than persist them inside Kafka.
+### CDCSDK Server
+A Debezium Engine is hosted within the CDCSDK server.The implementation is based on the [Debezium Server](https://debezium.io/documentation/reference/1.9/operations/debezium-server.html).
+It uses the Quarkus framework and extensions to provide a server shell, metrics and alerts.
+By default, a server runs one Engine implementation within a thread. A server can also run in multi-threaded mode wherein multiple engines are assigned to a thread each.
+The server splits tablets into groups in a deterministic manner. Each group of tablets is assigned to an Engine.
 
-## Common use cases
+## Quick Start
 
-There are a number of scenarios in which Debezium can be extremely valuable, but here we outline just a few of them that are more common.
+### Create a CDCSDK Stream in Yugabytedb
 
-### Cache invalidation
+Use [yb-admin create_change_data_stream](https://docs.yugabyte.com/preview/admin/yb-admin/#create-change-data-stream) to create CDC Stream.
+A successful operation returns a message with the Stream ID. Take note of the ID for later steps. For example:
 
-Automatically invalidate entries in a cache as soon as the record(s) for entries change or are removed. If the cache is running in a separate process (e.g., Redis, Memcache, Infinispan, and others), then the simple cache invalidation logic can be placed into a separate process or service, simplifying the main application. In some situations, the logic can be made a little more sophisticated and can use the updated data in the change events to update the affected cache entries.
+```
+CDC Stream ID: d540f5e4890c4d3b812933cbfd703ed3
+```
 
-### Simplifying monolithic applications
+### Download and run CDCSDK Server
+CDCSDK Server distribution archives are available in [Github Releases](https://github.com/yugabyte/cdcsdk-server/releases) of the project.
+Each of the releases has a tar.gz labelled as CDCSDK Server.
 
-Many applications update a database and then do additional work after the changes are committed: update search indexes, update a cache, send notifications, run business logic, etc. This is often called "dual-writes" since the application is writing to multiple systems outside of a single transaction. Not only is the application logic complex and more difficult to maintain, dual writes also risk losing data or making the various systems inconsistent if the application were to crash after a commit but before some/all of the other updates were performed. Using change data capture, these other activities can be performed in separate threads or separate processes/services when the data is committed in the original database. This approach is more tolerant of failures, does not miss events, scales better, and more easily supports upgrading and operations.
+The archive has the following layout:
 
-### Sharing databases
+```
+  cdcsdk-server
+  |-- conf
+  |-- cdcsdk-server-dist-<CDCSDK VERSION>-runner.jar
+  |-- lib
+  |-- run.sh
+```
 
-When multiple applications share a single database, it is often non-trivial for one application to become aware of the changes committed by another application. One approach is to use a message bus, although non-transactional message busses suffer from the "dual-writes" problems mentioned above. However, this becomes very straightforward with Debezium: each application can monitor the database and react to the changes.
+### Unpack and Run Instructions.
 
-### Data integration
+    export CDCSDK_VERSION=<x.y.z>
+    wget https://github.com/yugabyte/cdcsdk-server/releases/download/v${CDCSDK_VERSION}/cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
 
-Data is often stored in multiple places, especially when it is used for different purposes and has slightly different forms. Keeping the multiple systems synchronized can be challenging, but simple ETL-type solutions can be implemented quickly with Debezium and simple event processing logic.
+    # OR Using gh cli
 
-### CQRS
+    gh release download v{CDCSDK_VERSION} -A tar.gz --repo yugabyte/cdcsdk-server
 
-The [Command Query Responsibility Separation (CQRS)](http://martinfowler.com/bliki/CQRS.html) architectural pattern uses a one data model for updating and one or more other data models for reading. As changes are recorded on the update-side, those changes are then processed and used to update the various read representations. As a result CQRS applications are usually more complicated, especially when they need to ensure reliable and totally-ordered processing. Debezium and CDC can make this more approachable: writes are recorded as normal, but Debezium captures those changes in durable, totally ordered streams that are consumed by the services that asynchronously update the read-only views. The write-side tables can represent domain-oriented entities, or when CQRS is paired with [Event Sourcing](http://martinfowler.com/eaaDev/EventSourcing.html) the write-side tables are the append-only event log of commands.
+    tar xvf cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
+    cd cdcsdk-server
 
-## Building Debezium
+    # Configure the application. Check next section
+    touch conf/application.properties
 
-The following software is required to work with the Debezium codebase and build it locally:
+    # Run the application
+    ./run.sh
+## Configuration
 
-* [Git](https://git-scm.com) 2.2.1 or later
-* JDK 11 or later, e.g. [OpenJDK](http://openjdk.java.net/projects/jdk/)
-* [Apache Maven](https://maven.apache.org/index.html) 3.6.3 or later
-* [Docker Engine](https://docs.docker.com/engine/install/) or [Docker Desktop](https://docs.docker.com/desktop/) 1.9 or later
+The main configuration file is conf/application.properties. There are multiple sections configured:
+* `cdcsdk.source` is for source connector configuration; each instance of Debezium Server runs exactly one connector
+* `cdcsdk.sink` is for the sink system configuration
 
-See the links above for installation instructions on your platform. You can verify the versions are installed and running:
+An example configuration file can look like so:
 
-    $ git --version
-    $ javac -version
-    $ mvn -version
-    $ docker --version
+```
+debezium.sink.type=kafka
+cdcsdk.sink.kafka.producer.bootstrap.servers=127.0.0.1:9092
+cdcsdk.sink.kafka.producer.key.serializer=org.apache.kafka.common.serialization.StringSerializer
+cdcsdk.sink.kafka.producer.value.serializer=org.apache.kafka.common.serialization.StringSerializer
+cdcsdk.source.connector.class=io.debezium.connector.yugabytedb.YugabyteDBConnector
+debezium.source.database.hostname=127.0.0.1
+cdcsdk.source.database.port=5433
+cdcsdk.source.database.user=yugabyte
+cdcsdk.source.database.password=yugabyte
+cdcsdk.source.database.dbname=yugabyte
+cdcsdk.source.database.server.name=dbserver1
+cdcsdk.source.database.streamid=<CDCSDK Stream>
+cdcsdk.source.table.include.list=public.test
+cdcsdk.source.database.master.addresses=127.0.0.1:7100
+cdcsdk.source.snapshot.mode=never
+```
 
-### Why Docker?
+For detailed documentation of the configuration, check [debezium docs](https://debezium.io/documentation/reference/stable/operations/debezium-server.html#_sink_configuration)
 
-Many open source software projects use Git, Java, and Maven, but requiring Docker is less common. Debezium is designed to talk to a number of external systems, such as various databases and services, and our integration tests verify Debezium does this correctly. But rather than expect you have all of these software systems installed locally, Debezium's build system uses Docker to automatically download or create the necessary images and start containers for each of the systems. The integration tests can then use these services and verify Debezium behaves as expected, and when the integration tests finish, Debezium's build will automatically stop any containers that it started.
+### Configuration using Environment Variables
 
-Debezium also has a few modules that are not written in Java, and so they have to be required on the target operating system. Docker lets our build do this using images with the target operating system(s) and all necessary development tools.
+Configuration using environment variables maybe useful when running in containers. The rule of thumb
+is to convert the keys to UPPER CASE and replace `.` with `_`. For example, `cdcsdk.source.database.port`
+has to be changed to `CDCSDK_SOURCE_DATABASE_PORT`
 
-Using Docker has several advantages:
+### HTTP Client
+The HTTP Client will stream changes to any HTTP Server for additional processing.
+|Property|Default|Description|
+|--------|-------|-----------|
+|cdcsdk.sink.type||Must be set to `http`|
+|cdcsdk.sink.http.url||The HTTP Server URL to stream events to. This can also be set by defining the K_SINK environment variable, which is used by the Knative source framework.|
+|cdcsdk.sink.http.timeout.ms|60000|The number of seconds to wait for a response from the server before timing out. (default of 60s)|
 
-1. You don't have to install, configure, and run specific versions of each external services on your local machine, or have access to them on your local network. Even if you do, Debezium's build won't use them.
-1. We can test multiple versions of an external service. Each module can start whatever containers it needs, so different modules can easily use different versions of the services.
-1. Everyone can run complete builds locally. You don't have to rely upon a remote continuous integration server running the build in an environment set up with all the required services.
-1. All builds are consistent. When multiple developers each build the same codebase, they should see exactly the same results -- as long as they're using the same or equivalent JDK, Maven, and Docker versions. That's because the containers will be running the same versions of the services on the same operating systems. Plus, all of the tests are designed to connect to the systems running in the containers, so nobody has to fiddle with connection properties or custom configurations specific to their local environments.
-1. No need to clean up the services, even if those services modify and store data locally. Docker *images* are cached, so reusing them to start containers is fast and consistent. However, Docker *containers* are never reused: they always start in their pristine initial state, and are discarded when they are shutdown. Integration tests rely upon containers, and so cleanup is handled automatically.
+### Amazon S3
 
-### Configure your Docker environment
+The Amazon S3 Sink streams changes to an AWS S3 bucket. Only **Inserts** are supported. The available configuration options are:
 
-The Docker Maven Plugin will resolve the docker host by checking the following environment variables:
+|Property|Default|Description|
+|--------|-------|-----------|
+|cdcsdk.sink.type||Must be set to `s3`|
+|cdcsdk.sink.s3.bucket.name|| Name of S3 Bucket|
+|cdcsdk.sink.s3.region|| Name of the region of the S3 bucket|
+|cdcsdk.sink.s3.basedir||Base directory or path where the data has to be stored|
+|cdcsdk.sink.s3.pattern||Pattern to generate paths (sub-directory and filename) for data files|
+|cdcsdk.sink.s3.flushBytesMB|200|Trigger Data File Rollover on file size|
+|cdcsdk.sink.s3.flushRecords|10000|Trigger Data File Rolloever on number of records|
 
-    export DOCKER_HOST=tcp://10.1.2.2:2376
-    export DOCKER_CERT_PATH=/path/to/cdk/.vagrant/machines/default/virtualbox/.docker
-    export DOCKER_TLS_VERIFY=1
 
-These can be set automatically if using Docker Machine or something similar.
+### Mapping Records to S3 Objects
 
-### Building the code
+The Amazon S3 Sink only supports [create events](https://docs.yugabyte.com/preview/explore/change-data-capture/debezium-connector-yugabytedb/#create-events)
+in the CDC Stream. It writes `payload.after` fields to a file in S3.
 
-First obtain the code by cloning the Git repository:
+The filename in S3 is generated as `${cdcsdk.sink.s3.basedir}/${cdcsdk.sink.s3.pattern}`. Pattern can contain placeholders to customize the filenames. It
+supports the following placeholders:
 
-    $ git clone https://github.com/debezium/debezium.git
-    $ cd debezium
+* `{YEAR}`: Year in which the sync was writing the output data in.
+* `{MONTH}`: Month in which the sync was writing the output data in.
+* `{DAY}`: Day in which the sync was writing the output data in.
+* `{HOUR}`: Hour in which the sync was writing the output data in.
+* `{MINUTE}`: Minute in which the sync was writing the output data in.
+* `{SECOND}`: Second in which the sync was writing the output data in.
+* `{MILLISECOND}`: Millisecond in which the sync was writing the output data in.
+* `{EPOCH}`: Milliseconds since Epoch in which the sync was writing the output data in.
+* `{UUID}`: random uuid string
 
-Then build the code using Maven:
+For example, the following pattern can be used to create hourly partitions with multiple files each of which are no greater than 200MB
 
-    $ mvn clean verify
+    {YEAR}-{MONTH}-{DAY}-{HOUR}/data-{UUID}.jsonl
 
-The build starts and uses several Docker containers for different DBMSes. Note that if Docker is not running or configured, you'll likely get an arcane error -- if this is the case, always verify that Docker is running, perhaps by using `docker ps` to list the running containers.
 
-### Don't have Docker running locally for builds?
+#### IAM Policy
 
-You can skip the integration tests and docker-builds with the following command:
+The AWS user account accessing the S3 bucket must have the following permissions:
 
-    $ mvn clean verify -DskipITs
+* ListAllMyBuckets
+* ListBucket
+* GetBucketLocation
+* PutObject
+* GetObject
+* AbortMultipartUpload
+* ListMultipartUploadParts
+* ListBucketMultipartUploads
 
-### Building just the artifacts, without running tests, CheckStyle, etc.
+Copy the following JSON to create the IAM policy for the user account. Change <bucket-name> to a real bucket name. For more information, see Create and attach a policy to an IAM user.
 
-You can skip all non-essential plug-ins (tests, integration tests, CheckStyle, formatter, API compatibility check, etc.) using the "quick" build profile:
+Note: This is the IAM policy for the user account and not a bucket policy.
 
-    $ mvn clean verify -Dquick
+```
+{
+   "Version":"2012-10-17",
+   "Statement":[
+     {
+         "Effect":"Allow",
+         "Action":[
+           "s3:ListAllMyBuckets"
+         ],
+         "Resource":"arn:aws:s3:::*"
+     },
+     {
+         "Effect":"Allow",
+         "Action":[
+           "s3:ListBucket",
+           "s3:GetBucketLocation"
+         ],
+         "Resource":"arn:aws:s3:::<bucket-name>"
+     },
+     {
+         "Effect":"Allow",
+         "Action":[
+           "s3:PutObject",
+           "s3:GetObject",
+           "s3:AbortMultipartUpload",
+           "s3:ListMultipartUploadParts",
+           "s3:ListBucketMultipartUploads"
 
-This provides the fastes way for solely producing the output artifacts, without running any of the QA related Maven plug-ins.
-This comes in handy for producing connector JARs and/or archives as quickly as possible, e.g. for manual testing in Kafka Connect.
+         ],
+         "Resource":"arn:aws:s3:::<bucket-name>/*"
+     }
+   ]
+}
+```
 
-### Running tests of the Postgres connector using the wal2json or pgoutput logical decoding plug-ins
 
-The Postgres connector supports three logical decoding plug-ins for streaming changes from the DB server to the connector: decoderbufs (the default), wal2json, and pgoutput.
-To run the integration tests of the PG connector using wal2json, enable the "wal2json-decoder" build profile:
+## Operations
 
-    $ mvn clean install -pl :debezium-connector-postgres -Pwal2json-decoder
-    
-To run the integration tests of the PG connector using pgoutput, enable the "pgoutput-decoder" and "postgres-10" build profiles:
+### Topology
+![CDCSDK Server Topology](topology.svg)
 
-    $ mvn clean install -pl :debezium-connector-postgres -Ppgoutput-decoder,postgres-10
 
-A few tests currently don't pass when using the wal2json plug-in.
-Look for references to the types defined in `io.debezium.connector.postgresql.DecoderDifferences` to find these tests.
+* A universe can have multiple namespaces.
+* Each namespace can have multiple CDCSDK streams
+* Each CDCSDK stream can have multiple servers associated with it. Default is 1. The group of multiple servers associated with a stream is called a ServerSet.
 
-### Running tests of the Postgres connector with specific Apicurio Version
-To run the tests of PG connector using wal2json or pgoutput logical decoding plug-ins with a specific version of Apicurio, a test property can be passed as:
+### Networking
 
-    $ mvn clean install -pl debezium-connector-postgres -Pwal2json-decoder 
-          -Ddebezium.test.apicurio.version=1.3.1.Final
+A CDCSDK Server requires access to open ports in Yugabytedb. Therefore it has to run in the same VPC (or peered VPC) as the Yugabytedb.
+The server also requires access to sinks in the case of Kafka or HTTP REST Endpoint and the appropriate credentials for writing to AWS S3.
 
-In absence of the property the stable version of Apicurio will be fetched.
+### Healthchecks
 
-### Running tests of the Postgres connector against an external database, e.g. Amazon RDS
-Please note if you want to test against a *non-RDS* cluster, this test requires `<your user>` to be a superuser with not only `replication` but permissions
-to login to `all` databases in `pg_hba.conf`.  It also requires `postgis` packages to be available on the target server for some of the tests to pass.
+CDCSDK Server exposes a simple health check REST API. Currently the health check only ensures that the
+server is up and running.
 
-    $ mvn clean install -pl debezium-connector-postgres -Pwal2json-decoder \
-         -Ddocker.skip.build=true -Ddocker.skip.run=true -Dpostgres.host=<your PG host> \
-         -Dpostgres.user=<your user> -Dpostgres.password=<your password> \
-         -Ddebezium.test.records.waittime=10
+#### Running the health check
 
-Adjust the timeout value as needed.
+The following REST endpoints are exposed:
 
-See [PostgreSQL on Amazon RDS](debezium-connector-postgres/RDS.md) for details on setting up a database on RDS to test against.
+* `/q/health/live` - The application is up and running.
 
-### Running tests of the Oracle connector using Oracle XStream
+* `/q/health/ready` - The application is ready to serve requests.
 
-    $ mvn clean install -pl debezium-connector-oracle -Poracle,xstream -Dinstantclient.dir=<path-to-instantclient>
 
-### Running tests of the Oracle connector with a non-CDB database
+All of the health REST endpoints return a simple JSON object with two fields:
 
-    $ mvn clean install -pl debezium-connector-oracle -Poracle -Dinstantclient.dir=<path-to-instantclient> -Ddatabase.pdb.name=
+status — the overall result of all the health check procedures
 
-## Contributing
+checks — an array of individual checks
 
-The Debezium community welcomes anyone that wants to help out in any way, whether that includes reporting problems, helping with documentation, or contributing code changes to fix bugs, add tests, or implement new features. See [this document](CONTRIBUTE.md) for details.
+The general status of the health check is computed as a logical AND of all the declared health check procedures.
+The checks array is currently empty as we have not specified any health check procedure yet.
 
-A big thank you to all the Debezium contributors!
 
-<a href="https://github.com/debezium/debezium/graphs/contributors">
-  <img src="https://contributors-img.web.app/image?repo=debezium/debezium" />
-</a>
+Example output:
+
+```
+curl http://localhost:8080/q/health/live
+
+{
+    "status": "UP",
+    "checks": [
+        {
+            "name": "debezium",
+            "status": "UP"
+        }
+    ]
+}
+
+curl http://localhost:8080/q/health/ready
+
+{
+    "status": "UP",
+    "checks": [
+    ]
+}
+```

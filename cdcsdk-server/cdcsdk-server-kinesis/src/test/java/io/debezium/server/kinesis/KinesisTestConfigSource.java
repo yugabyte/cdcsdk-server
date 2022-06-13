@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.apache.kafka.connect.runtime.standalone.StandaloneConfig;
 
-import io.debezium.server.TestConfigSource;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
 
 public class KinesisTestConfigSource extends TestConfigSource {
 
@@ -19,14 +19,15 @@ public class KinesisTestConfigSource extends TestConfigSource {
     public KinesisTestConfigSource() {
         Map<String, String> kinesisTest = new HashMap<>();
 
-        kinesisTest.put("debezium.sink.type", "kinesis");
-        kinesisTest.put("debezium.sink.kinesis.region", KINESIS_REGION);
-        kinesisTest.put("debezium.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
-        kinesisTest.put("debezium.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG, OFFSET_STORE_PATH.toAbsolutePath().toString());
-        kinesisTest.put("debezium.source.offset.flush.interval.ms", "0");
-        kinesisTest.put("debezium.source.database.server.name", "testc");
-        kinesisTest.put("debezium.source.schema.include.list", "inventory");
-        kinesisTest.put("debezium.source.table.include.list", "inventory.customers");
+        kinesisTest.put("cdcsdk.sink.type", "kinesis");
+        kinesisTest.put("cdcsdk.sink.kinesis.region", KINESIS_REGION);
+        kinesisTest.put("cdcsdk.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
+        kinesisTest.put("cdcsdk.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
+                OFFSET_STORE_PATH.toAbsolutePath().toString());
+        kinesisTest.put("cdcsdk.source.offset.flush.interval.ms", "0");
+        kinesisTest.put("cdcsdk.source.database.server.name", "testc");
+        kinesisTest.put("cdcsdk.source.schema.include.list", "inventory");
+        kinesisTest.put("cdcsdk.source.table.include.list", "inventory.customers");
 
         config = kinesisTest;
     }

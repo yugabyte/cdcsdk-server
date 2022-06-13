@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package org.yb.cdcsdk.server;
+package com.yugabyte.cdcsdk.server;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import io.debezium.server.DebeziumServerApicurioProfile;
-import io.debezium.server.TestConfigSource;
 import io.debezium.server.TestConsumer;
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
@@ -35,7 +34,7 @@ public class DebeziumServerWithApicurioIT {
 
     private static final int MESSAGE_COUNT = 4;
     @Inject
-    DebeziumServer server;
+    ServerApp server;
 
     {
         Testing.Files.delete(TestConfigSource.OFFSET_STORE_PATH);

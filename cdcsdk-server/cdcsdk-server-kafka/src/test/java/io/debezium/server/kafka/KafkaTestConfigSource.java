@@ -10,25 +10,29 @@ import java.util.Map;
 
 import org.apache.kafka.connect.runtime.standalone.StandaloneConfig;
 
-import io.debezium.server.TestConfigSource;
+import com.yugabyte.cdcsdk.server.TestConfigSource;
 
 public class KafkaTestConfigSource extends TestConfigSource {
 
     public KafkaTestConfigSource() {
         final Map<String, String> kafkaConfig = new HashMap<>();
 
-        kafkaConfig.put("debezium.sink.type", "kafka");
-        kafkaConfig.put("debezium.sink.kafka.producer.bootstrap.servers", KafkaTestResourceLifecycleManager.getBootstrapServers());
-        kafkaConfig.put("debezium.sink.kafka.producer.key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        kafkaConfig.put("debezium.sink.kafka.producer.value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaConfig.put("cdcsdk.sink.type", "kafka");
+        kafkaConfig.put("cdcsdk.sink.kafka.producer.bootstrap.servers",
+                KafkaTestResourceLifecycleManager.getBootstrapServers());
+        kafkaConfig.put("cdcsdk.sink.kafka.producer.key.serializer",
+                "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaConfig.put("cdcsdk.sink.kafka.producer.value.serializer",
+                "org.apache.kafka.common.serialization.StringSerializer");
 
         kafkaConfig.put("debezium.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
-        kafkaConfig.put("debezium.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG, OFFSET_STORE_PATH.toAbsolutePath().toString());
+        kafkaConfig.put("cdcsdk.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
+                OFFSET_STORE_PATH.toAbsolutePath().toString());
 
-        kafkaConfig.put("debezium.source.offset.flush.interval.ms", "0");
-        kafkaConfig.put("debezium.source.database.server.name", "testc");
-        kafkaConfig.put("debezium.source.schema.include.list", "inventory");
-        kafkaConfig.put("debezium.source.table.include.list", "inventory.customers");
+        kafkaConfig.put("cdcsdk.source.offset.flush.interval.ms", "0");
+        kafkaConfig.put("cdcsdk.source.database.server.name", "testc");
+        kafkaConfig.put("cdcsdk.source.schema.include.list", "inventory");
+        kafkaConfig.put("cdcsdk.source.table.include.list", "inventory.customers");
 
         config = kafkaConfig;
     }

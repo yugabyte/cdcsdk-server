@@ -22,11 +22,11 @@ import org.awaitility.Awaitility;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.yb.cdcsdk.server.DebeziumServer;
 
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.google.inject.Inject;
+import com.yugabyte.cdcsdk.server.ServerApp;
 
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.testing.testcontainers.PostgresTestResourceLifecycleManager;
@@ -45,7 +45,7 @@ import io.quarkus.test.junit.QuarkusTest;
 @QuarkusTestResource(HttpTestResourceLifecycleManager.class)
 public class HttpIT {
     @Inject
-    DebeziumServer server;
+    ServerApp server;
 
     private static final int MESSAGE_COUNT = 4;
 

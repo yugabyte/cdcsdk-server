@@ -19,7 +19,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yb.cdcsdk.server.DebeziumServer;
 
 import com.azure.core.util.IterableStream;
 import com.azure.messaging.eventhubs.EventHubClientBuilder;
@@ -27,6 +26,7 @@ import com.azure.messaging.eventhubs.EventHubConsumerClient;
 import com.azure.messaging.eventhubs.EventHubProducerClient;
 import com.azure.messaging.eventhubs.models.EventPosition;
 import com.azure.messaging.eventhubs.models.PartitionEvent;
+import com.yugabyte.cdcsdk.server.ServerApp;
 
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
@@ -69,7 +69,7 @@ public class EventHubsIT {
     }
 
     @Inject
-    DebeziumServer server;
+    ServerApp server;
 
     void setupDependencies(@Observes ConnectorStartedEvent event) {
         String finalConnectionString = String.format("%s;EntityPath=%s",

@@ -39,7 +39,7 @@ public class KafkaChangeConsumer extends BaseChangeConsumer implements DebeziumE
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaChangeConsumer.class);
 
-    private static final String PROP_PREFIX = "debezium.sink.kafka.";
+    private static final String PROP_PREFIX = "cdcsdk.sink.kafka.";
     private static final String PROP_PREFIX_PRODUCER = PROP_PREFIX + "producer.";
 
     private KafkaProducer<Object, Object> producer;

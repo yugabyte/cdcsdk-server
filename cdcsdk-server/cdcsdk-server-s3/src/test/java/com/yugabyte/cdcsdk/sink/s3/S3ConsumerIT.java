@@ -24,7 +24,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yb.cdcsdk.server.DebeziumServer;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -32,6 +31,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.yugabyte.cdcsdk.server.ServerApp;
 import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
 import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
 
@@ -58,7 +58,7 @@ public class S3ConsumerIT {
     private static final long S3_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(60);
 
     @Inject
-    DebeziumServer server;
+    ServerApp server;
 
     static S3Storage storage;
     static S3SinkConnectorConfig s3Config;
