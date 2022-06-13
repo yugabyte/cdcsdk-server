@@ -112,6 +112,10 @@
                     <groupId>io.debezium</groupId>
                     <artifactId>cdcsdk-server-http</artifactId>
                 </dependency>
+                <dependency>
+                    <groupId>io.debezium</groupId>
+                    <artifactId>cdcsdk-server-s3</artifactId>
+                </dependency>
             </dependencies>
             <build>
                 <plugins>
