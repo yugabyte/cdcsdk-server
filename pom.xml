@@ -121,7 +121,7 @@
     </properties>
 
     <modules>
-        <module>debezium-parent</module>
+        <module>cdcsdk-parent</module>
         <module>support/checkstyle</module>
         <module>support/ide-configs</module>
         <module>support/revapi</module>
