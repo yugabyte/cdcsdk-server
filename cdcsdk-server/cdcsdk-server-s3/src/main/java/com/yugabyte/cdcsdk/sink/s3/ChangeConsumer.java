@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AmazonClientException;
 import com.yugabyte.cdcsdk.sink.s3.storage.config.StorageCommonConfig;
-import com.yugabyte.cdcsdk.sink.s3.storage.format.RecordWriter;
 
 @Named("s3")
 @Dependent
@@ -33,7 +32,7 @@ public class ChangeConsumer extends FlushingChangeConsumer {
     private static final Pattern SHELL_PROPERTY_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+_+[a-zA-Z0-9_]+$");
     private Map<String, String> props = new HashMap<>();
 
-    private RecordWriter writer;
+    private S3RetriableRecordWriter writer;
 
     public static Map<String, String> configToMap(Config config, String oldPrefix, String newPrefix) {
         Map<String, String> configMap = new HashMap<>();
@@ -70,8 +69,6 @@ public class ChangeConsumer extends FlushingChangeConsumer {
                 throw new IOException("Non-existent S3 bucket: " + connectorConfig.getBucketName());
             }
             LOGGER.info("Storage validated");
-
-            LOGGER.info("Started S3 connector task with assigned partitions: {}", storage.toString());
         }
         catch (AmazonClientException e) {
             throw new IOException(e);
@@ -102,7 +99,7 @@ public class ChangeConsumer extends FlushingChangeConsumer {
         }
     }
 
-    private RecordWriter getRecordWriter(final S3SinkConnectorConfig conf, final String filename) {
+    private S3RetriableRecordWriter getRecordWriter(final S3SinkConnectorConfig conf, final String filename) {
         return new S3RetriableRecordWriter(
                 new com.yugabyte.cdcsdk.sink.s3.IORecordWriter() {
                     final S3OutputStream s3out = storage.create(filename, true);

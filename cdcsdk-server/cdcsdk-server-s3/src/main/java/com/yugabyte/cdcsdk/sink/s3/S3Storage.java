@@ -52,7 +52,7 @@ import com.amazonaws.services.s3.model.Tag;
 /**
  * S3 implementation of the storage interface for Connect sinks.
  */
-public class S3Storage implements Storage<S3SinkConnectorConfig, ObjectListing> {
+public class S3Storage {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Storage.class);
 
@@ -172,7 +172,6 @@ public class S3Storage implements Storage<S3SinkConnectorConfig, ObjectListing> 
         return config.getCredentialsProvider();
     }
 
-    @Override
     public boolean exists(String name) {
         return StringUtils.isNotBlank(name) && s3.doesObjectExist(bucketName, name);
     }
@@ -181,12 +180,10 @@ public class S3Storage implements Storage<S3SinkConnectorConfig, ObjectListing> 
         return StringUtils.isNotBlank(bucketName) && s3.doesBucketExistV2(bucketName);
     }
 
-    @Override
     public boolean create(String name) {
         throw new UnsupportedOperationException();
     }
 
-    @Override
     public OutputStream create(String path, S3SinkConnectorConfig conf, boolean overwrite) {
         return create(path, overwrite);
     }
@@ -203,12 +200,10 @@ public class S3Storage implements Storage<S3SinkConnectorConfig, ObjectListing> 
         return new S3OutputStream(path, this.conf, s3);
     }
 
-    @Override
     public OutputStream append(String filename) {
         throw new UnsupportedOperationException();
     }
 
-    @Override
     public void delete(String name) {
         if (bucketName.equals(name)) {
             // TODO: decide whether to support delete for the top-level bucket.
@@ -220,7 +215,6 @@ public class S3Storage implements Storage<S3SinkConnectorConfig, ObjectListing> 
         }
     }
 
-    @Override
     public void close() {
     }
 
@@ -231,17 +225,14 @@ public class S3Storage implements Storage<S3SinkConnectorConfig, ObjectListing> 
         s3.setObjectTagging(new SetObjectTaggingRequest(this.bucketName, fileName, objectTagging));
     }
 
-    @Override
     public ObjectListing list(String path) {
         return s3.listObjects(bucketName, path);
     }
 
-    @Override
     public S3SinkConnectorConfig conf() {
         return conf;
     }
 
-    @Override
     public String url() {
         return url;
     }
