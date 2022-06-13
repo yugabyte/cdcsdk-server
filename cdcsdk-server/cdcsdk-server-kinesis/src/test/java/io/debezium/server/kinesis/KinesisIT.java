@@ -14,7 +14,8 @@ import javax.inject.Inject;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
-import org.yb.cdcsdk.server.DebeziumServer;
+
+import com.yugabyte.cdcsdk.server.ServerApp;
 
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
@@ -54,7 +55,7 @@ public class KinesisIT {
     }
 
     @Inject
-    DebeziumServer server;
+    ServerApp server;
 
     void setupDependencies(@Observes ConnectorStartedEvent event) {
         kinesis = KinesisClient.builder()

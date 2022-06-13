@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package org.yb.cdcsdk.server;
+package com.yugabyte.cdcsdk.server;
 
 import java.util.Optional;
 import java.util.Properties;
@@ -43,21 +43,31 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.Startup;
 
 /**
- * <p>The entry point of the Quarkus-based standalone server. The server is configured via Quarkus/Microprofile Configuration sources
- * and provides few out-of-the-box target implementations.</p>
- * <p>The implementation uses CDI to find all classes that implements {@link DebeziumEngine.ChangeConsumer} interface.
- * The candidate classes should be annotated with {@code @Named} annotation and should be {@code Dependent}.</p>
- * <p>The configuration option {@code debezium.consumer} provides a name of the consumer that should be used and the value
- * must match to exactly one of the implementation classes.</p>
+ * <p>
+ * The entry point of the Quarkus-based standalone server. The server is
+ * configured via Quarkus/Microprofile Configuration sources
+ * and provides few out-of-the-box target implementations.
+ * </p>
+ * <p>
+ * The implementation uses CDI to find all classes that implements
+ * {@link DebeziumEngine.ChangeConsumer} interface.
+ * The candidate classes should be annotated with {@code @Named} annotation and
+ * should be {@code Dependent}.
+ * </p>
+ * <p>
+ * The configuration option {@code debezium.consumer} provides a name of the
+ * consumer that should be used and the value
+ * must match to exactly one of the implementation classes.
+ * </p>
  *
  * @author Jiri Pechanec
  *
  */
 @ApplicationScoped
 @Startup
-public class DebeziumServer {
+public class ServerApp {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DebeziumServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerApp.class);
 
     private static final String PROP_PREFIX = "debezium.";
     private static final String CDCSDK_PROP_PREFIX = "cdcsdk.";
@@ -182,7 +192,8 @@ public class DebeziumServer {
                 updatedPropertyName = name.replace("_", ".").toLowerCase();
             }
             if (updatedPropertyName != null && updatedPropertyName.startsWith(oldPrefix)) {
-                props.setProperty(newPrefix + updatedPropertyName.substring(oldPrefix.length()), config.getValue(name, String.class));
+                props.setProperty(newPrefix + updatedPropertyName.substring(oldPrefix.length()),
+                        config.getValue(name, String.class));
             }
             else if (name.startsWith(oldPrefix)) {
                 props.setProperty(newPrefix + name.substring(oldPrefix.length()), config.getValue(name, String.class));
@@ -210,7 +221,8 @@ public class DebeziumServer {
             final Config config = ConfigProvider.getConfig();
             engine.close();
             executor.shutdown();
-            executor.awaitTermination(config.getOptionalValue(PROP_TERMINATION_WAIT, Integer.class).orElse(10), TimeUnit.SECONDS);
+            executor.awaitTermination(config.getOptionalValue(PROP_TERMINATION_WAIT, Integer.class).orElse(10),
+                    TimeUnit.SECONDS);
         }
         catch (Exception e) {
             LOGGER.error("Exception while shuttting down Debezium", e);

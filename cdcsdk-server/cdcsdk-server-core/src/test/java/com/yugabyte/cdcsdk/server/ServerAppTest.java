@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package org.yb.cdcsdk.server;
+package com.yugabyte.cdcsdk.server;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,7 +32,7 @@ import io.quarkus.test.junit.QuarkusTest;
  * @author Jiri Pechanec
  */
 @QuarkusTest
-public class DebeziumServerTest {
+public class ServerAppTest {
 
     private static final int MESSAGE_COUNT = 5;
 
@@ -48,7 +48,7 @@ public class DebeziumServerTest {
     }
 
     @Inject
-    DebeziumServer server;
+    ServerApp server;
 
     @Test
     public void testProps() {
@@ -59,8 +59,10 @@ public class DebeziumServerTest {
         Assertions.assertThat(properties.getProperty("offset.flush.interval.ms.test")).isNotNull();
         Assertions.assertThat(properties.getProperty("offset.flush.interval.ms.test")).isEqualTo("0");
 
-        Assertions.assertThat(properties.getProperty("snapshot.select.statement.overrides.public.table_name")).isNotNull();
-        Assertions.assertThat(properties.getProperty("snapshot.select.statement.overrides.public.table_name")).isEqualTo("SELECT * FROM table_name WHERE 1>2");
+        Assertions.assertThat(properties.getProperty("snapshot.select.statement.overrides.public.table_name"))
+                .isNotNull();
+        Assertions.assertThat(properties.getProperty("snapshot.select.statement.overrides.public.table_name"))
+                .isEqualTo("SELECT * FROM table_name WHERE 1>2");
 
         Assertions.assertThat(properties.getProperty("database.allowPublicKeyRetrieval")).isNotNull();
         Assertions.assertThat(properties.getProperty("database.allowPublicKeyRetrieval")).isEqualTo("true");
@@ -69,9 +71,11 @@ public class DebeziumServerTest {
     @Test
     public void testJson() throws Exception {
         final TestConsumer testConsumer = (TestConsumer) server.getConsumer();
-        Awaitility.await().atMost(Duration.ofSeconds(TestConfigSource.waitForSeconds())).until(() -> (testConsumer.getValues().size() >= MESSAGE_COUNT));
+        Awaitility.await().atMost(Duration.ofSeconds(TestConfigSource.waitForSeconds()))
+                .until(() -> (testConsumer.getValues().size() >= MESSAGE_COUNT));
         Assertions.assertThat(testConsumer.getValues().size()).isEqualTo(MESSAGE_COUNT);
-        Assertions.assertThat(testConsumer.getValues().get(MESSAGE_COUNT - 1)).isEqualTo("{\"line\":\"" + MESSAGE_COUNT + "\"}");
+        Assertions.assertThat(testConsumer.getValues().get(MESSAGE_COUNT - 1))
+                .isEqualTo("{\"line\":\"" + MESSAGE_COUNT + "\"}");
     }
 
     static void appendLinesToSource(int numberOfLines) {
@@ -80,7 +84,8 @@ public class DebeziumServerTest {
             lines[i] = generateLine(i + 1);
         }
         try {
-            java.nio.file.Files.write(TestConfigSource.TEST_FILE_PATH, Collect.arrayListOf(lines), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            java.nio.file.Files.write(TestConfigSource.TEST_FILE_PATH, Collect.arrayListOf(lines),
+                    StandardCharsets.UTF_8, StandardOpenOption.APPEND);
         }
         catch (IOException e) {
             throw new DebeziumException(e);

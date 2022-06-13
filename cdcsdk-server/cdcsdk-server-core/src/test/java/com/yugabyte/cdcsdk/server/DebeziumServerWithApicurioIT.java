@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package org.yb.cdcsdk.server;
+package com.yugabyte.cdcsdk.server;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -13,11 +13,10 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.awaitility.Awaitility;
-import org.fest.assertions.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
-import io.debezium.server.DebeziumServerSchemaRegistryProfile;
+import io.debezium.server.DebeziumServerApicurioProfile;
 import io.debezium.server.TestConfigSource;
 import io.debezium.server.TestConsumer;
 import io.debezium.server.events.ConnectorCompletedEvent;
@@ -30,14 +29,13 @@ import io.quarkus.test.junit.TestProfile;
 
 @QuarkusTest
 @QuarkusTestResource(PostgresTestResourceLifecycleManager.class)
-@TestProfile(DebeziumServerSchemaRegistryProfile.class)
-@EnabledIfSystemProperty(named = "debezium.format.key", matches = "protobuf")
-@EnabledIfSystemProperty(named = "debezium.format.value", matches = "protobuf")
-public class DebeziumServerWithSchemaRegistryIT {
+@TestProfile(DebeziumServerApicurioProfile.class)
+@EnabledIfSystemProperty(named = "test.apicurio", matches = "true", disabledReason = "DebeziumServerWithApicurioIT only runs when apicurio profile is enabled.")
+public class DebeziumServerWithApicurioIT {
 
     private static final int MESSAGE_COUNT = 4;
     @Inject
-    DebeziumServer server;
+    ServerApp server;
 
     {
         Testing.Files.delete(TestConfigSource.OFFSET_STORE_PATH);
@@ -47,7 +45,6 @@ public class DebeziumServerWithSchemaRegistryIT {
         if (!TestConfigSource.isItTest()) {
             return;
         }
-
     }
 
     void connectorCompleted(@Observes ConnectorCompletedEvent event) throws Exception {
@@ -57,14 +54,28 @@ public class DebeziumServerWithSchemaRegistryIT {
     }
 
     @Test
-    public void testPostgresWithProtobuf() throws Exception {
+    @EnabledIfSystemProperty(named = "test.apicurio.converter.format", matches = "avro")
+    public void testPostgresWithApicurioAvro() throws Exception {
         Testing.Print.enable();
         final TestConsumer testConsumer = (TestConsumer) server.getConsumer();
         Awaitility.await().atMost(Duration.ofSeconds(TestConfigSource.waitForSeconds()))
                 .until(() -> (testConsumer.getValues().size() >= MESSAGE_COUNT));
-        Assertions.assertThat(testConsumer.getValues().size()).isEqualTo(MESSAGE_COUNT);
-        Assertions.assertThat(testConsumer.getValues().get(0)).isInstanceOf(byte[].class);
-        Assertions.assertThat(testConsumer.getValues().get(0)).isNotNull();
+        assertThat(testConsumer.getValues().size()).isEqualTo(MESSAGE_COUNT);
+        assertThat(testConsumer.getValues().get(0)).isInstanceOf(byte[].class);
+        assertThat(testConsumer.getValues().get(0)).isNotNull();
         assertThat(((byte[]) testConsumer.getValues().get(0))[0]).isEqualTo((byte) 0);
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "test.apicurio.converter.format", matches = "json")
+    public void testPostgresWithApicurioExtJson() throws Exception {
+        Testing.Print.enable();
+        final TestConsumer testConsumer = (TestConsumer) server.getConsumer();
+        Awaitility.await().atMost(Duration.ofSeconds(TestConfigSource.waitForSeconds()))
+                .until(() -> (testConsumer.getValues().size() >= MESSAGE_COUNT));
+        assertThat(testConsumer.getValues().size()).isEqualTo(MESSAGE_COUNT);
+        assertThat(testConsumer.getValues().get(0)).isInstanceOf(String.class);
+        assertThat(((String) testConsumer.getValues().get(MESSAGE_COUNT - 1))).contains(
+                "\"after\":{\"id\":1004,\"first_name\":\"Anne\",\"last_name\":\"Kretchmar\",\"email\":\"annek@noanswer.org\"}");
     }
 }

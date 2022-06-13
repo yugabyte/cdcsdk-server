@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package org.yb.cdcsdk.server;
+package com.yugabyte.cdcsdk.server;
 
 import java.time.Duration;
 
@@ -39,7 +39,7 @@ public class DebeziumServerIT {
 
     private static final int MESSAGE_COUNT = 4;
     @Inject
-    DebeziumServer server;
+    ServerApp server;
 
     {
         Testing.Files.delete(TestConfigSource.OFFSET_STORE_PATH);
