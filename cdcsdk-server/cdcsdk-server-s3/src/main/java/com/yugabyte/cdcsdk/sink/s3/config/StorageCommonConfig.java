@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.s3.storage.config;
+package com.yugabyte.cdcsdk.sink.s3.config;
 
 import java.util.Map;
 
@@ -22,8 +22,6 @@ import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.common.config.ConfigDef.Width;
-
-import com.yugabyte.cdcsdk.sink.s3.storage.ComposableConfig;
 
 public class StorageCommonConfig extends AbstractConfig implements ComposableConfig {
 

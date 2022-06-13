@@ -40,6 +40,7 @@ import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
 import com.amazonaws.services.s3.model.SSECustomerKey;
 import com.amazonaws.services.s3.model.UploadPartRequest;
+import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
 
 /**
  * Output stream enabling multi-part uploads of Kafka records.

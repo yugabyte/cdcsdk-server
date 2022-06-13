@@ -17,22 +17,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AmazonClientException;
-import com.yugabyte.cdcsdk.sink.s3.storage.config.StorageCommonConfig;
+import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
+import com.yugabyte.cdcsdk.sink.s3.config.StorageCommonConfig;
 
 @Named("s3")
 @Dependent
-public class ChangeConsumer extends FlushingChangeConsumer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChangeConsumer.class);
+public class S3ChangeConsumer extends FlushingChangeConsumer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(S3ChangeConsumer.class);
 
     private S3SinkConnectorConfig connectorConfig;
     private String url;
-    private long timeoutMs;
     private S3Storage storage;
 
     private static final Pattern SHELL_PROPERTY_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+_+[a-zA-Z0-9_]+$");
     private Map<String, String> props = new HashMap<>();
 
-    private S3RetriableRecordWriter writer;
+    private S3RetriableByteWriter writer;
 
     public static Map<String, String> configToMap(Config config, String oldPrefix, String newPrefix) {
         Map<String, String> configMap = new HashMap<>();
@@ -57,11 +57,10 @@ public class ChangeConsumer extends FlushingChangeConsumer {
         try {
             super.connect();
             final Config config = ConfigProvider.getConfig();
-            this.props = ChangeConsumer.configToMap(config, PROP_PREFIX, "");
+            this.props = S3ChangeConsumer.configToMap(config, PROP_PREFIX, "");
 
             connectorConfig = new S3SinkConnectorConfig(this.props);
             url = connectorConfig.getString(StorageCommonConfig.STORE_URL_CONFIG);
-            timeoutMs = connectorConfig.getLong(S3SinkConnectorConfig.RETRY_BACKOFF_CONFIG);
 
             storage = new S3Storage(connectorConfig, url);
             LOGGER.info("storage created");
@@ -99,9 +98,9 @@ public class ChangeConsumer extends FlushingChangeConsumer {
         }
     }
 
-    private S3RetriableRecordWriter getRecordWriter(final S3SinkConnectorConfig conf, final String filename) {
-        return new S3RetriableRecordWriter(
-                new com.yugabyte.cdcsdk.sink.s3.IORecordWriter() {
+    private S3RetriableByteWriter getRecordWriter(final S3SinkConnectorConfig conf, final String filename) {
+        return new S3RetriableByteWriter(
+                new com.yugabyte.cdcsdk.sink.s3.IOByteWriter() {
                     final S3OutputStream s3out = storage.create(filename, true);
                     final OutputStream s3outWrapper = s3out.wrapForCompression();
 
