@@ -21,7 +21,7 @@ import java.io.IOException;
  * Interface which duplicates RecordWriter, yet with
  * IOException throwing signatures.
  */
-public interface IORecordWriter {
+public interface IOByteWriter {
     void write(byte[] bytes) throws IOException;
 
     void write(byte[] bytes, int offset, int length) throws IOException;

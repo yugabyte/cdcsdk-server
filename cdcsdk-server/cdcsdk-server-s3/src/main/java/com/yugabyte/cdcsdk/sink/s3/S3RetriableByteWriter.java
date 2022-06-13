@@ -24,10 +24,10 @@ import java.io.IOException;
  * or a RetriableException depending upon whether the exception is "retriable"
  * as determined within `throwConnectException()`.
  */
-public class S3RetriableRecordWriter {
-    private final IORecordWriter writer;
+public class S3RetriableByteWriter {
+    private final IOByteWriter writer;
 
-    public S3RetriableRecordWriter(IORecordWriter writer) {
+    public S3RetriableByteWriter(IOByteWriter writer) {
         if (writer == null) {
             throw new NullPointerException(
                     "S3 Retriable record writer was passed a null writer (IORecordWriter)");

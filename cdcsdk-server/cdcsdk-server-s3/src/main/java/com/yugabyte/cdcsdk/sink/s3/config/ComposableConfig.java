@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.s3.storage;
+package com.yugabyte.cdcsdk.sink.s3.config;
 
 public interface ComposableConfig {
     Object get(String key);
