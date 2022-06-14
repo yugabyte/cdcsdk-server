@@ -1,8 +1,8 @@
 
 # Yugabyte CDCSDK Server [BETA]
 
-Yugabyte CDCSDK Server is an open source project that provides a streaming platform for change data capture from YugabyteDb. The server is based on the [Debezium|debezium.io].
-CDCSDK Server uses [debezium-yugabytedb-connector|https://github.com/yugabyte/debezium-connector-yugabytedb] to capture change data events.
+Yugabyte CDCSDK Server is an open source project that provides a streaming platform for change data capture from YugabyteDb. The server is based on the [Debezium](debezium.io).
+CDCSDK Server uses [debezium-yugabytedb-connector](https://github.com/yugabyte/debezium-connector-yugabytedb) to capture change data events.
 It supports a YugabyteDb instance as a source and supports the following sinks:
 * Kafka
 * HTTP REST Endpoint
@@ -12,21 +12,23 @@ It supports a YugabyteDb instance as a source and supports the following sinks:
   - [Basic architecture](#basic-architecture)
     - [Engine is the Unit of Work](#engine-is-the-unit-of-work)
     - [CDCSDK Server](#cdcsdk-server)
+  - [Quick Start](#quick-start)
+    - [Create a CDCSDK Stream in Yugabytedb](#create-a-cdcsdk-stream-in-yugabytedb)
+    - [Download and run CDCSDK Server](#download-and-run-cdcsdk-server)
+    - [Unpack and Run Instructions.](#unpack-and-run-instructions)
+  - [Configuration](#configuration)
+    - [Configuration using Environment Variables](#configuration-using-environment-variables)
+    - [Server configuration](#server-configuration)
+    - [HTTP Client](#http-client)
+    - [Amazon S3](#amazon-s3)
+    - [Mapping Records to S3 Objects](#mapping-records-to-s3-objects)
+      - [IAM Policy](#iam-policy)
+  - [Record Structure](#record-structure)
   - [Operations](#operations)
     - [Topology](#topology)
     - [Networking](#networking)
-  - [Building Debezium](#building-debezium)
-    - [Why Docker?](#why-docker)
-    - [Configure your Docker environment](#configure-your-docker-environment)
-    - [Building the code](#building-the-code)
-    - [Don't have Docker running locally for builds?](#dont-have-docker-running-locally-for-builds)
-    - [Building just the artifacts, without running tests, CheckStyle, etc.](#building-just-the-artifacts-without-running-tests-checkstyle-etc)
-    - [Running tests of the Postgres connector using the wal2json or pgoutput logical decoding plug-ins](#running-tests-of-the-postgres-connector-using-the-wal2json-or-pgoutput-logical-decoding-plug-ins)
-    - [Running tests of the Postgres connector with specific Apicurio Version](#running-tests-of-the-postgres-connector-with-specific-apicurio-version)
-    - [Running tests of the Postgres connector against an external database, e.g. Amazon RDS](#running-tests-of-the-postgres-connector-against-an-external-database-eg-amazon-rds)
-    - [Running tests of the Oracle connector using Oracle XStream](#running-tests-of-the-oracle-connector-using-oracle-xstream)
-    - [Running tests of the Oracle connector with a non-CDB database](#running-tests-of-the-oracle-connector-with-a-non-cdb-database)
-  - [Contributing](#contributing)
+    - [Healthchecks](#healthchecks)
+      - [Running the health check](#running-the-health-check)
 
 ## Basic architecture
 
@@ -89,6 +91,7 @@ The archive has the following layout:
 ## Configuration
 
 The main configuration file is conf/application.properties. There are multiple sections configured:
+* `cdcsdk.server` is for server configuration
 * `cdcsdk.source` is for source connector configuration; each instance of Debezium Server runs exactly one connector
 * `cdcsdk.sink` is for the sink system configuration
 
@@ -119,6 +122,19 @@ For detailed documentation of the configuration, check [debezium docs](https://d
 Configuration using environment variables maybe useful when running in containers. The rule of thumb
 is to convert the keys to UPPER CASE and replace `.` with `_`. For example, `cdcsdk.source.database.port`
 has to be changed to `CDCSDK_SOURCE_DATABASE_PORT`
+
+### Server configuration
+|Property|Default|Description|
+|--------|-------|-----------|
+|cdcsdk.server.transforms||Transformations to apply. [Use FLATTEN to get only the payload.](#record-structure)|
+
+
+Additional configuration:
+|Property|Default|Description|
+|--------|-------|-----------|
+|quarkus.http.port|8080|The port on which CDCSDK Server exposes Microprofile Health endpoint and other exposed status information.|
+|quarkus.log.level|INFO|The default log level for every log category.|
+|quarkus.log.console.json|true|Determine whether to enable the JSON console formatting extension, which disables "normal" console formatting.|
 
 ### HTTP Client
 The HTTP Client will stream changes to any HTTP Server for additional processing.
@@ -218,6 +234,26 @@ Note: This is the IAM policy for the user account and not a bucket policy.
 }
 ```
 
+## Record Structure
+
+By default, the YugabyteDB connector generates a [complex record](https://docs.yugabyte.com/preview/explore/change-data-capture/debezium-connector-yugabytedb/#data-change-events)
+in JSON with key and value information including payload.
+A sophisticated sink can use the information to generate appropriate commands in the receiving system.
+
+
+Simple sinks expect simple key/value JSON object where key is the column name and value is the contents of the column.
+For simple sinks, set `cdcsdk.server.tranforms=FLATTEN`. With this configuration, the record structure will only emit the payload as a simple JSON.
+
+With `FLATTEN`, the simple format below is emitted.
+
+```
+  {
+    "id":...,
+    "first_name":...,
+    "last_name":...,
+    "email":...
+  }
+```
 
 ## Operations
 

@@ -206,12 +206,7 @@ public class S3Storage {
     }
 
     public void delete(String name) {
-        if (bucketName.equals(name)) {
-            // TODO: decide whether to support delete for the top-level bucket.
-            // s3.deleteBucket(name);
-            return;
-        }
-        else {
+        if (!bucketName.equals(name)) {
             s3.deleteObject(bucketName, name);
         }
     }
