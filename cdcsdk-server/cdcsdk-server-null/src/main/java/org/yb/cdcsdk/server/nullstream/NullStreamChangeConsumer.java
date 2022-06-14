@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package org.yb.cdcsdk.server.nullStream;
+package org.yb.cdcsdk.server.nullstream;
 
 import java.util.List;
 
@@ -13,8 +13,6 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +34,6 @@ public class NullStreamChangeConsumer extends BaseChangeConsumer
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NullStreamChangeConsumer.class);
 
-    private static final String PROP_PREFIX = "debezium.sink.null.";
-
     private long numLogged = 0;
     private long totalRecords = 0;
 
@@ -46,7 +42,6 @@ public class NullStreamChangeConsumer extends BaseChangeConsumer
 
     @PostConstruct
     void connect() {
-        final Config config = ConfigProvider.getConfig();
         LOGGER.info("Instaintiated NULL consumer");
     }
 

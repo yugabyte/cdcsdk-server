@@ -175,8 +175,7 @@ public class S3ConsumerIT {
         for (String line : allLines) {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(line);
-            JsonNode after = node.get("payload").get("after");
-            assertEquals(mapper.readTree(expected.next()), after);
+            assertEquals(mapper.readTree(expected.next()), node);
         }
     }
 }

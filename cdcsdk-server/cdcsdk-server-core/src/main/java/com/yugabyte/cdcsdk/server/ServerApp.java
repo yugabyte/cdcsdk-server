@@ -77,12 +77,10 @@ public class ServerApp {
     private static final String PROP_SERVER_PREFIX = PROP_PREFIX + "server.";
     private static final String PROP_SOURCE_PREFIX = PROP_PREFIX + "source.";
     private static final String PROP_SINK_PREFIX = PROP_PREFIX + "sink.";
-    private static final String PROP_FORMAT_PREFIX = PROP_PREFIX + "format.";
-    private static final String PROP_TRANSFORMS_PREFIX = PROP_PREFIX + "transforms.";
+    private static final String PROP_FORMAT_PREFIX = PROP_SERVER_PREFIX + "format.";
     private static final String PROP_KEY_FORMAT_PREFIX = PROP_FORMAT_PREFIX + "key.";
     private static final String PROP_VALUE_FORMAT_PREFIX = PROP_FORMAT_PREFIX + "value.";
 
-    private static final String PROP_TRANSFORMS = PROP_PREFIX + "transforms";
     private static final String PROP_SINK_TYPE = PROP_SINK_PREFIX + "type";
     private static final String PROP_KEY_FORMAT = PROP_FORMAT_PREFIX + "key";
     private static final String PROP_VALUE_FORMAT = PROP_FORMAT_PREFIX + "value";
@@ -95,6 +93,11 @@ public class ServerApp {
     private static final String FORMAT_PROTOBUF = Protobuf.class.getSimpleName().toLowerCase();
 
     private static final Pattern SHELL_PROPERTY_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+_+[a-zA-Z0-9_]+$");
+
+    private static final String FLATTEN_TRANSFORM = "FLATTEN";
+
+    private static final String PROP_TRANSFORMS = PROP_SERVER_PREFIX + "transforms";
+    private static final String PROP_TRANSFORMS_PREFIX = PROP_SERVER_PREFIX + "transforms.";
 
     private static final String PROP_THREADS = PROP_SERVER_PREFIX + "threads";
     private static final Integer DEFAULT_NUM_THREADS = 1;
@@ -147,9 +150,20 @@ public class ServerApp {
         configToProperties(config, props, PROP_VALUE_FORMAT_PREFIX, "value.converter.");
         final Optional<String> transforms = config.getOptionalValue(PROP_TRANSFORMS, String.class);
         if (transforms.isPresent()) {
-            props.setProperty("transforms", transforms.get());
+            LOGGER.debug("Transforms Setting: -{}-", transforms.get());
+
+            if (transforms.get().equals(FLATTEN_TRANSFORM)) {
+                LOGGER.info("Enabling FLATTEN transform");
+                props.setProperty("transforms", "flatten");
+                props.setProperty("transforms.flatten.type", "io.debezium.transforms.ExtractNewRecordState");
+                props.setProperty("value.converter.schemas.enable", "false");
+            }
+            else {
+                props.setProperty("transforms", transforms.get());
+            }
             configToProperties(config, props, PROP_TRANSFORMS_PREFIX, "transforms.");
         }
+
         if (!consumer.supportsTombstoneEvents()) {
             props.setProperty(CommonConnectorConfig.TOMBSTONES_ON_DELETE.name(), Boolean.FALSE.toString());
         }
@@ -201,7 +215,7 @@ public class ServerApp {
                         config.getValue(name, String.class));
             }
             else if (name.startsWith(oldPrefix)) {
-                LOGGER.info("Setting {} to {}", newPrefix + name.substring(oldPrefix.length()),
+                LOGGER.trace("Setting {} to {}", newPrefix + name.substring(oldPrefix.length()),
                         config.getValue(name, String.class));
                 props.setProperty(newPrefix + name.substring(oldPrefix.length()), config.getValue(name, String.class));
             }
