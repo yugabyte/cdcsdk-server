@@ -13,8 +13,8 @@ public class S3TestConfigSource extends TestConfigSource {
         Map<String, String> s3Test = new HashMap<>();
 
         s3Test.put("cdcsdk.sink.type", "s3");
-        s3Test.put("cdcsdk.sink.storage.s3.bucket.name", "cdcsdk-test");
-        s3Test.put("cdcsdk.sink.storage.s3.region", "us-west-2");
+        s3Test.put("cdcsdk.sink.s3.bucket.name", "cdcsdk-test");
+        s3Test.put("cdcsdk.sink.s3.region", "us-west-2");
         s3Test.put("cdcsdk.sink.s3.basedir", "S3ConsumerIT/");
         s3Test.put("cdcsdk.sink.s3.pattern", "stream_{EPOCH}");
         s3Test.put("cdcsdk.sink.s3.flushRecords", "4");
