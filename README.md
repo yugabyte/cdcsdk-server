@@ -98,12 +98,12 @@ The main configuration file is conf/application.properties. There are multiple s
 An example configuration file can look like so:
 
 ```
-debezium.sink.type=kafka
+cdcsdk.sink.type=kafka
 cdcsdk.sink.kafka.producer.bootstrap.servers=127.0.0.1:9092
 cdcsdk.sink.kafka.producer.key.serializer=org.apache.kafka.common.serialization.StringSerializer
 cdcsdk.sink.kafka.producer.value.serializer=org.apache.kafka.common.serialization.StringSerializer
 cdcsdk.source.connector.class=io.debezium.connector.yugabytedb.YugabyteDBConnector
-debezium.source.database.hostname=127.0.0.1
+cdcsdk.source.database.hostname=127.0.0.1
 cdcsdk.source.database.port=5433
 cdcsdk.source.database.user=yugabyte
 cdcsdk.source.database.password=yugabyte
@@ -242,7 +242,7 @@ A sophisticated sink can use the information to generate appropriate commands in
 
 
 Simple sinks expect simple key/value JSON object where key is the column name and value is the contents of the column.
-For simple sinks, set `cdcsdk.server.tranforms=FLATTEN`. With this configuration, the record structure will only emit the payload as a simple JSON.
+For simple sinks, set `cdcsdk.server.transforms=FLATTEN`. With this configuration, the record structure will only emit the payload as a simple JSON.
 
 With `FLATTEN`, the simple format below is emitted.
 
