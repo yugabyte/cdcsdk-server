@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package com.yugabyte.cdcsdk.server;
+package com.yugabyte.cdcsdk.engine;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -53,8 +53,6 @@ import io.debezium.annotation.ThreadSafe;
 import io.debezium.config.Configuration;
 import io.debezium.config.Field;
 import io.debezium.config.Instantiator;
-import io.debezium.embedded.StopConnectorException;
-import io.debezium.embedded.Transformations;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.StopEngineException;
 import io.debezium.engine.spi.OffsetCommitPolicy;
@@ -212,7 +210,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                     "The fully-qualified class name of the commit policy type. This class must implement the interface "
                             + OffsetCommitPolicy.class.getName()
                             + ". The default is a periodic commit policy based upon time intervals.")
-            .withDefault(io.debezium.embedded.spi.OffsetCommitPolicy.PeriodicCommitOffsetPolicy.class.getName())
+            .withDefault(com.yugabyte.cdcsdk.engine.spi.OffsetCommitPolicy.PeriodicCommitOffsetPolicy.class.getName())
             .withValidation(Field::isClassName);
 
     protected static final Field INTERNAL_KEY_CONVERTER_CLASS = Field.create("internal.key.converter")
@@ -244,7 +242,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     /**
      * The array of all exposed fields.
      */
-    protected static final Field.Set ALL_FIELDS = CONNECTOR_FIELDS.with(OFFSET_STORAGE, OFFSET_STORAGE_FILE_FILENAME,
+    public static final Field.Set ALL_FIELDS = CONNECTOR_FIELDS.with(OFFSET_STORAGE, OFFSET_STORAGE_FILE_FILENAME,
             OFFSET_FLUSH_INTERVAL_MS, OFFSET_COMMIT_TIMEOUT_MS,
             INTERNAL_KEY_CONVERTER_CLASS, INTERNAL_VALUE_CONVERTER_CLASS);
 
@@ -522,7 +520,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
              * StopConnectorExceptions
              * and ensures that we all ways try and mark a batch as finished, even with
              * exceptions
-             * 
+             *
              * @param records   the records to be processed
              * @param committer the committer that indicates to the system that we are
              *                  finished
@@ -906,7 +904,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                             }
                             try {
                                 if (changeRecords != null && !changeRecords.isEmpty()) {
-                                    LOGGER.debug("Received {} records from the task", changeRecords.size());
+                                    LOGGER.info("Received {} records from the task", changeRecords.size());
                                     changeRecords = changeRecords.stream()
                                             .map(transformations::transform)
                                             .filter(x -> x != null)
@@ -914,7 +912,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                                 }
 
                                 if (changeRecords != null && !changeRecords.isEmpty()) {
-                                    LOGGER.debug("Received {} transformed records from the task", changeRecords.size());
+                                    LOGGER.info("Received {} transformed records from the task", changeRecords.size());
 
                                     try {
                                         handler.handleBatch(changeRecords, committer);
@@ -999,7 +997,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
     /**
      * Creates a new RecordCommitter that is responsible for informing the engine
      * about the updates to the given batch
-     * 
+     *
      * @param offsetWriter  the offsetWriter current in use
      * @param task          the sourcetask
      * @param commitTimeout the time in ms until a commit times out

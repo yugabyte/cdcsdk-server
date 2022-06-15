@@ -125,6 +125,7 @@
         <module>support/checkstyle</module>
         <module>support/ide-configs</module>
         <module>support/revapi</module>
+        <module>cdcsdk-engine</module>
         <module>cdcsdk-server</module>
     </modules>
 

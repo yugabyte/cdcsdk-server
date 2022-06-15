@@ -65,11 +65,11 @@ public class TestConfigSource implements ConfigSource {
         unitTest.put("cdcsdk.source.offset.flush.interval.ms", "0");
         unitTest.put("cdcsdk.source.file", TEST_FILE_PATH.toAbsolutePath().toString());
         unitTest.put("cdcsdk.source.topic", "topicX");
-        unitTest.put("cdcsdk.format.schemas.enable", "true");
-        unitTest.put("cdcsdk.format.value.schemas.enable", "false");
-        unitTest.put("cdcsdk.transforms", "hoist");
-        unitTest.put("cdcsdk.transforms.hoist.type", "org.apache.kafka.connect.transforms.HoistField$Value");
-        unitTest.put("cdcsdk.transforms.hoist.field", "line");
+        unitTest.put("cdcsdk.server.format.schemas.enable", "true");
+        unitTest.put("cdcsdk.server.format.value.schemas.enable", "false");
+        unitTest.put("cdcsdk.server.transforms", "hoist");
+        unitTest.put("cdcsdk.server.transforms.hoist.type", "org.apache.kafka.connect.transforms.HoistField$Value");
+        unitTest.put("cdcsdk.server.transforms.hoist.field", "line");
 
         // DBZ-2622 For testing properties passed via smallrye/microprofile environment
         // variables
