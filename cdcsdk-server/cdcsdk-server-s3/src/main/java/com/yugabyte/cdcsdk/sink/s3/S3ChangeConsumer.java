@@ -34,7 +34,8 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
 
     private S3RetriableByteWriter writer;
 
-    public static Map<String, String> configToMap(Config config, String oldPrefix, String newPrefix) {
+    public static S3SinkConnectorConfig microProfileConfigToConfigDef(Config config, String oldPrefix,
+                                                                      String newPrefix) {
         Map<String, String> configMap = new HashMap<>();
         for (String name : config.getPropertyNames()) {
             String updatedPropertyName = null;
@@ -51,7 +52,11 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
                 configMap.put(newPrefix + name.substring(oldPrefix.length()), config.getValue(name, String.class));
             }
         }
-        return configMap;
+        return new S3SinkConnectorConfig(configMap);
+    }
+
+    public static S3SinkConnectorConfig microProfileConfigToConfigDef(Config config) {
+        return S3ChangeConsumer.microProfileConfigToConfigDef(config, PROP_S3_PREFIX, "");
     }
 
     @PostConstruct
@@ -59,9 +64,8 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
         try {
             super.connect();
             final Config config = ConfigProvider.getConfig();
-            this.props = S3ChangeConsumer.configToMap(config, PROP_S3_PREFIX, "s3.");
+            connectorConfig = S3ChangeConsumer.microProfileConfigToConfigDef(config);
 
-            connectorConfig = new S3SinkConnectorConfig(this.props);
             url = connectorConfig.getString(StorageCommonConfig.STORE_URL_CONFIG);
 
             storage = new S3Storage(connectorConfig, url);

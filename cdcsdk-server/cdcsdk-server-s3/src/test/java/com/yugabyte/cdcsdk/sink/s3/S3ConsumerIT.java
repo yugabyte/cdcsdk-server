@@ -65,15 +65,14 @@ public class S3ConsumerIT {
     static S3TestConfigSource testConfig;
 
     private static String getBaseDir() {
-        return testConfig.getValue("cdcsdk.sink.storage.basedir");
+        return testConfig.getValue("cdcsdk.sink.s3.basedir");
     }
 
     @BeforeAll
     public static void setupClient() throws Exception {
         testConfig = new S3TestConfigSource();
         s3Config = new S3SinkConnectorConfig(
-                testConfig.getMapSubset(FlushingChangeConsumer.PROP_SINK_PREFIX));
-
+                testConfig.getMapSubset(FlushingChangeConsumer.PROP_S3_PREFIX));
         storage = new S3Storage(s3Config, "");
         if (storage.bucketExists()) {
             clearBucket(s3Config.getBucketName(), S3ConsumerIT.getBaseDir());
@@ -81,7 +80,8 @@ public class S3ConsumerIT {
         else {
             throw new Exception("S3 Bucket does not exist: " + s3Config.getBucketName());
         }
-        LOGGER.info("Test Client has been setup");
+        LOGGER.info("Test Client has been setup for bucket: {}, baseDir: {}", s3Config.getBucketName(),
+                S3ConsumerIT.getBaseDir());
     }
 
     /**
@@ -111,8 +111,6 @@ public class S3ConsumerIT {
     @Test
     public void testS3() throws IOException, InterruptedException {
         Testing.Print.enable();
-        System.out.println(storage);
-        System.out.println(s3Config);
         S3Utils.waitForFilesInDirectory(storage.client(), s3Config.getBucketName(), S3ConsumerIT.getBaseDir(), 1, 60);
 
         // Testing payload section

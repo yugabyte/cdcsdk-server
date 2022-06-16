@@ -65,8 +65,8 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
     protected static final String PROP_S3_PREFIX = PROP_SINK_PREFIX + "s3.";
     protected static final String PROP_BASE_DIR = PROP_S3_PREFIX + "basedir";
     protected static final String PROP_PATTERN = PROP_S3_PREFIX + "pattern";
-    protected static final String PROP_FLUSH_BYTES = PROP_S3_PREFIX + "flushMB";
-    protected static final String PROP_FLUSH_RECORDS = PROP_S3_PREFIX + "flushRecords";
+    protected static final String PROP_FLUSH_BYTES = PROP_S3_PREFIX + "flush.sizeMB";
+    protected static final String PROP_FLUSH_RECORDS = PROP_S3_PREFIX + "flush.records";
     protected static final String PROP_FLUSH_SECONDS = PROP_S3_PREFIX + "flushSeconds";
 
     private long lineSeparatorLength = 0;

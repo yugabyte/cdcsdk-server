@@ -28,6 +28,16 @@ import org.apache.kafka.common.config.ConfigDef.Width;
 
 public class StorageSinkConnectorConfig extends AbstractConfig implements ComposableConfig {
 
+    public static final String FLUSH_RECORDS_CONFIG = "flush.records";
+    public static final String FLUSH_RECORDS_DOC = "Number of records written to store before invoking file commits.";
+    public static final long FLUSH_RECORDS_DEFAULT = 10000L;
+    public static final String FLUSH_RECORDS_DISPLAY = "Flush Records";
+
+    public static final String FLUSH_SIZE_CONFIG = "flush.sizeMB";
+    public static final String FLUSH_SIZE_DOC = "Size in MegaBytes written to store before invoking file commits.";
+    public static final long FLUSH_SIZE_DEFAULT = 200L;
+    public static final String FLUSH_SIZE_DISPLAY = "Flush Size (in MB)";
+
     // Connector group
     public static final String ROTATE_INTERVAL_MS_CONFIG = "rotate.interval.ms";
     public static final String ROTATE_INTERVAL_MS_DOC = "The time interval in milliseconds to invoke file commits. You can configure this parameter"
@@ -50,12 +60,6 @@ public class StorageSinkConnectorConfig extends AbstractConfig implements Compos
             + "that this feature is disabled.";
     public static final long ROTATE_SCHEDULE_INTERVAL_MS_DEFAULT = -1L;
     public static final String ROTATE_SCHEDULE_INTERVAL_MS_DISPLAY = "Rotate Schedule Interval (ms)";
-
-    public static final String RETRY_BACKOFF_CONFIG = "retry.backoff.ms";
-    public static final String RETRY_BACKOFF_DOC = "The retry backoff in milliseconds. This config is used to notify Kafka connect to retry "
-            + "delivering a message batch or performing recovery in case of transient exceptions.";
-    public static final long RETRY_BACKOFF_DEFAULT = 5000L;
-    public static final String RETRY_BACKOFF_DISPLAY = "Retry Backoff (ms)";
 
     public static final String SHUTDOWN_TIMEOUT_CONFIG = "shutdown.timeout.ms";
     public static final String SHUTDOWN_TIMEOUT_DOC = "Clean shutdown timeout. This makes sure that asynchronous Hive metastore updates are "
@@ -108,6 +112,28 @@ public class StorageSinkConnectorConfig extends AbstractConfig implements Compos
             int orderInGroup = 0;
 
             configDef.define(
+                    FLUSH_RECORDS_CONFIG,
+                    Type.LONG,
+                    FLUSH_RECORDS_DEFAULT,
+                    Importance.HIGH,
+                    FLUSH_RECORDS_DOC,
+                    group,
+                    ++orderInGroup,
+                    Width.LONG,
+                    FLUSH_RECORDS_DISPLAY);
+
+            configDef.define(
+                    FLUSH_SIZE_CONFIG,
+                    Type.LONG,
+                    FLUSH_SIZE_DEFAULT,
+                    Importance.HIGH,
+                    FLUSH_SIZE_DOC,
+                    group,
+                    ++orderInGroup,
+                    Width.LONG,
+                    FLUSH_SIZE_DISPLAY);
+
+            configDef.define(
                     ROTATE_INTERVAL_MS_CONFIG,
                     Type.LONG,
                     ROTATE_INTERVAL_MS_DEFAULT,
@@ -150,17 +176,6 @@ public class StorageSinkConnectorConfig extends AbstractConfig implements Compos
                     ++orderInGroup,
                     Width.SHORT,
                     CONNECT_META_DATA_DISPLAY);
-
-            configDef.define(
-                    RETRY_BACKOFF_CONFIG,
-                    Type.LONG,
-                    RETRY_BACKOFF_DEFAULT,
-                    Importance.LOW,
-                    RETRY_BACKOFF_DOC,
-                    group,
-                    ++orderInGroup,
-                    Width.MEDIUM,
-                    RETRY_BACKOFF_DISPLAY);
 
             configDef.define(
                     SHUTDOWN_TIMEOUT_CONFIG,
