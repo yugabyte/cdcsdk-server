@@ -54,27 +54,27 @@ import com.yugabyte.cdcsdk.sink.s3.CompressionType;
 public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
 
     // S3 Group
-    public static final String S3_BUCKET_CONFIG = "s3.bucket.name";
+    public static final String S3_BUCKET_CONFIG = "bucket.name";
 
-    public static final String S3_OBJECT_TAGGING_CONFIG = "s3.object.tagging";
+    public static final String S3_OBJECT_TAGGING_CONFIG = "object.tagging";
     public static final boolean S3_OBJECT_TAGGING_DEFAULT = false;
 
-    public static final String SSEA_CONFIG = "s3.ssea.name";
+    public static final String SSEA_CONFIG = "ssea.name";
     public static final String SSEA_DEFAULT = "";
 
-    public static final String SSE_CUSTOMER_KEY = "s3.sse.customer.key";
+    public static final String SSE_CUSTOMER_KEY = "sse.customer.key";
     public static final Password SSE_CUSTOMER_KEY_DEFAULT = new Password(null);
 
-    public static final String SSE_KMS_KEY_ID_CONFIG = "s3.sse.kms.key.id";
+    public static final String SSE_KMS_KEY_ID_CONFIG = "sse.kms.key.id";
     public static final String SSE_KMS_KEY_ID_DEFAULT = "";
 
-    public static final String PART_SIZE_CONFIG = "s3.part.size";
+    public static final String PART_SIZE_CONFIG = "part.size";
     public static final int PART_SIZE_DEFAULT = 25 * 1024 * 1024;
 
-    public static final String WAN_MODE_CONFIG = "s3.wan.mode";
+    public static final String WAN_MODE_CONFIG = "wan.mode";
     private static final boolean WAN_MODE_DEFAULT = false;
 
-    public static final String CREDENTIALS_PROVIDER_CLASS_CONFIG = "s3.credentials.provider.class";
+    public static final String CREDENTIALS_PROVIDER_CLASS_CONFIG = "credentials.provider.class";
     public static final Class<? extends AWSCredentialsProvider> CREDENTIALS_PROVIDER_CLASS_DEFAULT = DefaultAWSCredentialsProviderChain.class;
     /**
      * The properties that begin with this prefix will be used to configure a class,
@@ -91,20 +91,20 @@ public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
     public static final String AWS_SECRET_ACCESS_KEY_CONFIG = "aws.secret.access.key";
     public static final Password AWS_SECRET_ACCESS_KEY_DEFAULT = new Password(null);
 
-    public static final String REGION_CONFIG = "s3.region";
+    public static final String REGION_CONFIG = "region";
     public static final String REGION_DEFAULT = Regions.DEFAULT_REGION.getName();
 
-    public static final String ACL_CANNED_CONFIG = "s3.acl.canned";
+    public static final String ACL_CANNED_CONFIG = "acl.canned";
     public static final String ACL_CANNED_DEFAULT = null;
 
-    public static final String COMPRESSION_TYPE_CONFIG = "s3.compression.type";
+    public static final String COMPRESSION_TYPE_CONFIG = "compression.type";
     public static final String COMPRESSION_TYPE_DEFAULT = "none";
 
-    public static final String COMPRESSION_LEVEL_CONFIG = "s3.compression.level";
+    public static final String COMPRESSION_LEVEL_CONFIG = "compression.level";
     public static final int COMPRESSION_LEVEL_DEFAULT = Deflater.DEFAULT_COMPRESSION;
     private static final CompressionLevelValidator COMPRESSION_LEVEL_VALIDATOR = new CompressionLevelValidator();
 
-    public static final String S3_PART_RETRIES_CONFIG = "s3.part.retries";
+    public static final String S3_PART_RETRIES_CONFIG = "part.retries";
     public static final int S3_PART_RETRIES_DEFAULT = 3;
 
     public static final String FORMAT_BYTEARRAY_EXTENSION_CONFIG = "format.bytearray.extension";
@@ -113,16 +113,16 @@ public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
     public static final String FORMAT_BYTEARRAY_LINE_SEPARATOR_CONFIG = "format.bytearray.separator";
     public static final String FORMAT_BYTEARRAY_LINE_SEPARATOR_DEFAULT = System.lineSeparator();
 
-    public static final String S3_PROXY_URL_CONFIG = "s3.proxy.url";
+    public static final String S3_PROXY_URL_CONFIG = "proxy.url";
     public static final String S3_PROXY_URL_DEFAULT = "";
 
-    public static final String S3_PROXY_USER_CONFIG = "s3.proxy.user";
+    public static final String S3_PROXY_USER_CONFIG = "proxy.user";
     public static final String S3_PROXY_USER_DEFAULT = null;
 
-    public static final String S3_PROXY_PASS_CONFIG = "s3.proxy.password";
+    public static final String S3_PROXY_PASS_CONFIG = "proxy.password";
     public static final Password S3_PROXY_PASS_DEFAULT = new Password(null);
 
-    public static final String HEADERS_USE_EXPECT_CONTINUE_CONFIG = "s3.http.send.expect.continue";
+    public static final String HEADERS_USE_EXPECT_CONTINUE_CONFIG = "http.send.expect.continue";
     public static final boolean HEADERS_USE_EXPECT_CONTINUE_DEFAULT = ClientConfiguration.DEFAULT_USE_EXPECT_CONTINUE;
 
     public static final String BEHAVIOR_ON_NULL_VALUES_CONFIG = "behavior.on.null.values";
@@ -133,10 +133,10 @@ public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
      */
     public static final int S3_RETRY_MAX_BACKOFF_TIME_MS = (int) TimeUnit.HOURS.toMillis(24);
 
-    public static final String S3_RETRY_BACKOFF_CONFIG = "s3.retry.backoff.ms";
+    public static final String S3_RETRY_BACKOFF_CONFIG = "retry.backoff.ms";
     public static final int S3_RETRY_BACKOFF_DEFAULT = 200;
 
-    public static final String S3_PATH_STYLE_ACCESS_ENABLED_CONFIG = "s3.path.style.access.enabled";
+    public static final String S3_PATH_STYLE_ACCESS_ENABLED_CONFIG = "path.style.access.enabled";
     public static final boolean S3_PATH_STYLE_ACCESS_ENABLED_DEFAULT = true;
 
     private final String name;
