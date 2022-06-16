@@ -62,8 +62,7 @@ public abstract class FlushingChangeConsumer extends BaseChangeConsumer
     private final Clock clock = Clock.system();
 
     public static final String PROP_SINK_PREFIX = "cdcsdk.sink.";
-    public static final String PROP_PREFIX = "cdcsdk.sink.storage.";
-    protected static final String PROP_S3_PREFIX = "cdcsdk.sink.s3.";
+    protected static final String PROP_S3_PREFIX = PROP_SINK_PREFIX + "s3.";
     protected static final String PROP_BASE_DIR = PROP_S3_PREFIX + "basedir";
     protected static final String PROP_PATTERN = PROP_S3_PREFIX + "pattern";
     protected static final String PROP_FLUSH_BYTES = PROP_S3_PREFIX + "flushMB";

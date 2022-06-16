@@ -59,7 +59,7 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
         try {
             super.connect();
             final Config config = ConfigProvider.getConfig();
-            this.props = S3ChangeConsumer.configToMap(config, PROP_PREFIX, "");
+            this.props = S3ChangeConsumer.configToMap(config, PROP_S3_PREFIX, "s3.");
 
             connectorConfig = new S3SinkConnectorConfig(this.props);
             url = connectorConfig.getString(StorageCommonConfig.STORE_URL_CONFIG);

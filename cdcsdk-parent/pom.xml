@@ -53,6 +53,8 @@
         <!-- Don't skip integration tests by default -->
         <skipITs>false</skipITs>
 
+        <skipRelTests>true</skipRelTests>
+
         <!-- Do not skip formatting source code by default -->
         <format.skip>false</format.skip>
 
@@ -390,6 +392,25 @@
                 <!-- Useful for remotely debugging the unit tests run by Surefire ... -->
                 <debug.argline>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=1044</debug.argline>
             </properties>
+        </profile>
+        <profile>
+            <id>releaseTests</id>
+            <properties>
+                <skipRelTests>false</skipRelTests>
+                <skipITs>true</skipITs>
+                <skipTests>true</skipTests>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>2.22.0</version>
+                        <configuration>
+                            <skipITs>${skipRelTests}</skipITs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

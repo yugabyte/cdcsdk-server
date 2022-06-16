@@ -72,7 +72,7 @@ public class S3ConsumerIT {
     public static void setupClient() throws Exception {
         testConfig = new S3TestConfigSource();
         s3Config = new S3SinkConnectorConfig(
-                testConfig.getMapSubset(FlushingChangeConsumer.PROP_PREFIX));
+                testConfig.getMapSubset(FlushingChangeConsumer.PROP_SINK_PREFIX));
 
         storage = new S3Storage(s3Config, "");
         if (storage.bucketExists()) {
