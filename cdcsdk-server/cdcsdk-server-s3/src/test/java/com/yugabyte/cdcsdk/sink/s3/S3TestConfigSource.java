@@ -27,7 +27,7 @@ public class S3TestConfigSource extends TestConfigSource {
         s3Test.put("cdcsdk.source.database.server.name", "testc");
         s3Test.put("cdcsdk.source.schema.include.list", "inventory");
         s3Test.put("cdcsdk.source.table.include.list", "inventory.customers");
-        s3Test.put("quarkus.log.level", "info");
+        s3Test.put("quarkus.log.level", "trace");
 
         config = s3Test;
     }

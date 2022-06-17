@@ -63,6 +63,8 @@ public class S3SinkConnectorTestBase extends StorageSinkTestBase {
         url = S3_TEST_URL;
         Map<String, String> props = super.createProps();
         props.put(S3SinkConnectorConfig.S3_BUCKET_CONFIG, S3_TEST_BUCKET_NAME);
+        props.put(S3SinkConnectorConfig.S3_BASEDIR, "baseDir");
+        props.put(S3SinkConnectorConfig.S3_PATTERN, "pattern");
         props.put(S3SinkConnectorConfig.S3_PATH_STYLE_ACCESS_ENABLED_CONFIG, "false");
         return props;
     }

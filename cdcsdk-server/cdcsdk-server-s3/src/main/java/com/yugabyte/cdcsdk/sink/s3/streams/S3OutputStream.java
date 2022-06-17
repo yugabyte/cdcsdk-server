@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.s3;
+package com.yugabyte.cdcsdk.sink.s3.streams;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -40,6 +40,7 @@ import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
 import com.amazonaws.services.s3.model.SSECustomerKey;
 import com.amazonaws.services.s3.model.UploadPartRequest;
+import com.yugabyte.cdcsdk.sink.s3.CompressionType;
 import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
 
 /**
@@ -151,7 +152,8 @@ public class S3OutputStream extends OutputStream {
         }
     }
 
-    public void commit() throws IOException {
+    @Override
+    public void flush() throws IOException {
         if (closed) {
             log.warn(
                     "Tried to commit data for bucket '{}' key '{}' on a closed stream. Ignoring.",

@@ -13,31 +13,28 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.yugabyte.cdcsdk.sink.s3;
+package com.yugabyte.cdcsdk.sink.s3.streams;
 
 import static com.yugabyte.cdcsdk.sink.s3.S3ErrorUtils.throwConnectException;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Wrapper class which may convert an IOException to either a ConnectException
  * or a RetriableException depending upon whether the exception is "retriable"
  * as determined within `throwConnectException()`.
  */
-public class S3RetriableByteWriter {
-    private final IOByteWriter writer;
+public class RetryingOutputStream {
+    final OutputStream s3OutputStream;
 
-    public S3RetriableByteWriter(IOByteWriter writer) {
-        if (writer == null) {
-            throw new NullPointerException(
-                    "S3 Retriable record writer was passed a null writer (IORecordWriter)");
-        }
-        this.writer = writer;
+    public RetryingOutputStream(OutputStream outStream) {
+        this.s3OutputStream = outStream;
     }
 
     public void write(byte[] value) {
         try {
-            writer.write(value);
+            this.s3OutputStream.write(value);
         }
         catch (IOException e) {
             throwConnectException(e);
@@ -46,16 +43,16 @@ public class S3RetriableByteWriter {
 
     public void write(byte[] bytes, int offset, int length) {
         try {
-            writer.write(bytes, offset, length);
+            this.s3OutputStream.write(bytes, offset, length);
         }
         catch (IOException e) {
             throwConnectException(e);
         }
     }
 
-    public void commit() {
+    public void flush() {
         try {
-            writer.commit();
+            this.s3OutputStream.flush();
         }
         catch (IOException e) {
             throwConnectException(e);
@@ -64,7 +61,7 @@ public class S3RetriableByteWriter {
 
     public void close() {
         try {
-            writer.close();
+            this.s3OutputStream.close();
         }
         catch (IOException e) {
             throwConnectException(e);
