@@ -56,6 +56,10 @@ public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
     // S3 Group
     public static final String S3_BUCKET_CONFIG = "bucket.name";
 
+    public static final String S3_BASEDIR = "basedir";
+
+    public static final String S3_PATTERN = "pattern";
+
     public static final String S3_OBJECT_TAGGING_CONFIG = "object.tagging";
     public static final boolean S3_OBJECT_TAGGING_DEFAULT = false;
 
@@ -166,6 +170,26 @@ public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
                     ++orderInGroup,
                     Width.LONG,
                     "S3 Bucket");
+
+            configDef.define(
+                    S3_BASEDIR,
+                    Type.STRING,
+                    Importance.HIGH,
+                    "Base Directory in S3.",
+                    group,
+                    ++orderInGroup,
+                    Width.LONG,
+                    "S3 Base Directory");
+
+            configDef.define(
+                    S3_PATTERN,
+                    Type.STRING,
+                    Importance.HIGH,
+                    "Pattern to generate new files.",
+                    group,
+                    ++orderInGroup,
+                    Width.LONG,
+                    "File Name Pattern");
 
             configDef.define(
                     S3_OBJECT_TAGGING_CONFIG,

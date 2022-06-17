@@ -78,9 +78,11 @@ public class FileBuffer implements BufferStorage {
     }
 
     @Override
-    public void deleteFile() throws IOException {
+    public void reset() throws IOException {
         LOGGER.info("Deleting tempFile data {}", getFilename());
         Files.deleteIfExists(getFile().toPath());
+        outputStream = null;
+        tempFile = null;
     }
 
     @Override

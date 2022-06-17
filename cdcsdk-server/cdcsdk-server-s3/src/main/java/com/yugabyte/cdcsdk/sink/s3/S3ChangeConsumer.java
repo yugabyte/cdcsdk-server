@@ -1,9 +1,9 @@
 package com.yugabyte.cdcsdk.sink.s3;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -17,12 +17,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AmazonClientException;
+import com.yugabyte.cdcsdk.sink.s3.buffer.BufferStorage;
+import com.yugabyte.cdcsdk.sink.s3.buffer.InMemoryBuffer;
 import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
 import com.yugabyte.cdcsdk.sink.s3.config.StorageCommonConfig;
+import com.yugabyte.cdcsdk.sink.s3.streams.RollingOutputStream;
+import com.yugabyte.cdcsdk.sink.s3.streams.S3OutputStreamFactory;
+
+import io.debezium.engine.ChangeEvent;
+import io.debezium.engine.DebeziumEngine;
+import io.debezium.server.BaseChangeConsumer;
+import io.debezium.util.Clock;
 
 @Named("s3")
 @Dependent
-public class S3ChangeConsumer extends FlushingChangeConsumer {
+public class S3ChangeConsumer extends BaseChangeConsumer
+        implements DebeziumEngine.ChangeConsumer<ChangeEvent<Object, Object>> {
+
+    public static final String PROP_SINK_PREFIX = "cdcsdk.sink.";
+    protected static final String PROP_S3_PREFIX = PROP_SINK_PREFIX + "s3.";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ChangeConsumer.class);
 
     private S3SinkConnectorConfig connectorConfig;
@@ -30,9 +44,16 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
     private S3Storage storage;
 
     private static final Pattern SHELL_PROPERTY_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+_+[a-zA-Z0-9_]+$");
-    private Map<String, String> props = new HashMap<>();
 
-    private S3RetriableByteWriter writer;
+    private long lineSeparatorLength = 0;
+
+    private BufferStorage buffer;
+    private S3OutputStreamFactory outputStreamFactory;
+    private Roller roller;
+    private RollingOutputStream outputStream;
+
+    protected long previousWriteInMillis;
+    private final Clock clock = Clock.system();
 
     public static S3SinkConnectorConfig microProfileConfigToConfigDef(Config config, String oldPrefix,
                                                                       String newPrefix) {
@@ -62,10 +83,12 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
     @PostConstruct
     protected void connect() throws IOException {
         try {
-            super.connect();
             final Config config = ConfigProvider.getConfig();
             connectorConfig = S3ChangeConsumer.microProfileConfigToConfigDef(config);
+            this.lineSeparatorLength = System.lineSeparator().getBytes(Charset.defaultCharset()).length;
 
+            this.previousWriteInMillis = clock.currentTimeInMillis();
+            LOGGER.info("ChangeConsumer Buffer initialized");
             url = connectorConfig.getString(StorageCommonConfig.STORE_URL_CONFIG);
 
             storage = new S3Storage(connectorConfig, url);
@@ -74,6 +97,17 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
                 throw new IOException("Non-existent S3 bucket: " + connectorConfig.getBucketName());
             }
             LOGGER.info("Storage validated");
+
+            this.buffer = new InMemoryBuffer("tmp");
+            this.outputStreamFactory = new S3OutputStreamFactory(storage,
+                    connectorConfig.getString(S3SinkConnectorConfig.S3_BASEDIR),
+                    connectorConfig.getString(S3SinkConnectorConfig.S3_PATTERN));
+            this.roller = new Roller(connectorConfig.getLong(S3SinkConnectorConfig.FLUSH_SIZE_CONFIG),
+                    connectorConfig.getLong(S3SinkConnectorConfig.FLUSH_RECORDS_CONFIG),
+                    connectorConfig.getLong(S3SinkConnectorConfig.ROTATE_INTERVAL_MS_CONFIG));
+            this.outputStream = new RollingOutputStream(this.outputStreamFactory, this.buffer, this.roller);
+
+            LOGGER.info("OutputStreams created");
         }
         catch (AmazonClientException e) {
             LOGGER.error(e.getMessage());
@@ -86,59 +120,28 @@ public class S3ChangeConsumer extends FlushingChangeConsumer {
     }
 
     @Override
-    protected void createWriter(String base, String path) throws IOException {
-        String commitFilename = base + path;
-        LOGGER.info(
-                "Creating new writer filename='{}'",
-                commitFilename);
-        this.writer = this.getRecordWriter(connectorConfig, commitFilename);
-    }
+    public void handleBatch(List<ChangeEvent<Object, Object>> records,
+                            DebeziumEngine.RecordCommitter<ChangeEvent<Object, Object>> committer)
+            throws InterruptedException {
+        LOGGER.trace("Handle Batch with {} records", records.size());
+        for (ChangeEvent<Object, Object> record : records) {
+            LOGGER.trace("Received event '{}'", record);
 
-    @Override
-    protected void closeWriter() throws IOException {
-        this.writer.commit();
-        this.writer.close();
-    }
+            if (record.value() != null) {
+                String value = (String) record.value();
+                try {
+                    this.roller.updateStatistics(1,
+                            value.getBytes(Charset.defaultCharset()).length + lineSeparatorLength,
+                            clock.currentTimeInMillis() - this.previousWriteInMillis);
 
-    @Override
-    public void write(InputStream is) throws IOException {
-        byte[] buffer = new byte[1024]; // Adjust if you want
-        int bytesRead;
-        while ((bytesRead = is.read(buffer)) != -1) {
-            this.writer.write(buffer, 0, bytesRead);
+                    this.outputStream.write(value.getBytes());
+                    this.outputStream.write(System.lineSeparator().getBytes());
+                }
+                catch (IOException ioe) {
+                    LOGGER.error(ioe.getMessage());
+                    throw new InterruptedException(ioe.toString());
+                }
+            }
         }
-    }
-
-    private S3RetriableByteWriter getRecordWriter(final S3SinkConnectorConfig conf, final String filename) {
-        return new S3RetriableByteWriter(
-                new com.yugabyte.cdcsdk.sink.s3.IOByteWriter() {
-                    final S3OutputStream s3out = storage.create(filename, true);
-                    final OutputStream s3outWrapper = s3out.wrapForCompression();
-
-                    @Override
-                    public void write(byte[] jsonStr) throws IOException {
-                        s3outWrapper.write(jsonStr);
-                        LOGGER.debug("Wrote {} bytes", jsonStr.length);
-                    }
-
-                    @Override
-                    public void write(byte[] jsonStr, int offset, int length) throws IOException {
-                        s3outWrapper.write(jsonStr, offset, length);
-                        LOGGER.debug("Wrote Offset: {}, Length: {}", offset, length);
-                    }
-
-                    @Override
-                    public void commit() throws IOException {
-                        // Flush is required here, because closing the writer will close the underlying
-                        // S3
-                        // output stream before committing any data to S3.
-                        s3out.commit();
-                        s3outWrapper.close();
-                    }
-
-                    @Override
-                    public void close() throws IOException {
-                    }
-                });
     }
 }

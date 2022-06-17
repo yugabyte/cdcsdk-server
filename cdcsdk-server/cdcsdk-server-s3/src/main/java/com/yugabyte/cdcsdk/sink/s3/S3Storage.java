@@ -49,6 +49,7 @@ import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.Tag;
 import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
+import com.yugabyte.cdcsdk.sink.s3.streams.S3OutputStream;
 
 /**
  * S3 implementation of the storage interface for Connect sinks.

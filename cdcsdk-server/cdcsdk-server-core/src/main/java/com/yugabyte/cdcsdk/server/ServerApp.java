@@ -155,9 +155,22 @@ public class ServerApp {
 
             if (transforms.get().equals(FLATTEN_TRANSFORM)) {
                 LOGGER.info("Enabling FLATTEN transform");
-                props.setProperty("transforms", "flatten");
-                props.setProperty("transforms.flatten.type", "io.debezium.transforms.ExtractNewRecordState");
-                props.setProperty("value.converter.schemas.enable", "false");
+
+                if (config.getValue(PROP_SOURCE_PREFIX + "connector.class", String.class)
+                        .equals("io.debezium.connector.yugabytedb.YugabyteDBConnector")) {
+                    LOGGER.debug("Source is Yugabyte. Flatten with YBExtract");
+                    props.setProperty("transforms", "unwrap,flatten");
+                    props.setProperty("transforms.flatten.type", "io.debezium.transforms.ExtractNewRecordState");
+                    props.setProperty("transforms.unwrap.type",
+                            "io.debezium.connector.yugabytedb.transforms.YBExtractNewRecordState");
+                    props.setProperty("value.converter.schemas.enable", "false");
+                }
+                else {
+                    LOGGER.debug("Source is not Yugabyte. Flatten with generic Extract");
+                    props.setProperty("transforms", "flatten");
+                    props.setProperty("transforms.flatten.type", "io.debezium.transforms.ExtractNewRecordState");
+                    props.setProperty("value.converter.schemas.enable", "false");
+                }
             }
             else {
                 props.setProperty("transforms", transforms.get());
