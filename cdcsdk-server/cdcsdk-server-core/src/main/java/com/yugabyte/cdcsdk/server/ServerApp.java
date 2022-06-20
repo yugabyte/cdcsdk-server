@@ -5,6 +5,8 @@
  */
 package com.yugabyte.cdcsdk.server;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -115,7 +117,7 @@ public class ServerApp {
     private Bean<DebeziumEngine.ChangeConsumer<ChangeEvent<Object, Object>>> consumerBean;
     private CreationalContext<ChangeConsumer<ChangeEvent<Object, Object>>> consumerBeanCreationalContext;
     private DebeziumEngine.ChangeConsumer<ChangeEvent<Object, Object>> consumer;
-    private DebeziumEngine<?> engine;
+    private List<DebeziumEngine<?>> engines = new ArrayList<>();
     private final Properties props = new Properties();
 
     @SuppressWarnings("unchecked")
@@ -200,7 +202,7 @@ public class ServerApp {
             props.setProperty("taskId", String.valueOf(index));
             props.setProperty("maxTasks", String.valueOf(numThreads));
             props.setProperty("offset.storage.file.filename", "data/" + String.valueOf(index));
-            engine = DebeziumEngine.create(keyFormat, valueFormat)
+            DebeziumEngine<?> engine = DebeziumEngine.create(keyFormat, valueFormat)
                     .notifying(consumer)
                     .using(props)
                     .using((DebeziumEngine.ConnectorCallback) health)
@@ -214,6 +216,7 @@ public class ServerApp {
                     Quarkus.asyncExit();
                 }
             });
+            engines.add(engine);
             LOGGER.info("Engine executor {} started", index);
         }
     }
@@ -254,7 +257,9 @@ public class ServerApp {
         try {
             LOGGER.info("Received request to stop the engine");
             final Config config = ConfigProvider.getConfig();
-            engine.close();
+            for (DebeziumEngine<?> engine : this.engines) {
+                engine.close();
+            }
             executor.shutdown();
             executor.awaitTermination(config.getOptionalValue(PROP_TERMINATION_WAIT, Integer.class).orElse(10),
                     TimeUnit.SECONDS);
