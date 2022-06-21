@@ -29,6 +29,10 @@ It supports a YugabyteDb instance as a source and supports the following sinks:
     - [Networking](#networking)
     - [Healthchecks](#healthchecks)
       - [Running the health check](#running-the-health-check)
+    - [Metrics](#metrics)
+      - [System Metrics](#system-metrics)
+      - [Application Metrics](#application-metrics)
+      - [Integration with Prometheus](#integration-with-prometheus)
 
 ## Basic architecture
 
@@ -304,8 +308,6 @@ status — the overall result of all the health check procedures
 checks — an array of individual checks
 
 The general status of the health check is computed as a logical AND of all the declared health check procedures.
-The checks array is currently empty as we have not specified any health check procedure yet.
-
 
 Example output:
 
@@ -329,4 +331,45 @@ curl http://localhost:8080/q/health/ready
     "checks": [
     ]
 }
+```
+
+### Metrics
+
+CDCSDK Server exposes metrics through a REST ENDPOINT: `q/metrics`. To view metrics, execute
+
+    curl localhost:8080/q/metrics/
+
+Refer to [Quarkus-Micrometer docs](https://quarkus.io/guides/micrometer#configuration-reference) for configuration options.
+
+#### System Metrics
+
+There are a number of system metrics to monitor JVM performance such as
+
+* jvm_gc_*
+* jvm_memory_*
+* jvm_threads_*
+
+#### Application Metrics
+
+Application metrics have the prefix `cdcsdk_`. The following metrics for the application are available.
+
+
+|Metric|Description|
+|------|-----------|
+|cdcsdk_server_health|A status code for the health of the server. 0: Healthy, 1: Not Healthy. In the future, more states will be available for different causes|
+|cdcsdk_sink_totalBytesWritten|No. of bytes written by the sink since the start of the application|
+|cdcsdk_sink_totalRecordsWritten|No. of records written by the sink since the start of the application|
+
+#### Integration with Prometheus
+
+Prometheus uses a pull model to get metrics from applications. This means that Prometheus will scrape or watch endpoints to pull metrics from.
+The following job configuration will enable prometheus installation to scrape from CDCSDK Server
+
+
+```
+- job_name: 'cdcsdk-server-metrics'
+   metrics_path: '/q/metrics'
+   scrape_interval: 3s
+   static_configs:
+     - targets: ['HOST:8080']
 ```
