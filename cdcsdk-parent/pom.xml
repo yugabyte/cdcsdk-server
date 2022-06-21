@@ -10,7 +10,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cdcsdk-parent</artifactId>
-    <name>Debezium Parent POM</name>
+    <name>CDCSDK Parent POM</name>
     <description>Parent POM for all modules and connectors</description>
     <packaging>pom</packaging>
     <properties>
@@ -129,7 +129,7 @@
                         <dependency>
                             <groupId>io.debezium</groupId>
                             <artifactId>debezium-ide-configs</artifactId>
-                            <version>${project.version}</version>
+                            <version>${version.debezium}</version>
                         </dependency>
                     </dependencies>
                     <configuration>
