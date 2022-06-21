@@ -115,8 +115,6 @@ cdcsdk.source.database.master.addresses=127.0.0.1:7100
 cdcsdk.source.snapshot.mode=never
 ```
 
-For detailed documentation of the configuration, check [debezium docs](https://debezium.io/documentation/reference/stable/operations/debezium-server.html#_sink_configuration)
-
 ### Configuration using Environment Variables
 
 Configuration using environment variables maybe useful when running in containers. The rule of thumb
@@ -136,6 +134,14 @@ Additional configuration:
 |quarkus.log.level|INFO|The default log level for every log category.|
 |quarkus.log.console.json|true|Determine whether to enable the JSON console formatting extension, which disables "normal" console formatting.|
 
+### Kafka Client/Confluent Cloud
+The Kafka Client will stream changes to a Kafka Message Broker or to Confluent Cloud.
+
+|Property|Default|Description|
+|--------|-------|-----------|
+|cdcsdk.sink.type||Must be set to `kafka`|
+|cdcsdk.sink.kafka.producer.*||The Kafka sink adapter supports pass-through configuration. This means that all Kafka producer configuration properties are passed to the producer with the prefix removed.At least `bootstrap.servers`, `key.serializer` and `value.serializer` properties must be provided. At least `bootstrap.servers`, `key.serializer` and `value.serializer` properties must be provided. The topic is set by CDCSDK Server.|
+
 ### HTTP Client
 The HTTP Client will stream changes to any HTTP Server for additional processing.
 |Property|Default|Description|
@@ -146,7 +152,12 @@ The HTTP Client will stream changes to any HTTP Server for additional processing
 
 ### Amazon S3
 
-The Amazon S3 Sink streams changes to an AWS S3 bucket. Only **Inserts** are supported. The available configuration options are:
+The Amazon S3 Sink streams changes to an AWS S3 bucket. Only **Inserts** are supported.
+
+> **Note**
+> Amazon S3 Sink supports a single table at a time. Specifically cdcsdk.source.table.include.list should contain only one table at a time. If multiple tables need to be exported to Amazon S3, multiple CDCSDK servers that read from the same CDC Stream ID but write to different S3 locations should be setup.
+
+The available configuration options are:
 
 |Property|Default|Description|
 |--------|-------|-----------|
