@@ -64,6 +64,14 @@ public class S3ConsumerRelIT {
         return testConfig.getValue("cdcsdk.sink.storage.basedir");
     }
 
+    private static void clearBucket(String bucketName, String prefix) {
+        AmazonS3 S3Client = storage.client();
+        List<String> files = S3Utils.getDirectoryFiles(S3Client, bucketName, prefix);
+        for (String file : files) {
+            S3Client.deleteObject(bucketName, file);
+        }
+    }
+
     @Disabled
     @Test
     public void testSample() {
@@ -133,6 +141,8 @@ public class S3ConsumerRelIT {
                 break;
             }
         }
+
+        clearBucket(s3Config.getBucketName(), getBaseDir());
     }
 
     private class ConfigSourceS3 {
