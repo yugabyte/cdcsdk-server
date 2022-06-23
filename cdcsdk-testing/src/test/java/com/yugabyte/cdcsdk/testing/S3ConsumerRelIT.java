@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,20 +50,21 @@ public class S3ConsumerRelIT {
 
     @BeforeEach
     public void createTable() throws Exception {
-        String createTableSql = "CREATE TABLE IF NOT EXISTS test_table (id INT, name VARCHAR(255))";
-        TestHelper.execute(createTableSql);
+        // String createTableSql = "CREATE TABLE IF NOT EXISTS test_table (id INT, name VARCHAR(255))";
+        // TestHelper.execute(createTableSql);
     }
 
     @AfterEach
     public void dropTable() throws Exception {
-        String dropTableSql = "DROP TABLE IF EXISTS test_table";
-        TestHelper.execute(dropTableSql);
+        // String dropTableSql = "DROP TABLE IF EXISTS test_table";
+        // TestHelper.execute(dropTableSql);
     }
 
     private String getBaseDir() {
         return testConfig.getValue("cdcsdk.sink.storage.basedir");
     }
 
+    @Disabled
     @Test
     public void testSample() {
         System.out.println("Running testSample()");
@@ -86,8 +88,9 @@ public class S3ConsumerRelIT {
             System.out.println("The bucket doesn't exist because it has not been created yet lol");
         }
 
-        for (int i = 0; i < 5; ++i) {
-            String insertSql = String.format("INSERT INTO test_table VALUES (%d, %s, %s, %f);", i, "first_" + i, "last_" + i, 23.45);
+        int recordsInserted = 5;
+        for (int i = 0; i < recordsInserted; ++i) {
+            String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);", i, "first_" + i, "last_" + i, 23.45);
             TestHelper.execute(insertSql);
         }
 
@@ -95,11 +98,11 @@ public class S3ConsumerRelIT {
         Thread.sleep(5000);
 
         List<String> expected_data = List.of(
-                "{\"id\":\"0\",\"first_name\":\"first_0\",\"last_name\":\"last_0\",\"days_worked\":\"23.45\"}",
-                "{\"id\":\"1\",\"first_name\":\"first_1\",\"last_name\":\"last_1\",\"days_worked\":\"23.45\"}",
-                "{\"id\":\"2\",\"first_name\":\"first_2\",\"last_name\":\"last_2\",\"days_worked\":\"23.45\"}",
-                "{\"id\":\"3\",\"first_name\":\"first_3\",\"last_name\":\"last_3\",\"days_worked\":\"23.45\"}",
-                "{\"id\":\"4\",\"first_name\":\"first_4\",\"last_name\":\"last_4\",\"days_worked\":\"23.45\"}");
+                "{\"id\":{\"value\":0,\"set\":true},\"first_name\":{\"value\":\"first_0\",\"set\":true},\"last_name\":{\"value\":\"last_0\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}",
+                "{\"id\":{\"value\":1,\"set\":true},\"first_name\":{\"value\":\"first_1\",\"set\":true},\"last_name\":{\"value\":\"last_1\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}",
+                "{\"id\":{\"value\":2,\"set\":true},\"first_name\":{\"value\":\"first_2\",\"set\":true},\"last_name\":{\"value\":\"last_2\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}",
+                "{\"id\":{\"value\":3,\"set\":true},\"first_name\":{\"value\":\"first_3\",\"set\":true},\"last_name\":{\"value\":\"last_3\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}",
+                "{\"id\":{\"value\":4,\"set\":true},\"first_name\":{\"value\":\"first_4\",\"set\":true},\"last_name\":{\"value\":\"last_4\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}");
 
         Iterator<String> expected = expected_data.iterator();
 
@@ -120,10 +123,15 @@ public class S3ConsumerRelIT {
             objectData.close();
         }
 
+        int recordsAsserted = 0;
         for (String line : allLines) {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(line);
             assertEquals(mapper.readTree(expected.next()), node);
+            ++recordsAsserted;
+            if (recordsAsserted == recordsInserted) {
+                break;
+            }
         }
     }
 
@@ -131,21 +139,21 @@ public class S3ConsumerRelIT {
         Map<String, String> s3Test = new HashMap<>();
 
         public ConfigSourceS3() {
-            String dbStreamId = "";
-            System.out.println("Going to create a stream ID");
-            try {
-                dbStreamId = TestHelper.getNewDbStreamId("yugabyte");
-            }
-            catch (Exception e) {
-                System.out.println("Exception thrown while creating stream ID: " + e);
-            }
-            System.out.println("Created stream ID: " + dbStreamId);
+            // String dbStreamId = "";
+            // System.out.println("Going to create a stream ID");
+            // try {
+            // dbStreamId = TestHelper.getNewDbStreamId("yugabyte");
+            // }
+            // catch (Exception e) {
+            // System.out.println("Exception thrown while creating stream ID: " + e);
+            // }
+            // System.out.println("Created stream ID: " + dbStreamId);
 
             s3Test.put("cdcsdk.sink.type", "s3");
             s3Test.put("cdcsdk.sink.s3.bucket.name", "cdcsdk-test");
             s3Test.put("cdcsdk.sink.s3.region", "us-west-2");
             s3Test.put("cdcsdk.sink.s3.basedir", "S3ConsumerIT/");
-            s3Test.put("cdcsdk.sink.s3.pattern", "stream_{EPOCH}");
+            s3Test.put("cdcsdk.sink.s3.pattern", "stream_12345678");
             s3Test.put("cdcsdk.sink.s3.flushRecords", "5");
             s3Test.put("cdcsdk.server.transforms", "FLATTEN");
 
@@ -158,10 +166,10 @@ public class S3ConsumerRelIT {
             s3Test.put("cdcsdk.source.database.user", "yugabyte");
             s3Test.put("cdcsdk.source.database.password", "yugabyte");
             s3Test.put("cdcsdk.source.database.dbname", "yugabyte");
-            s3Test.put("cdcsdk.source.database.streamid", dbStreamId);
+            // s3Test.put("cdcsdk.source.database.streamid", dbStreamId);
             s3Test.put("cdcsdk.source.database.master.addresses", "127.0.0.1:7100");
             s3Test.put("cdcsdk.source.snapshot.mode", "never");
-            s3Test.put("cdcsdk.source.database.server.name", "testc");
+            s3Test.put("cdcsdk.source.database.server.name", "dbserver1");
             s3Test.put("cdcsdk.source.schema.include.list", "public");
             s3Test.put("cdcsdk.source.table.include.list", "public.test_table");
             s3Test.put("quarkus.log.level", "trace");
