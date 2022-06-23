@@ -73,6 +73,7 @@ public class S3ConsumerRelIT {
     public void testAutomationOfS3Assertions() throws Exception {
         // Assuming that the table is created at this point with the schema
         // {id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision}
+        // CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);
         testConfig = new ConfigSourceS3();
         s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(FlushingChangeConsumer.PROP_SINK_PREFIX));
 
@@ -83,13 +84,15 @@ public class S3ConsumerRelIT {
 
         if (!storage.bucketExists()) {
             System.out.println("The bucket doesn't exist because it has not been created yet lol");
-            fail();
         }
 
         for (int i = 0; i < 5; ++i) {
             String insertSql = String.format("INSERT INTO test_table VALUES (%d, %s, %s, %f);", i, "first_" + i, "last_" + i, 23.45);
             TestHelper.execute(insertSql);
         }
+
+        System.out.println("Waiting for sometime for the data to be pushed to S3...");
+        Thread.sleep(5000);
 
         List<String> expected_data = List.of(
                 "{\"id\":\"0\",\"first_name\":\"first_0\",\"last_name\":\"last_0\",\"days_worked\":\"23.45\"}",
@@ -139,11 +142,11 @@ public class S3ConsumerRelIT {
             System.out.println("Created stream ID: " + dbStreamId);
 
             s3Test.put("cdcsdk.sink.type", "s3");
-            s3Test.put("cdcsdk.sink.s3.bucket.name", "cdcsdk-test-vk");
+            s3Test.put("cdcsdk.sink.s3.bucket.name", "cdcsdk-test");
             s3Test.put("cdcsdk.sink.s3.region", "us-west-2");
             s3Test.put("cdcsdk.sink.s3.basedir", "S3ConsumerIT/");
             s3Test.put("cdcsdk.sink.s3.pattern", "stream_{EPOCH}");
-            s3Test.put("cdcsdk.sink.s3.flushRecords", "3");
+            s3Test.put("cdcsdk.sink.s3.flushRecords", "5");
             s3Test.put("cdcsdk.server.transforms", "FLATTEN");
 
             s3Test.put("cdcsdk.source.connector.class", "io.debezium.connector.yugabytedb.YugabyteDBConnector");
