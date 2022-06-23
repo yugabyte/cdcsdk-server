@@ -80,11 +80,12 @@ public class InMemoryBuffer implements BufferStorage {
     }
 
     @Override
-    public void deleteFile() throws IOException {
+    public void reset() throws IOException {
         if (tempFile != null) {
             LOGGER.info("Deleting tempFile data {}", getFilename());
             Files.deleteIfExists(tempFile.toPath());
         }
+        byteBuffer.reset();
     }
 
     @Override

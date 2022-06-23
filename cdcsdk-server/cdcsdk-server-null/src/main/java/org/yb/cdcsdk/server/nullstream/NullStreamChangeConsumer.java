@@ -16,6 +16,8 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yugabyte.cdcsdk.server.Metrics;
+
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.DebeziumEngine.RecordCommitter;
@@ -54,6 +56,20 @@ public class NullStreamChangeConsumer extends BaseChangeConsumer
     public void handleBatch(List<ChangeEvent<Object, Object>> records,
                             RecordCommitter<ChangeEvent<Object, Object>> committer)
             throws InterruptedException {
+
+        for (ChangeEvent<Object, Object> record : records) {
+            String key = (String) record.key();
+            String value = (String) record.value();
+
+            if (key != null) {
+                this.metrics.get(Metrics.bytesWritten).increment(key.getBytes().length);
+            }
+            if (value != null) {
+                this.metrics.get(Metrics.bytesWritten).increment(value.getBytes().length);
+            }
+
+            this.metrics.get(Metrics.recordsWritten).increment();
+        }
 
         totalRecords += records.size();
         if (totalRecords / 100000 > numLogged) {
