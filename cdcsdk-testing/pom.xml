@@ -17,9 +17,48 @@
   <properties>
     <junit.jupiter.version>5.8.1</junit.jupiter.version>
     <junit.platform.version>1.8.1</junit.platform.version>
+    <version.ybclient>0.8.19-20220531.235858-1</version.ybclient>
   </properties>
 
+  <distributionManagement>
+    <site>
+        <id>s3.site</id>
+        <url>s3://repository.yugabyte.com/maven/site</url>
+    </site>
+    <repository>
+        <id>s3.release</id>
+        <url>s3://repository.yugabyte.com/maven/release</url>
+    </repository>
+    <snapshotRepository>
+    <id>s3.snapshot</id>
+        <url>s3://repository.yugabyte.com/snapshot</url>
+    </snapshotRepository>
+    </distributionManagement>
+
   <dependencies>
+    <dependency>
+        <groupId>io.debezium</groupId>
+        <artifactId>cdcsdk-server-core</artifactId>
+        <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>cdcsdk-server-s3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.yb</groupId>
+        <artifactId>yb-client</artifactId>
+        <version>${version.ybclient}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.yb</groupId>
+        <artifactId>yb-client</artifactId>
+        <version>${version.ybclient}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -35,6 +74,28 @@
       <artifactId>junit-jupiter-api</artifactId>
       <version>${junit.jupiter.version}</version>
       <scope>test</scope>
+    </dependency>
+    <!-- Dependency for the YugabyteDB JDBC driver -->
+    <dependency>
+        <groupId>com.yugabyte</groupId>
+        <artifactId>jdbc-yugabytedb</artifactId>
+        <version>42.3.0-beta.1</version>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>cdcsdk-server-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>cdcsdk-server-s3</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

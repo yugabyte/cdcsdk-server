@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
   <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -268,117 +267,62 @@
             </plugins>
         </pluginManagement>
         <plugins>
-                              
-          <plugin>
-                                    
-            <groupId>org.apache.maven.plugins</groupId>
-                                    
-            <artifactId>maven-javadoc-plugin</artifactId>
-                                    
-            <version>${version.javadoc.plugin}</version>
-                                    
-            <configuration>
-                                          
-              <show>private</show>
-                                          
-              <nohelp>true</nohelp>
-                                      
-            </configuration>
-                                    
-            <executions>
-                                          
-              <execution>
-                                                
-                <id>attach-javadocs</id>
-                                                
-                <goals>
-                                                      
-                  <goal>jar</goal>
-                                                  
-                </goals>
-                                            
-              </execution>
-                                          
-              <execution>
-                                                
-                <id>attach-test-javadocs</id>
-                                                
-                <goals>
-                                                      
-                  <goal>test-jar</goal>
-                                                  
-                </goals>
-                                            
-              </execution>
-                                      
-            </executions>
-                                
-          </plugin>
-                          
-        </plugins>
-                    
-      </build>
-              
-    </profile>
-            
-    <profile>
-                  
-      <id>release-sign-artifacts</id>
-                  
-      <activation>
-                        
-        <property>
-                              
-          <name>performRelease</name>
-                              
-          <value>true</value>
-                          
-        </property>
-                    
-      </activation>
-                  
-      <build>
-                        
-        <plugins>
-                              
-          <plugin>
-                                    
-            <groupId>org.apache.maven.plugins</groupId>
-                                    
-            <artifactId>maven-gpg-plugin</artifactId>
-                                    
-            <executions>
-                                          
-              <execution>
-                                                
-                <id>sign-artifacts</id>
-                                                
-                <phase>verify</phase>
-                                                
-                <goals>
-                                                      
-                  <goal>sign</goal>
-                                                  
-                </goals>
-                                                
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                                                      
-                  <gpgArguments>
-                                                            
-                    <arg>--pinentry-mode</arg>
-                                                            
-                    <arg>loopback</arg>
-                                                        
-                  </gpgArguments>
-                                                  
+                    <pushChanges>false</pushChanges>
+                    <releaseProfiles>docs,assembly,release-sign-artifacts,release</releaseProfiles>
                 </configuration>
-                                            
-              </execution>
-                                      
-            </executions>
-                                
-          </plugin>
-                          
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>${release.endpoint}</nexusUrl>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <release>${maven.compiler.release}</release>
+                    <testSource>${maven.compiler.source}</testSource>
+                    <testTarget>${maven.compiler.target}</testTarget>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.6.3</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <profiles>
