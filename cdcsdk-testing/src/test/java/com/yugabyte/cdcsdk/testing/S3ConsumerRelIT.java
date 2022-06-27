@@ -19,7 +19,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,13 +71,6 @@ public class S3ConsumerRelIT {
         }
     }
 
-    @Disabled
-    @Test
-    public void testSample() {
-        System.out.println("Running testSample()");
-        assertEquals(0, 0);
-    }
-
     @Test
     public void testAutomationOfS3Assertions() throws Exception {
         // Assuming that the table is created at this point with the schema
@@ -93,7 +85,7 @@ public class S3ConsumerRelIT {
         AmazonS3 s3Client = storage.client();
 
         if (!storage.bucketExists()) {
-            System.out.println("The bucket doesn't exist because it has not been created yet lol");
+            throw new RuntimeException("The bucket you are trying to access doesn't exist...");
         }
 
         int recordsInserted = 5;
@@ -149,16 +141,6 @@ public class S3ConsumerRelIT {
         Map<String, String> s3Test = new HashMap<>();
 
         public ConfigSourceS3() {
-            // String dbStreamId = "";
-            // System.out.println("Going to create a stream ID");
-            // try {
-            // dbStreamId = TestHelper.getNewDbStreamId("yugabyte");
-            // }
-            // catch (Exception e) {
-            // System.out.println("Exception thrown while creating stream ID: " + e);
-            // }
-            // System.out.println("Created stream ID: " + dbStreamId);
-
             s3Test.put("cdcsdk.sink.type", "s3");
             s3Test.put("cdcsdk.sink.s3.bucket.name", "cdcsdk-test");
             s3Test.put("cdcsdk.sink.s3.region", "us-west-2");
@@ -168,8 +150,6 @@ public class S3ConsumerRelIT {
             s3Test.put("cdcsdk.server.transforms", "FLATTEN");
 
             s3Test.put("cdcsdk.source.connector.class", "io.debezium.connector.yugabytedb.YugabyteDBConnector");
-            // s3Test.put("cdcsdk.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
-            // OFFSET_STORE_PATH.toAbsolutePath().toString());
             s3Test.put("cdcsdk.source.offset.flush.interval.ms", "0");
             s3Test.put("cdcsdk.source.database.hostname", "127.0.0.1");
             s3Test.put("cdcsdk.source.database.port", "5433");
