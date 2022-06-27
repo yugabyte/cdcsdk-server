@@ -64,7 +64,7 @@ public class S3ConsumerRelIT {
         return testConfig.getValue("cdcsdk.sink.storage.basedir");
     }
 
-    private static void clearBucket(String bucketName, String prefix) {
+    private void clearBucket(String bucketName, String prefix) {
         AmazonS3 S3Client = storage.client();
         List<String> files = S3Utils.getDirectoryFiles(S3Client, bucketName, prefix);
         for (String file : files) {
