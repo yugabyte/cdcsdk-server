@@ -30,3 +30,12 @@ up new credentials**
     mvn integration-test
     # Run a specific integration test
     mvn integration-test -Dit.test=HttpIT -DfailIfNoTests=false
+
+
+## Run Release Tests
+
+The below command will create a docker image of CDCSDK Server and run
+integration tests in cdcsdk-testing
+
+
+   mvn integration-test -Drun.releaseTests
