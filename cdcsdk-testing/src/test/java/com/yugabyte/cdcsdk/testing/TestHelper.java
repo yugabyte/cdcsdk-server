@@ -6,15 +6,21 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.YugabyteYSQLContainer;
 import org.yb.client.AsyncYBClient;
 import org.yb.client.ListTablesResponse;
 import org.yb.client.YBClient;
 import org.yb.client.YBTable;
 import org.yb.master.MasterDdlOuterClass.ListTablesResponsePB.TableInfo;
+
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.Ports;
 
 public class TestHelper {
     private static String HOST = "127.0.0.1";
@@ -74,6 +80,24 @@ public class TestHelper {
         System.out.println("Going to create a CDC stream...");
 
         return syncClient.createCDCStream(placeholderTable, dbName, "PROTO", "IMPLICIT").getStreamId();
+    }
+
+    public static YugabyteYSQLContainer getYbContainer() throws Exception {
+        YugabyteYSQLContainer container = new YugabyteYSQLContainer("yugabytedb/yugabyte:2.13.2.0-b135");
+        container.withPassword("yugabyte");
+        container.withUsername("yugabyte");
+        container.withDatabaseName("yugabyte");
+        container.withExposedPorts(7100, 9100, 5433, 9042);
+        container.withCreateContainerCmdModifier(cmd -> cmd.withHostName("127.0.0.1").getHostConfig().withPortBindings(new ArrayList<PortBinding>() {
+            {
+                add(new PortBinding(Ports.Binding.bindPort(7100), new ExposedPort(7100)));
+                add(new PortBinding(Ports.Binding.bindPort(9100), new ExposedPort(9100)));
+                add(new PortBinding(Ports.Binding.bindPort(5433), new ExposedPort(5433)));
+                add(new PortBinding(Ports.Binding.bindPort(9042), new ExposedPort(9042)));
+            }
+        }));
+        container.withCommand("bin/yugabyted start --listen=0.0.0.0 --master_flags=rpc_bind_addresses=0.0.0.0 --daemon=false");
+        return container;
     }
 
     public static void execute(String sqlQuery) throws Exception {
