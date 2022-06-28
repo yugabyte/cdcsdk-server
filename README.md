@@ -29,6 +29,10 @@ It supports a YugabyteDb instance as a source and supports the following sinks:
     - [Networking](#networking)
     - [Healthchecks](#healthchecks)
       - [Running the health check](#running-the-health-check)
+    - [Metrics](#metrics)
+      - [System Metrics](#system-metrics)
+      - [Application Metrics](#application-metrics)
+      - [Integration with Prometheus](#integration-with-prometheus)
 
 ## Basic architecture
 
@@ -115,8 +119,6 @@ cdcsdk.source.database.master.addresses=127.0.0.1:7100
 cdcsdk.source.snapshot.mode=never
 ```
 
-For detailed documentation of the configuration, check [debezium docs](https://debezium.io/documentation/reference/stable/operations/debezium-server.html#_sink_configuration)
-
 ### Configuration using Environment Variables
 
 Configuration using environment variables maybe useful when running in containers. The rule of thumb
@@ -136,6 +138,14 @@ Additional configuration:
 |quarkus.log.level|INFO|The default log level for every log category.|
 |quarkus.log.console.json|true|Determine whether to enable the JSON console formatting extension, which disables "normal" console formatting.|
 
+### Kafka Client/Confluent Cloud
+The Kafka Client will stream changes to a Kafka Message Broker or to Confluent Cloud.
+
+|Property|Default|Description|
+|--------|-------|-----------|
+|cdcsdk.sink.type||Must be set to `kafka`|
+|cdcsdk.sink.kafka.producer.*||The Kafka sink adapter supports pass-through configuration. This means that all Kafka producer configuration properties are passed to the producer with the prefix removed.At least `bootstrap.servers`, `key.serializer` and `value.serializer` properties must be provided. At least `bootstrap.servers`, `key.serializer` and `value.serializer` properties must be provided. The topic is set by CDCSDK Server.|
+
 ### HTTP Client
 The HTTP Client will stream changes to any HTTP Server for additional processing.
 |Property|Default|Description|
@@ -146,17 +156,24 @@ The HTTP Client will stream changes to any HTTP Server for additional processing
 
 ### Amazon S3
 
-The Amazon S3 Sink streams changes to an AWS S3 bucket. Only **Inserts** are supported. The available configuration options are:
+The Amazon S3 Sink streams changes to an AWS S3 bucket. Only **Inserts** are supported.
+
+> **Note**
+> Amazon S3 Sink supports a single table at a time. Specifically cdcsdk.source.table.include.list should contain only one table at a time. If multiple tables need to be exported to Amazon S3, multiple CDCSDK servers that read from the same CDC Stream ID but write to different S3 locations should be setup.
+
+The available configuration options are:
 
 |Property|Default|Description|
 |--------|-------|-----------|
 |cdcsdk.sink.type||Must be set to `s3`|
+|cdcsdk.sink.s3.aws.access.key.id||AWS Access Key ID|
+|cdcsdk.sink.s3.aws.secret.access.key||AWS Secret Access Key|
 |cdcsdk.sink.s3.bucket.name|| Name of S3 Bucket|
 |cdcsdk.sink.s3.region|| Name of the region of the S3 bucket|
 |cdcsdk.sink.s3.basedir||Base directory or path where the data has to be stored|
 |cdcsdk.sink.s3.pattern||Pattern to generate paths (sub-directory and filename) for data files|
-|cdcsdk.sink.s3.flushBytesMB|200|Trigger Data File Rollover on file size|
-|cdcsdk.sink.s3.flushRecords|10000|Trigger Data File Rolloever on number of records|
+|cdcsdk.sink.s3.flush.sizeMB|200|Trigger Data File Rollover on file size|
+|cdcsdk.sink.s3.flush.records|10000|Trigger Data File Rolloever on number of records|
 
 
 ### Mapping Records to S3 Objects
@@ -291,8 +308,6 @@ status — the overall result of all the health check procedures
 checks — an array of individual checks
 
 The general status of the health check is computed as a logical AND of all the declared health check procedures.
-The checks array is currently empty as we have not specified any health check procedure yet.
-
 
 Example output:
 
@@ -316,4 +331,45 @@ curl http://localhost:8080/q/health/ready
     "checks": [
     ]
 }
+```
+
+### Metrics
+
+CDCSDK Server exposes metrics through a REST ENDPOINT: `q/metrics`. To view metrics, execute
+
+    curl localhost:8080/q/metrics/
+
+Refer to [Quarkus-Micrometer docs](https://quarkus.io/guides/micrometer#configuration-reference) for configuration options.
+
+#### System Metrics
+
+There are a number of system metrics to monitor JVM performance such as
+
+* jvm_gc_*
+* jvm_memory_*
+* jvm_threads_*
+
+#### Application Metrics
+
+Application metrics have the prefix `cdcsdk_`. The following metrics for the application are available.
+
+
+|Metric|Description|
+|------|-----------|
+|cdcsdk_server_health|A status code for the health of the server. 0: Healthy, 1: Not Healthy. In the future, more states will be available for different causes|
+|cdcsdk_sink_totalBytesWritten|No. of bytes written by the sink since the start of the application|
+|cdcsdk_sink_totalRecordsWritten|No. of records written by the sink since the start of the application|
+
+#### Integration with Prometheus
+
+Prometheus uses a pull model to get metrics from applications. This means that Prometheus will scrape or watch endpoints to pull metrics from.
+The following job configuration will enable prometheus installation to scrape from CDCSDK Server
+
+
+```
+- job_name: 'cdcsdk-server-metrics'
+   metrics_path: '/q/metrics'
+   scrape_interval: 3s
+   static_configs:
+     - targets: ['HOST:8080']
 ```

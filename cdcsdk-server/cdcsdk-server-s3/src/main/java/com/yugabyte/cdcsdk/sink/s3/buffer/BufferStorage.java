@@ -44,9 +44,11 @@ public interface BufferStorage {
     void close() throws IOException;
 
     /**
-     * Cleans-up any file that was produced in the process of buffering (if any were produced)
+     * Cleans-up any file that was produced in the process of buffering (if any were
+     * produced)
      */
-    void deleteFile() throws IOException;
+
+    void reset() throws IOException;
 
     /*
      * Depending on the implementation of the storage, methods below defined reasonable thresholds

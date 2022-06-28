@@ -17,7 +17,7 @@ public class S3TestConfigSource extends TestConfigSource {
         s3Test.put("cdcsdk.sink.s3.region", "us-west-2");
         s3Test.put("cdcsdk.sink.s3.basedir", "S3ConsumerIT/");
         s3Test.put("cdcsdk.sink.s3.pattern", "stream_{EPOCH}");
-        s3Test.put("cdcsdk.sink.s3.flushRecords", "4");
+        s3Test.put("cdcsdk.sink.s3.flush.records", "4");
         s3Test.put("cdcsdk.server.transforms", "FLATTEN");
 
         s3Test.put("cdcsdk.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");

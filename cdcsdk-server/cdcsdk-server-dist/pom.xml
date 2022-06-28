@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>io.debezium</groupId>
+        <groupId>com.yugabyte</groupId>
         <artifactId>cdcsdk-server</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
+        <version>0.6.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -18,7 +18,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.debezium</groupId>
+            <groupId>com.yugabyte</groupId>
             <artifactId>cdcsdk-server-core</artifactId>
             <scope>test</scope>
         </dependency>
@@ -69,55 +69,55 @@
                   <artifactId>debezium-connector-yugabytedb</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-engine</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-core</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-kinesis</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-pubsub</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-pulsar</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-eventhubs</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-redis</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-null</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-kafka</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-pravega</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-nats-streaming</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-http</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>io.debezium</groupId>
+                    <groupId>com.yugabyte</groupId>
                     <artifactId>cdcsdk-server-s3</artifactId>
                 </dependency>
             </dependencies>

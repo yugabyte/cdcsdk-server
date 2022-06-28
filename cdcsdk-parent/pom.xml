@@ -2,15 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <parent>
-    <groupId>io.debezium</groupId>
-    <artifactId>debezium-build-parent</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <groupId>com.yugabyte</groupId>
+    <artifactId>cdcsdk-build-parent</artifactId>
+    <version>0.6.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cdcsdk-parent</artifactId>
-    <name>Debezium Parent POM</name>
+    <name>CDCSDK Parent POM</name>
     <description>Parent POM for all modules and connectors</description>
     <packaging>pom</packaging>
     <properties>
@@ -129,7 +129,7 @@
                         <dependency>
                             <groupId>io.debezium</groupId>
                             <artifactId>debezium-ide-configs</artifactId>
-                            <version>${project.version}</version>
+                            <version>${version.debezium}</version>
                         </dependency>
                     </dependencies>
                     <configuration>

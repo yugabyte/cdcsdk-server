@@ -16,6 +16,8 @@ import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yugabyte.cdcsdk.server.Metrics;
+
 import io.debezium.DebeziumException;
 
 /**
@@ -33,22 +35,28 @@ public class BaseChangeConsumer {
     @Inject
     Instance<StreamNameMapper> customStreamNameMapper;
 
+    @Inject
+    protected Metrics metrics;
+
     @PostConstruct
     void init() {
         if (customStreamNameMapper.isResolvable()) {
             streamNameMapper = customStreamNameMapper.get();
         }
         LOGGER.info("Using '{}' stream name mapper", streamNameMapper);
+        metrics.apply(0, 0);
+        LOGGER.info("Initialized Consumer Metrics");
     }
 
     /**
      * Get a subset of the configuration properties that matches the given prefix.
-     * 
-     * @param config    The global configuration object to extract the subset from.
-     * @param prefix    The prefix to filter property names.
-     * 
-     * @return          A subset of the original configuration properties containing property names
-     *                  without the prefix.
+     *
+     * @param config The global configuration object to extract the subset from.
+     * @param prefix The prefix to filter property names.
+     *
+     * @return A subset of the original configuration properties containing property
+     *         names
+     *         without the prefix.
      */
     protected Map<String, Object> getConfigSubset(Config config, String prefix) {
         final Map<String, Object> ret = new HashMap<>();

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>io.debezium</groupId>
-        <artifactId>debezium-build-parent</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
+        <groupId>com.yugabyte</groupId>
+        <artifactId>cdcsdk-build-parent</artifactId>
+        <version>0.6.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -21,6 +21,10 @@
         <version.nats>2.8.0</version.nats>
         <version.stan>2.2.3</version.stan>
         <aws.version>1.11.1015</aws.version>
+        <commons-io.version>2.11.0</commons-io.version>
+        <joda-time.version>2.9.6</joda-time.version>
+        <spotbugs.version>4.2.0</spotbugs.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
 
         <version.debezium>1.7.0.Final</version.debezium>
         <!-- YugabyteDB Dependencies -->
@@ -46,6 +50,29 @@
                 <version>${version.kafka}</version>
             </dependency>
 
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${joda-time.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-annotations</artifactId>
+                <version>${spotbugs.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+
+
             <!-- Quarkus dependencies -->
             <dependency>
                 <groupId>io.quarkus</groupId>
@@ -54,6 +81,12 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+                <version>2.10.0.Final</version>
+            </dependency>
+
 
             <!-- Connectors -->
             <dependency>
@@ -154,83 +187,77 @@
                 <type>test</type>
             </dependency>
 
-            <!-- Debezium dependencies -->
+            <!-- CDCSDK dependencies -->
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-engine</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-kinesis</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-pubsub</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-pulsar</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-eventhubs</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-redis</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-null</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-kafka</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-pravega</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-nats-streaming</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-http</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-s3</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.debezium</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>cdcsdk-server-core</artifactId>
                 <type>test-jar</type>
                 <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.debezium</groupId>
-                <artifactId>cdcsdk-server-core</artifactId>
-                <version>${project.version}</version>
-                <type>test-jar</type>
             </dependency>
 
             <!-- Target systems -->

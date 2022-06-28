@@ -5,6 +5,7 @@
  */
 package io.debezium.server;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
@@ -15,12 +16,15 @@ import org.eclipse.microprofile.health.Liveness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yugabyte.cdcsdk.server.Metrics;
+
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.server.events.ConnectorStoppedEvent;
 import io.debezium.server.events.TaskStartedEvent;
 import io.debezium.server.events.TaskStoppedEvent;
+import io.micrometer.core.instrument.Gauge;
 
 /**
  * The server lifecycle listener that published CDI events based on the lifecycle changes and also provides
@@ -51,6 +55,14 @@ public class ConnectorLifecycle implements HealthCheck, DebeziumEngine.Connector
 
     @Inject
     Event<ConnectorCompletedEvent> connectorCompletedEvent;
+
+    @Inject
+    Metrics metrics;
+
+    @PostConstruct
+    public void init() {
+        Gauge.builder("cdcsdk.server.health", this::getStatusCode).strongReference(true).register(metrics.registry());
+    }
 
     @Override
     public void connectorStarted() {
@@ -87,7 +99,10 @@ public class ConnectorLifecycle implements HealthCheck, DebeziumEngine.Connector
     @Override
     public HealthCheckResponse call() {
         LOGGER.trace("Healthcheck called - live = '{}'", live);
-        return HealthCheckResponse.named("debezium").status(live).build();
+        return HealthCheckResponse.named("cdcsdk-server").status(live).build();
     }
 
+    private int getStatusCode() {
+        return live ? 0 : 1;
+    }
 }
