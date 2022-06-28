@@ -52,3 +52,22 @@ integration tests in cdcsdk-testing
 
    mvn integration-test -Drun.releaseTests
 
+
+## Create a deploy a package
+
+CDCSDK Server is distributed as an archive (tar.gz) and a Docker image. Use the
+following commands to create and deploy both these artifacts.
+
+
+    # Create cdcsdk-server-dist-<project.version>.tar.gz and
+    # yugabyte/cdcsdk-server:<project.version>
+
+    mvn package
+
+    # Deploy docker image
+
+    mvn deploy
+
+    # Deploy archive to github project
+
+    gh release create v<project.version> --generate-notes --title <An informative title about the major feature/bug> 'cdcsdk-server/cdcsdk-server-dist/target/cdcsdk-server-dist-<project.version>.tar.gz#CDCSDK Server'
