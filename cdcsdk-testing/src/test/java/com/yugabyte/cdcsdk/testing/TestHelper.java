@@ -8,16 +8,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 <<<<<<< HEAD
 import java.util.ArrayList;
-=======
->>>>>>> main
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-<<<<<<< HEAD
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.YugabyteYSQLContainer;
-=======
->>>>>>> main
+import org.testcontainers.utility.DockerImageName;
 import org.yb.client.AsyncYBClient;
 import org.yb.client.ListTablesResponse;
 import org.yb.client.YBClient;
@@ -107,6 +106,45 @@ public class TestHelper {
         }));
         container.withCommand("bin/yugabyted start --listen=0.0.0.0 --master_flags=rpc_bind_addresses=0.0.0.0 --daemon=false");
         return container;
+    }
+
+    private static Map<String, String> getConfigMap() {
+        Map<String, String> configs = new HashMap<>();
+        configs.put("CDCSDK_SOURCE_CONNECTOR_CLASS", "io.debezium.connector.yugabytedb.YugabyteDBConnector");
+        configs.put("CDCSDK_SOURCE_DATABASE_HOSTNAME", HOST);
+        configs.put("CDCSDK_SOURCE_DATABASE_PORT", "5433");
+        configs.put("CDCSDK_SOURCE_DATABASE_MASTER_ADDRESSES", HOST+":"+MASTER_PORT);
+        configs.put("CDCSDK_SOURCE_DATABASE_SERVER_NAME", "dbserver1");
+        configs.put("CDCSDK_SOURCE_DATABASE_DBNAME", "yugabyte");
+        configs.put("CDCSDK_SOURCE_DATABASE_USER", "yugabyte");
+        configs.put("CDCSDK_SOURCE_DATABASE_PASSWORD", "yugabyte");
+        configs.put("CDCSDK_SOURCE_TABLE_INCLUDE_LIST", "public.test_table");
+        configs.put("CDCSDK_SOURCE_SNAPSHOT_MODE", "never");
+        configs.put("CDCSDK_SOURCE_DATABASE_STREAM_ID", getNewDbStreamId("yugabyte"));
+
+        // Add configs for the sink
+        configs.put("CDCSDK_SINK_TYPE", "s3");
+        configs.put("CDCSDK_SINK_S3_BUCKET_NAME", "cdcsdk-testing");
+        configs.put("CDCSDK_SINK_S3_REGION", "us-west-2");
+        configs.put("CDCSDK_SINK_S3_BASEDIR", "S3ConsumerIT/");
+        configs.put("CDCSDK_SINK_S3_PATTERN", "stream_123");
+        configs.put("CDCSDK_SINK_S3_FLUSH_RECORDS", "4");
+        configs.put("CDCSDK_SINK_S3_FLUSH_SIZEMB", "200");
+        configs.put("CDCSDK_SERVER_TRANSFORMS", "FLATTEN");
+
+        return configs;
+    }
+
+    public static GenericContainer<?> getCdcsdkContainer() throws Exception {
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(DockerImageName.parse("yugabyte/cdcsdk-server:${some-project-version}"));
+        
+        // By the time this container is created, the table should be there in the database already
+        cdcsdkContainer.withEnv(getConfigMap());
+
+        return null;
+
+        // todo: add an image tag to the DockerImageName.parse and then only return the cdcsdkContainer
+        // return cdcsdkContainer;
     }
 
     public static void execute(String sqlQuery) throws Exception {
