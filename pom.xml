@@ -244,6 +244,11 @@
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>${version.build-helper.plugin}</version>
                 </plugin>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>docker-maven-plugin</artifactId>
+                    <version>0.40.1</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -351,13 +356,41 @@
                   </gpgArguments>
                                                   
                 </configuration>
-                                            
-              </execution>
-                                      
-            </executions>
-                                
-          </plugin>
-                          
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.6.3</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>yugabyte/cdcsdk-server:${project.version}</name>
+                            <build>
+                                <dockerFile>Dockerfile</dockerFile>
+                            </build>
+                            </image>
+                        </images>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <profiles>

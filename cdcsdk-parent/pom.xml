@@ -395,6 +395,11 @@
         </profile>
         <profile>
             <id>releaseTests</id>
+            <activation>
+                <property>
+                    <name>run.releaseTests</name>
+                </property>
+            </activation>
             <properties>
                 <skipRelTests>false</skipRelTests>
                 <skipITs>true</skipITs>

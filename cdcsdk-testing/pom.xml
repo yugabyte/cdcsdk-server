@@ -37,12 +37,12 @@
 
   <dependencies>
     <dependency>
-        <groupId>io.debezium</groupId>
+        <groupId>com.yugabyte</groupId>
         <artifactId>cdcsdk-server-core</artifactId>
         <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.debezium</groupId>
+      <groupId>com.yugabyte</groupId>
       <artifactId>cdcsdk-server-s3</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -84,14 +84,14 @@
 
     <!-- Testing -->
     <dependency>
-      <groupId>io.debezium</groupId>
+      <groupId>com.yugabyte</groupId>
       <artifactId>cdcsdk-server-core</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.debezium</groupId>
+      <groupId>com.yugabyte</groupId>
       <artifactId>cdcsdk-server-s3</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
