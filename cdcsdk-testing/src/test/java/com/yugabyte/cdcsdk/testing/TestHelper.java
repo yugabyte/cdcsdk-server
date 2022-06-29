@@ -6,7 +6,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,13 +22,10 @@ import org.yb.client.YBClient;
 import org.yb.client.YBTable;
 import org.yb.master.MasterDdlOuterClass.ListTablesResponsePB.TableInfo;
 
-<<<<<<< HEAD
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 
-=======
->>>>>>> main
 public class TestHelper {
     private static String HOST = "127.0.0.1";
     private static int YSQL_PORT = 5433;
@@ -108,19 +104,21 @@ public class TestHelper {
         return container;
     }
 
-    private static Map<String, String> getConfigMap() {
+    private static Map<String, String> getConfigMap() throws Exception {
         Map<String, String> configs = new HashMap<>();
         configs.put("CDCSDK_SOURCE_CONNECTOR_CLASS", "io.debezium.connector.yugabytedb.YugabyteDBConnector");
         configs.put("CDCSDK_SOURCE_DATABASE_HOSTNAME", HOST);
         configs.put("CDCSDK_SOURCE_DATABASE_PORT", "5433");
-        configs.put("CDCSDK_SOURCE_DATABASE_MASTER_ADDRESSES", HOST+":"+MASTER_PORT);
+        configs.put("CDCSDK_SOURCE_DATABASE_MASTER_ADDRESSES", HOST + ":" + MASTER_PORT);
         configs.put("CDCSDK_SOURCE_DATABASE_SERVER_NAME", "dbserver1");
         configs.put("CDCSDK_SOURCE_DATABASE_DBNAME", "yugabyte");
         configs.put("CDCSDK_SOURCE_DATABASE_USER", "yugabyte");
         configs.put("CDCSDK_SOURCE_DATABASE_PASSWORD", "yugabyte");
         configs.put("CDCSDK_SOURCE_TABLE_INCLUDE_LIST", "public.test_table");
         configs.put("CDCSDK_SOURCE_SNAPSHOT_MODE", "never");
-        configs.put("CDCSDK_SOURCE_DATABASE_STREAM_ID", getNewDbStreamId("yugabyte"));
+        String dbStreamId = getNewDbStreamId("yugabyte");
+        System.out.println("Created db stream ID: " + dbStreamId);
+        configs.put("CDCSDK_SOURCE_DATABASE_STREAM_ID", dbStreamId);
 
         // Add configs for the sink
         configs.put("CDCSDK_SINK_TYPE", "s3");
@@ -136,8 +134,8 @@ public class TestHelper {
     }
 
     public static GenericContainer<?> getCdcsdkContainer() throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(DockerImageName.parse("yugabyte/cdcsdk-server:${some-project-version}"));
-        
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(DockerImageName.parse("yugabyte/cdcsdk-server:0.6.0-SNAPSHOT"));
+
         // By the time this container is created, the table should be there in the database already
         cdcsdkContainer.withEnv(getConfigMap());
 
