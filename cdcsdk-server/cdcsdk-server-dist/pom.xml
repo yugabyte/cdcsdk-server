@@ -139,7 +139,7 @@
                 <configuration>
                     <images>
                         <image>
-                            <name>yugabyte/cdcsdk-server:${project.version}</name>
+                            <name>quay.io/yugabyte/cdcsdk-server:${project.version}</name>
                             <build>
                                 <contextDir>${project.basedir}</contextDir>
                             </build>

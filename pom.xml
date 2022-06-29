@@ -70,7 +70,7 @@
         <version.jandex>1.0.8</version.jandex>
         <version.revapi-java.plugin>0.21.0</version.revapi-java.plugin>
         <version.build-helper.plugin>1.9.1</version.build-helper.plugin>
-        <version.s3.wagon>1.3.3</version.s3.wagon>
+        <version.s3.wagon>0.1.3</version.s3.wagon>
 
         <!-- Kafka and it's dependencies MUST reflect what the Kafka version uses -->
         <version.kafka>2.8.0</version.kafka>
@@ -145,7 +145,7 @@
     <build>
          <extensions>
             <extension>
-                <groupId>com.github.seahen</groupId>
+                <groupId>com.yugabyte</groupId>
                 <artifactId>maven-s3-wagon</artifactId>
                 <version>${version.s3.wagon}</version>
            </extension>
