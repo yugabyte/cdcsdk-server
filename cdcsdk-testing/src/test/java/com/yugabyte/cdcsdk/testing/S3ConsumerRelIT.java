@@ -77,7 +77,7 @@ public class S3ConsumerRelIT {
         // {id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision}
         // CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);
         testConfig = new ConfigSourceS3();
-        s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(S3ChangeConsumer.PROP_SINK_PREFIX));
+        s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(S3ChangeConsumer.PROP_S3_PREFIX));
 
         // todo vaibhav: add configuration from a resource file if possible
         storage = new S3Storage(s3Config, "");
