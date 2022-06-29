@@ -162,7 +162,7 @@
                         <dependency>
                             <groupId>io.debezium</groupId>
                             <artifactId>debezium-revapi</artifactId>
-                            <version>${project.version}</version>
+                            <version>${version.debezium}</version>
                         </dependency>
                         <dependency>
                             <groupId>org.revapi</groupId>
