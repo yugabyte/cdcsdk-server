@@ -14,11 +14,13 @@ It supports a YugabyteDb instance as a source and supports the following sinks:
     - [CDCSDK Server](#cdcsdk-server)
   - [Quick Start](#quick-start)
     - [Create a CDCSDK Stream in Yugabytedb](#create-a-cdcsdk-stream-in-yugabytedb)
+    - [Run CDCSDK Server using Docker](#run-cdcsdk-server-using-docker)
     - [Download and run CDCSDK Server](#download-and-run-cdcsdk-server)
     - [Unpack and Run Instructions.](#unpack-and-run-instructions)
   - [Configuration](#configuration)
     - [Configuration using Environment Variables](#configuration-using-environment-variables)
     - [Server configuration](#server-configuration)
+    - [Kafka Client/Confluent Cloud](#kafka-clientconfluent-cloud)
     - [HTTP Client](#http-client)
     - [Amazon S3](#amazon-s3)
     - [Mapping Records to S3 Objects](#mapping-records-to-s3-objects)
@@ -60,6 +62,17 @@ A successful operation returns a message with the Stream ID. Take note of the ID
 ```
 CDC Stream ID: d540f5e4890c4d3b812933cbfd703ed3
 ```
+
+### Run CDCSDK Server using Docker
+
+    docker pull quay.io/yugabyte/cdcsdk-server:latest
+    docker run -it --rm --name cdcsdk-server -p 8080:8080 \
+       -e <CONFIGURATION>
+    quay.io/yugabyte/cdcsdk-server:latest
+
+
+The docker container has to be configured using environment variables. Check [Configuration](#configuration) for more information.
+
 
 ### Download and run CDCSDK Server
 CDCSDK Server distribution archives are available in [Github Releases](https://github.com/yugabyte/cdcsdk-server/releases) of the project.
