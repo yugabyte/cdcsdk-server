@@ -44,9 +44,19 @@ public class PostgresConsumerIT {
 
         int recordsInserted = 5;
         for (int i = 0; i < recordsInserted; ++i) {
-            String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);", i, "first_" + i, "last_" + i, 23.45);
+            String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);", i, "first_" + i,
+                    "last_" + i, 23.45);
             TestHelper.execute(insertSql);
         }
+
+        // Verify data on Kafka.
+
+        List<String> expected_data_kafka = List.of(
+                "{\"id\":0,\"first_name\":\"first_0\",\"last_name\":\"last_0\",\"days_worked\":23.45}",
+                "{\"id\":1,\"first_name\":\"first_1\",\"last_name\":\"last_1\",\"days_worked\":23.45}",
+                "{\"id\":2,\"first_name\":\"first_2\",\"last_name\":\"last_2\",\"days_worked\":23.45}",
+                "{\"id\":3,\"first_name\":\"first_3\",\"last_name\":\"last_3\",\"days_worked\":23.45}",
+                "{\"id\":4,\"first_name\":\"first_4\",\"last_name\":\"last_4\",\"days_worked\":23.45}");
 
         Properties props = new Properties();
         props.put("bootstrap.servers", "10.150.1.22:9092");
@@ -55,24 +65,34 @@ public class PostgresConsumerIT {
         props.put("auto.commit.interval.ms", "1000");
         props.put("session.timeout.ms", "30000");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+        // props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.connect.json.JsonDeserializer");
+
+        KafkaConsumer<String, JsonNode> consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Arrays.asList("dbserver1.public.test_table"));
         long expectedtime = System.currentTimeMillis() + 10000;
         System.out.println("Consumer created");
-
+        List<String> allLinesKafka = new ArrayList<>();
         while (System.currentTimeMillis() < expectedtime) {
             consumer.seekToBeginning(consumer.assignment());
-            ConsumerRecords<String, String> records = consumer.poll(15);
+            ConsumerRecords<String, JsonNode> records = consumer.poll(15);
             System.out.println("Record count " + records.count());
-            for (ConsumerRecord<String, String> record : records) {
-                System.out.println("value read " + record.value());
+            for (ConsumerRecord<String, JsonNode> record : records) {
                 ObjectMapper mapper = new ObjectMapper();
                 if (record.value() != null) {
-                    JsonNode node = mapper.readTree(record.value()).get("payload");
-                    if (node != null) {
-                        System.out.println("IAIA " + node.asText());
-                    }
+                    JsonNode jsonNode = record.value();
+                    String payload = jsonNode.get("payload").toString();
+                    allLinesKafka.add(payload);
+                }
+            }
+            Iterator<String> expected = expected_data_kafka.iterator();
+            int recordsAsserted = 0;
+            for (String line : allLinesKafka) {
+                System.out.println(line);
+                assertEquals(expected.next(), line);
+                ++recordsAsserted;
+                if (recordsAsserted == recordsInserted) {
+                    break;
                 }
             }
             if (records.count() > 0) {
@@ -80,8 +100,11 @@ public class PostgresConsumerIT {
             }
         }
 
+        // Verify data on Postgres.
+
         Class.forName("org.postgresql.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:postgresql://10.150.1.22:5432/postgres", "postgres", "postgres");
+        Connection conn = DriverManager.getConnection("jdbc:postgresql://10.150.1.22:5432/postgres", "postgres",
+                "postgres");
         Statement stmt = conn.createStatement();
         System.out.println("Connected to the PostgreSQL server successfully.");
         Thread.sleep(10000);
