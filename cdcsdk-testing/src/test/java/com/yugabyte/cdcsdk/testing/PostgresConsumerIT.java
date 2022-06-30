@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.kafka.clients.consumer.*;
 import org.junit.jupiter.api.AfterEach;
@@ -16,7 +17,13 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class PostgresConsumerIT {
+
+    // Change the IP.
+
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresConsumerIT.class);
 
     @BeforeEach
@@ -41,25 +48,37 @@ public class PostgresConsumerIT {
             TestHelper.execute(insertSql);
         }
 
-        // Properties props = new Properties();
-        // props.put("bootstrap.servers", "10.150.1.22:9092");
-        // props.put("group.id", "myapp");
-        // props.put("enable.auto.commit", "true");
-        // props.put("auto.commit.interval.ms", "1000");
-        // props.put("session.timeout.ms", "30000");
-        // props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        // props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        // KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-        // consumer.subscribe(Arrays.asList("dbserver1.public.test_table"));
-        // System.out.println("Consumer created");
-        // while (true) {
-        // consumer.seekToBeginning(consumer.assignment());
-        // ConsumerRecords<String, String> records = consumer.poll(100);
-        // System.out.println("Record count " + records.count());
-        // for (ConsumerRecord<String, String> record : records) {
-        // System.out.println("Key-value read" + record.key() + " " + record.value());
-        // }
-        // }
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "10.150.1.22:9092");
+        props.put("group.id", "myapp");
+        props.put("enable.auto.commit", "true");
+        props.put("auto.commit.interval.ms", "1000");
+        props.put("session.timeout.ms", "30000");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+        consumer.subscribe(Arrays.asList("dbserver1.public.test_table"));
+        long expectedtime = System.currentTimeMillis() + 10000;
+        System.out.println("Consumer created");
+
+        while (System.currentTimeMillis() < expectedtime) {
+            consumer.seekToBeginning(consumer.assignment());
+            ConsumerRecords<String, String> records = consumer.poll(15);
+            System.out.println("Record count " + records.count());
+            for (ConsumerRecord<String, String> record : records) {
+                System.out.println("value read " + record.value());
+                ObjectMapper mapper = new ObjectMapper();
+                if (record.value() != null) {
+                    JsonNode node = mapper.readTree(record.value()).get("payload");
+                    if (node != null) {
+                        System.out.println("IAIA " + node.asText());
+                    }
+                }
+            }
+            if (records.count() > 0) {
+                break;
+            }
+        }
 
         Class.forName("org.postgresql.Driver");
         Connection conn = DriverManager.getConnection("jdbc:postgresql://10.150.1.22:5432/postgres", "postgres", "postgres");
