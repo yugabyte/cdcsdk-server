@@ -72,11 +72,13 @@ public class PostgresConsumerIT {
         consumer.subscribe(Arrays.asList("dbserver1.public.test_table"));
         long expectedtime = System.currentTimeMillis() + 10000;
         System.out.println("Consumer created");
-        List<String> allLinesKafka = new ArrayList<>();
+        int flag = 0;
+        Thread.sleep(5000);
         while (System.currentTimeMillis() < expectedtime) {
             consumer.seekToBeginning(consumer.assignment());
             ConsumerRecords<String, JsonNode> records = consumer.poll(15);
             System.out.println("Record count " + records.count());
+            List<String> allLinesKafka = new ArrayList<>();
             for (ConsumerRecord<String, JsonNode> record : records) {
                 ObjectMapper mapper = new ObjectMapper();
                 if (record.value() != null) {
@@ -92,10 +94,11 @@ public class PostgresConsumerIT {
                 assertEquals(expected.next(), line);
                 ++recordsAsserted;
                 if (recordsAsserted == recordsInserted) {
+                    flag = 1;
                     break;
                 }
             }
-            if (records.count() > 0) {
+            if (flag == 1) {
                 break;
             }
         }
