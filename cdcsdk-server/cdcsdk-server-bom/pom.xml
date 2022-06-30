@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.yugabyte</groupId>
         <artifactId>cdcsdk-build-parent</artifactId>
-        <version>0.7.0-SNAPSHOT</version>
+        <version>0.6.1</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -28,7 +28,7 @@
 
         <version.debezium>1.7.0.Final</version.debezium>
         <!-- YugabyteDB Dependencies -->
-        <version.yugabytedb>1.7.0.6</version.yugabytedb>
+        <version.yugabytedb>1.7.0.7</version.yugabytedb>
 
 
         <version.commons.logging>1.2</version.commons.logging>
