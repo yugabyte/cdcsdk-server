@@ -131,7 +131,7 @@ public class TestHelper {
         configs.put("CDCSDK_SINK_S3_REGION", "us-west-2");
         configs.put("CDCSDK_SINK_S3_BASEDIR", "S3ConsumerIT/");
         configs.put("CDCSDK_SINK_S3_PATTERN", "stream_12345");
-        configs.put("CDCSDK_SINK_S3_FLUSH_RECORDS", "4");
+        configs.put("CDCSDK_SINK_S3_FLUSH_RECORDS", "5");
         configs.put("CDCSDK_SINK_S3_FLUSH_SIZEMB", "200");
         configs.put("CDCSDK_SERVER_TRANSFORMS", "FLATTEN");
         configs.put("CDCSDK_SINK_S3_AWS_ACCESS_KEY_ID", "AKIAWTVAQKRGSARIQ7UD");

@@ -99,18 +99,19 @@ public class S3ConsumerRelIT {
         }
     }
 
-    // @Disabled
-    // @Test
+    @Test
     public void testAutomationOfS3Assertions() throws Exception {
-        // Assuming that the table is created at this point with the schema
-        // {id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision}
-        // CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);
+        // Assuming that the yugabyted process is running locally on the host machine
         TestHelper.execute("CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);");
 
         testConfig = new ConfigSourceS3();
         s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(S3ChangeConsumer.PROP_SINK_PREFIX));
 
-        // todo vaibhav: add configuration from a resource file if possible
+        // Wait for sometime for the cdcsdk-server container to be initialized properly
+        // At this point in code, we know that the table exists already so it's safe to get a CDCSDK server instance
+        GenericContainer<?> cdcContainer = TestHelper.getCdcsdkContainer();
+        cdcContainer.start();
+
         storage = new S3Storage(s3Config, "");
 
         AmazonS3 s3Client = storage.client();
@@ -125,7 +126,7 @@ public class S3ConsumerRelIT {
             TestHelper.execute(insertSql);
         }
 
-        System.out.println("Waiting for sometime for the data to be pushed to S3...");
+        // Wait for sometime for the data to be pushed to S3
         Thread.sleep(5000);
 
         List<String> expected_data = List.of(
@@ -165,16 +166,21 @@ public class S3ConsumerRelIT {
             }
         }
 
-        clearBucket(s3Config.getBucketName(), getBaseDir());
+        Path path = Paths.get("/home/ec2-user/test-log.txt");
+        Files.writeString(path, cdcContainer.getLogs(), StandardCharsets.UTF_8);
+
+        // Kill the cdcsdk-server container and then drop the table before ending the test
+        // cdcContainer.stop();
+        // TestHelper.execute("DROP TABLE test_table;");
+        System.out.println("Ending the test");
+
+        // do not clear, check the test once
+        // clearBucket(s3Config.getBucketName(), getBaseDir());
     }
 
-    @Test
+    // @Test
     public void testAutomation() throws Exception {
         System.out.println("Running the test testAutomation...");
-
-        // At this point in code, we know that the table exists already so it's safe to get a CDCSDK server instance
-        GenericContainer<?> cdcContainer = TestHelper.getCdcsdkContainer();
-        cdcContainer.start();
 
         System.out.println("Waiting for 20s after starting the container");
         Thread.sleep(20000);
@@ -189,12 +195,6 @@ public class S3ConsumerRelIT {
         System.out.println("Waiting for 30s to atleast let the container push values to the s3bucket");
         Thread.sleep(30000);
 
-        Path path = Paths.get("/home/ec2-user/test-log.txt");
-
-        Files.writeString(path, cdcContainer.getLogs(), StandardCharsets.UTF_8);
-        // System.out.println("Wait for 5 minutes to analyze the docker logs");
-        // Thread.sleep(600000);
-        System.out.println("Ending the test");
     }
 
     private class ConfigSourceS3 {
