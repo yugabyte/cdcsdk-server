@@ -11,16 +11,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,16 +56,23 @@ public class S3ConsumerRelIT {
     private ConfigSourceS3 testConfig;
     private S3Storage storage;
 
-    @Before
+    @BeforeAll
     public static void beforeClass() throws Exception {
-        System.out.println("Getting the container...");
-        ybContainer = TestHelper.getYbContainer();
-        ybContainer.start();
+        // This function assumes that we have yugabyted running locally
 
-        System.out.println("Setting the hosts and ports values...");
-        TestHelper.setHost(ybContainer.getHost());
-        TestHelper.setYsqlPort(ybContainer.getMappedPort(5433));
-        TestHelper.setMasterPort(ybContainer.getMappedPort(7100));
+        // Commenting out the below code for now because of tserver crash observed inside container
+        /*
+         * System.out.println("Getting the container...");
+         * ybContainer = TestHelper.getYbContainer();
+         * ybContainer.start();
+         * 
+         * System.out.println("Setting the hosts and ports values...");
+         * // TestHelper.setHost(ybContainer.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst().get().getValue().getIpAddress());
+         * // System.out.println("Setting IP as: " + InetAddress.getLocalHost().getHostAddress());
+         * TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
+         * TestHelper.setYsqlPort(ybContainer.getMappedPort(5433));
+         * TestHelper.setMasterPort(ybContainer.getMappedPort(7100));
+         */
     }
 
     @BeforeEach
@@ -89,12 +99,14 @@ public class S3ConsumerRelIT {
         }
     }
 
-    @Disabled
-    @Test
+    // @Disabled
+    // @Test
     public void testAutomationOfS3Assertions() throws Exception {
         // Assuming that the table is created at this point with the schema
         // {id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision}
         // CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);
+        TestHelper.execute("CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);");
+
         testConfig = new ConfigSourceS3();
         s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(S3ChangeConsumer.PROP_SINK_PREFIX));
 
@@ -157,18 +169,32 @@ public class S3ConsumerRelIT {
     }
 
     @Test
-    private void testAutomation() throws Exception {
-        TestHelper.execute("CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);");
+    public void testAutomation() throws Exception {
+        System.out.println("Running the test testAutomation...");
 
         // At this point in code, we know that the table exists already so it's safe to get a CDCSDK server instance
+        GenericContainer<?> cdcContainer = TestHelper.getCdcsdkContainer();
+        cdcContainer.start();
+
+        System.out.println("Waiting for 20s after starting the container");
+        Thread.sleep(20000);
+
         int recordsInserted = 5;
+        System.out.println("Going to insert records...");
         for (int i = 0; i < recordsInserted; ++i) {
             String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);", i, "first_" + i, "last_" + i, 23.45);
             TestHelper.execute(insertSql);
         }
 
-        GenericContainer<?> cdcContainer = TestHelper.getCdcsdkContainer();
-        cdcContainer.start();
+        System.out.println("Waiting for 30s to atleast let the container push values to the s3bucket");
+        Thread.sleep(30000);
+
+        Path path = Paths.get("/home/ec2-user/test-log.txt");
+
+        Files.writeString(path, cdcContainer.getLogs(), StandardCharsets.UTF_8);
+        // System.out.println("Wait for 5 minutes to analyze the docker logs");
+        // Thread.sleep(600000);
+        System.out.println("Ending the test");
     }
 
     private class ConfigSourceS3 {
@@ -179,23 +205,9 @@ public class S3ConsumerRelIT {
             s3Test.put("cdcsdk.sink.s3.bucket.name", "cdcsdk-test");
             s3Test.put("cdcsdk.sink.s3.region", "us-west-2");
             s3Test.put("cdcsdk.sink.s3.basedir", "S3ConsumerIT/");
-            s3Test.put("cdcsdk.sink.s3.pattern", "stream_12345678");
+            s3Test.put("cdcsdk.sink.s3.pattern", "stream_12345");
             s3Test.put("cdcsdk.sink.s3.flushRecords", "5");
             s3Test.put("cdcsdk.server.transforms", "FLATTEN");
-
-            s3Test.put("cdcsdk.source.connector.class", "io.debezium.connector.yugabytedb.YugabyteDBConnector");
-            s3Test.put("cdcsdk.source.offset.flush.interval.ms", "0");
-            s3Test.put("cdcsdk.source.database.hostname", "127.0.0.1");
-            s3Test.put("cdcsdk.source.database.port", "5433");
-            s3Test.put("cdcsdk.source.database.user", "yugabyte");
-            s3Test.put("cdcsdk.source.database.password", "yugabyte");
-            s3Test.put("cdcsdk.source.database.dbname", "yugabyte");
-            // s3Test.put("cdcsdk.source.database.streamid", dbStreamId);
-            s3Test.put("cdcsdk.source.database.master.addresses", "127.0.0.1:7100");
-            s3Test.put("cdcsdk.source.snapshot.mode", "never");
-            s3Test.put("cdcsdk.source.database.server.name", "dbserver1");
-            s3Test.put("cdcsdk.source.schema.include.list", "public");
-            s3Test.put("cdcsdk.source.table.include.list", "public.test_table");
             s3Test.put("quarkus.log.level", "trace");
         }
 

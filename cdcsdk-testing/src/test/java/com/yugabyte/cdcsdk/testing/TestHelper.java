@@ -14,6 +14,7 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
 import org.testcontainers.containers.YugabyteYSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.yb.client.AsyncYBClient;
@@ -27,9 +28,10 @@ import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 
 public class TestHelper {
-    private static String HOST = "127.0.0.1";
+    private static String HOST = "172.165.31.198"; // "127.0.0.1";
     private static int YSQL_PORT = 5433;
     private static int MASTER_PORT = 7100;
+    private static Network containerNetwork;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
 
@@ -87,11 +89,14 @@ public class TestHelper {
     }
 
     public static YugabyteYSQLContainer getYbContainer() throws Exception {
-        YugabyteYSQLContainer container = new YugabyteYSQLContainer("yugabytedb/yugabyte:2.13.2.0-b135");
+        YugabyteYSQLContainer container = new YugabyteYSQLContainer("yugabytedb/yugabyte:2.12.7.0-b27");
         container.withPassword("yugabyte");
         container.withUsername("yugabyte");
         container.withDatabaseName("yugabyte");
         container.withExposedPorts(7100, 9100, 5433, 9042);
+
+        containerNetwork = Network.newNetwork();
+        container.withNetwork(containerNetwork);
         container.withCreateContainerCmdModifier(cmd -> cmd.withHostName("127.0.0.1").getHostConfig().withPortBindings(new ArrayList<PortBinding>() {
             {
                 add(new PortBinding(Ports.Binding.bindPort(7100), new ExposedPort(7100)));
@@ -118,31 +123,32 @@ public class TestHelper {
         configs.put("CDCSDK_SOURCE_SNAPSHOT_MODE", "never");
         String dbStreamId = getNewDbStreamId("yugabyte");
         System.out.println("Created db stream ID: " + dbStreamId);
-        configs.put("CDCSDK_SOURCE_DATABASE_STREAM_ID", dbStreamId);
+        configs.put("CDCSDK_SOURCE_DATABASE_STREAMID", dbStreamId);
 
         // Add configs for the sink
         configs.put("CDCSDK_SINK_TYPE", "s3");
-        configs.put("CDCSDK_SINK_S3_BUCKET_NAME", "cdcsdk-testing");
+        configs.put("CDCSDK_SINK_S3_BUCKET_NAME", "cdcsdk-test");
         configs.put("CDCSDK_SINK_S3_REGION", "us-west-2");
         configs.put("CDCSDK_SINK_S3_BASEDIR", "S3ConsumerIT/");
-        configs.put("CDCSDK_SINK_S3_PATTERN", "stream_123");
+        configs.put("CDCSDK_SINK_S3_PATTERN", "stream_12345");
         configs.put("CDCSDK_SINK_S3_FLUSH_RECORDS", "4");
         configs.put("CDCSDK_SINK_S3_FLUSH_SIZEMB", "200");
         configs.put("CDCSDK_SERVER_TRANSFORMS", "FLATTEN");
+        configs.put("CDCSDK_SINK_S3_AWS_ACCESS_KEY_ID", "AKIAWTVAQKRGSARIQ7UD");
+        configs.put("CDCSDK_SINK_S3_AWS_SECRET_ACCESS_KEY", "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");
 
         return configs;
     }
 
     public static GenericContainer<?> getCdcsdkContainer() throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(DockerImageName.parse("yugabyte/cdcsdk-server:0.6.0-SNAPSHOT"));
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(DockerImageName.parse("quay.io/yugabyte/cdcsdk-server:latest"));
 
         // By the time this container is created, the table should be there in the database already
         cdcsdkContainer.withEnv(getConfigMap());
+        cdcsdkContainer.withNetwork(containerNetwork);
 
-        return null;
-
-        // todo: add an image tag to the DockerImageName.parse and then only return the cdcsdkContainer
-        // return cdcsdkContainer;
+        System.out.println("Returning a cdcsdkContainer");
+        return cdcsdkContainer;
     }
 
     public static void execute(String sqlQuery) throws Exception {
