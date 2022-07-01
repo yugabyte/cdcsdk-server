@@ -105,7 +105,7 @@ public class S3ConsumerRelIT {
         TestHelper.execute("CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);");
 
         testConfig = new ConfigSourceS3();
-        s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(S3ChangeConsumer.PROP_SINK_PREFIX));
+        s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(S3ChangeConsumer.PROP_S3_PREFIX));
 
         // Wait for sometime for the cdcsdk-server container to be initialized properly
         // At this point in code, we know that the table exists already so it's safe to get a CDCSDK server instance

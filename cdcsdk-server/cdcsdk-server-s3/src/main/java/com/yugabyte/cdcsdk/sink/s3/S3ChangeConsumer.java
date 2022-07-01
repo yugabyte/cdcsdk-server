@@ -35,7 +35,7 @@ public class S3ChangeConsumer extends BaseChangeConsumer
         implements DebeziumEngine.ChangeConsumer<ChangeEvent<Object, Object>> {
 
     public static final String PROP_SINK_PREFIX = "cdcsdk.sink.";
-    protected static final String PROP_S3_PREFIX = PROP_SINK_PREFIX + "s3.";
+    public static final String PROP_S3_PREFIX = PROP_SINK_PREFIX + "s3.";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ChangeConsumer.class);
 
