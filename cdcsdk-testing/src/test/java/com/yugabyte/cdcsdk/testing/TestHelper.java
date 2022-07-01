@@ -28,7 +28,7 @@ import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 
 public class TestHelper {
-    private static String HOST = "172.165.31.198"; // "127.0.0.1";
+    private static String HOST = "127.0.0.1";
     private static int YSQL_PORT = 5433;
     private static int MASTER_PORT = 7100;
     private static Network containerNetwork;
@@ -83,7 +83,6 @@ public class TestHelper {
         if (placeholderTable == null) {
             throw new NullPointerException("No table found with the specified name");
         }
-        System.out.println("Going to create a CDC stream...");
 
         return syncClient.createCDCStream(placeholderTable, dbName, "PROTO", "IMPLICIT").getStreamId();
     }
@@ -121,9 +120,7 @@ public class TestHelper {
         configs.put("CDCSDK_SOURCE_DATABASE_PASSWORD", "yugabyte");
         configs.put("CDCSDK_SOURCE_TABLE_INCLUDE_LIST", "public.test_table");
         configs.put("CDCSDK_SOURCE_SNAPSHOT_MODE", "never");
-        String dbStreamId = getNewDbStreamId("yugabyte");
-        System.out.println("Created db stream ID: " + dbStreamId);
-        configs.put("CDCSDK_SOURCE_DATABASE_STREAMID", dbStreamId);
+        configs.put("CDCSDK_SOURCE_DATABASE_STREAMID", getNewDbStreamId("yugabyte"));
 
         // Add configs for the sink
         configs.put("CDCSDK_SINK_TYPE", "s3");
@@ -134,8 +131,8 @@ public class TestHelper {
         configs.put("CDCSDK_SINK_S3_FLUSH_RECORDS", "5");
         configs.put("CDCSDK_SINK_S3_FLUSH_SIZEMB", "200");
         configs.put("CDCSDK_SERVER_TRANSFORMS", "FLATTEN");
-        configs.put("CDCSDK_SINK_S3_AWS_ACCESS_KEY_ID", "AKIAWTVAQKRGSARIQ7UD");
-        configs.put("CDCSDK_SINK_S3_AWS_SECRET_ACCESS_KEY", "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");
+        configs.put("CDCSDK_SINK_S3_AWS_ACCESS_KEY_ID", System.getenv("AWS_ACCESS_KEY_ID"));
+        configs.put("CDCSDK_SINK_S3_AWS_SECRET_ACCESS_KEY", System.getenv("AWS_SECRET_ACCESS_KEY"));
 
         return configs;
     }
@@ -147,17 +144,13 @@ public class TestHelper {
         cdcsdkContainer.withEnv(getConfigMap());
         cdcsdkContainer.withNetwork(containerNetwork);
 
-        System.out.println("Returning a cdcsdkContainer");
         return cdcsdkContainer;
     }
 
     public static void execute(String sqlQuery) throws Exception {
         try (Connection conn = getConnection()) {
-            // System.out.println("Creating a statement");
             Statement st = conn.createStatement();
-            // System.out.println("Executing the SQL query");
             st.execute(sqlQuery);
-            // conn.createStatement().execute(sqlQuery);
         }
         catch (Exception e) {
             LOGGER.error("Error executing query: " + sqlQuery, e);

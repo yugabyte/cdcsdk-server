@@ -11,10 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,6 +56,7 @@ public class S3ConsumerRelIT {
     @BeforeAll
     public static void beforeClass() throws Exception {
         // This function assumes that we have yugabyted running locally
+        TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
 
         // Commenting out the below code for now because of tserver crash observed inside container
         /*
@@ -107,10 +105,12 @@ public class S3ConsumerRelIT {
         testConfig = new ConfigSourceS3();
         s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(S3ChangeConsumer.PROP_S3_PREFIX));
 
-        // Wait for sometime for the cdcsdk-server container to be initialized properly
         // At this point in code, we know that the table exists already so it's safe to get a CDCSDK server instance
         GenericContainer<?> cdcContainer = TestHelper.getCdcsdkContainer();
         cdcContainer.start();
+
+        // Wait for sometime for the cdcsdk-server container to be initialized properly
+        Thread.sleep(10000);
 
         storage = new S3Storage(s3Config, "");
 
@@ -127,14 +127,14 @@ public class S3ConsumerRelIT {
         }
 
         // Wait for sometime for the data to be pushed to S3
-        Thread.sleep(5000);
+        Thread.sleep(10000);
 
         List<String> expected_data = List.of(
-                "{\"id\":{\"value\":0,\"set\":true},\"first_name\":{\"value\":\"first_0\",\"set\":true},\"last_name\":{\"value\":\"last_0\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}",
-                "{\"id\":{\"value\":1,\"set\":true},\"first_name\":{\"value\":\"first_1\",\"set\":true},\"last_name\":{\"value\":\"last_1\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}",
-                "{\"id\":{\"value\":2,\"set\":true},\"first_name\":{\"value\":\"first_2\",\"set\":true},\"last_name\":{\"value\":\"last_2\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}",
-                "{\"id\":{\"value\":3,\"set\":true},\"first_name\":{\"value\":\"first_3\",\"set\":true},\"last_name\":{\"value\":\"last_3\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}",
-                "{\"id\":{\"value\":4,\"set\":true},\"first_name\":{\"value\":\"first_4\",\"set\":true},\"last_name\":{\"value\":\"last_4\",\"set\":true},\"days_worked\":{\"value\":23.45,\"set\":true}}");
+                "{\"id\":0,\"first_name\":\"first_0\",\"last_name\":\"last_0\",\"days_worked\":23.45}",
+                "{\"id\":1,\"first_name\":\"first_1\",\"last_name\":\"last_1\",\"days_worked\":23.45}",
+                "{\"id\":2,\"first_name\":\"first_2\",\"last_name\":\"last_2\",\"days_worked\":23.45}",
+                "{\"id\":3,\"first_name\":\"first_3\",\"last_name\":\"last_3\",\"days_worked\":23.45}",
+                "{\"id\":4,\"first_name\":\"first_4\",\"last_name\":\"last_4\",\"days_worked\":23.45}");
 
         Iterator<String> expected = expected_data.iterator();
 
@@ -166,35 +166,11 @@ public class S3ConsumerRelIT {
             }
         }
 
-        Path path = Paths.get("/home/ec2-user/test-log.txt");
-        Files.writeString(path, cdcContainer.getLogs(), StandardCharsets.UTF_8);
-
         // Kill the cdcsdk-server container and then drop the table before ending the test
-        // cdcContainer.stop();
-        // TestHelper.execute("DROP TABLE test_table;");
-        System.out.println("Ending the test");
+        cdcContainer.stop();
+        TestHelper.execute("DROP TABLE test_table;");
 
-        // do not clear, check the test once
-        // clearBucket(s3Config.getBucketName(), getBaseDir());
-    }
-
-    // @Test
-    public void testAutomation() throws Exception {
-        System.out.println("Running the test testAutomation...");
-
-        System.out.println("Waiting for 20s after starting the container");
-        Thread.sleep(20000);
-
-        int recordsInserted = 5;
-        System.out.println("Going to insert records...");
-        for (int i = 0; i < recordsInserted; ++i) {
-            String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);", i, "first_" + i, "last_" + i, 23.45);
-            TestHelper.execute(insertSql);
-        }
-
-        System.out.println("Waiting for 30s to atleast let the container push values to the s3bucket");
-        Thread.sleep(30000);
-
+        clearBucket(s3Config.getBucketName(), getBaseDir());
     }
 
     private class ConfigSourceS3 {
