@@ -83,6 +83,9 @@ public class ServerApp {
     private static final String PROP_FORMAT_PREFIX = PROP_SERVER_PREFIX + "format.";
     private static final String PROP_KEY_FORMAT_PREFIX = PROP_FORMAT_PREFIX + "key.";
     private static final String PROP_VALUE_FORMAT_PREFIX = PROP_FORMAT_PREFIX + "value.";
+    private static final String PROP_CONVERTER_VALUE_PREFIX = PROP_VALUE_FORMAT_PREFIX + "converter.";
+    private static final String PROP_SCHEMAS_CONVERTER_PREFIX = PROP_CONVERTER_VALUE_PREFIX + "schemas.";
+    private static final String PROP_ENABLE_SCHEMAS_PREFIX = PROP_SCHEMAS_CONVERTER_PREFIX + "enable";
 
     private static final String PROP_SINK_TYPE = PROP_SINK_PREFIX + "type";
     private static final String PROP_KEY_FORMAT = PROP_FORMAT_PREFIX + "key";
@@ -152,6 +155,13 @@ public class ServerApp {
         configToProperties(config, props, PROP_KEY_FORMAT_PREFIX, "key.converter.");
         configToProperties(config, props, PROP_VALUE_FORMAT_PREFIX, "value.converter.");
         final Optional<String> transforms = config.getOptionalValue(PROP_TRANSFORMS, String.class);
+
+        final Optional<Boolean> schemas_enable = config.getOptionalValue(PROP_ENABLE_SCHEMAS_PREFIX, Boolean.class);
+        if (schemas_enable.isPresent()) {
+            LOGGER.info("Setting value for config: 'value.converter.schemas.enable', to: " + schemas_enable.get().toString());
+            props.setProperty("value.converter.schemas.enable", schemas_enable.get().toString());
+        }
+
         if (transforms.isPresent()) {
             LOGGER.debug("Transforms Setting: -{}-", transforms.get());
 
