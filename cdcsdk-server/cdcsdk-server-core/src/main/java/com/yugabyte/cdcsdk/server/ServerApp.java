@@ -82,7 +82,9 @@ public class ServerApp {
     private static final String PROP_SINK_PREFIX = PROP_PREFIX + "sink.";
     private static final String PROP_FORMAT_PREFIX = PROP_SERVER_PREFIX + "format.";
     private static final String PROP_KEY_FORMAT_PREFIX = PROP_FORMAT_PREFIX + "key.";
+    private static final String PROP_CONVERTER_KEY_PREFIX = PROP_KEY_FORMAT_PREFIX + "converter.";
     private static final String PROP_VALUE_FORMAT_PREFIX = PROP_FORMAT_PREFIX + "value.";
+    private static final String PROP_CONVERTER_VALUE_PREFIX = PROP_VALUE_FORMAT_PREFIX + "converter.";
 
     private static final String PROP_SINK_TYPE = PROP_SINK_PREFIX + "type";
     private static final String PROP_KEY_FORMAT = PROP_FORMAT_PREFIX + "key";
@@ -151,7 +153,10 @@ public class ServerApp {
         configToProperties(config, props, PROP_FORMAT_PREFIX, "value.converter.");
         configToProperties(config, props, PROP_KEY_FORMAT_PREFIX, "key.converter.");
         configToProperties(config, props, PROP_VALUE_FORMAT_PREFIX, "value.converter.");
+        configToProperties(config, props, PROP_CONVERTER_VALUE_PREFIX, "value.converter.");
+        configToProperties(config, props, PROP_CONVERTER_KEY_PREFIX, "key.converter.");
         final Optional<String> transforms = config.getOptionalValue(PROP_TRANSFORMS, String.class);
+
         if (transforms.isPresent()) {
             LOGGER.debug("Transforms Setting: -{}-", transforms.get());
 
