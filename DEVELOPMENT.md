@@ -43,7 +43,7 @@ Currently the 2nd and 3rd part is automated as a part of `S3ConsumerRelIT.java` 
   * `export AWS_ACCESS_KEY_ID='<your-access-key-id>'`
   * `export AWS_SECRET_ACCESS_KEY='<your-secret-access-key>'`
 * Start a YugabyteDB instance on you local IP
-  * `./yugabyted start --listen ${hostname -i}` or `./yugabyted start --advertise_address ${hostname -i}` if you're using YugabyteDB version higher than 2.12
+  * `./yugabyted start --listen $(hostname -i)` or `./yugabyted start --advertise_address $(hostname -i)` if you're using YugabyteDB version higher than 2.12
 * Run `mvn clean integration-test -PreleaseTests` inside the `cdcsdk-server` repo
 
 The below command will create a docker image of CDCSDK Server and run

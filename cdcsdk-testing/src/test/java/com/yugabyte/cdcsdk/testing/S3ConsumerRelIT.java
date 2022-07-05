@@ -12,12 +12,14 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -110,7 +112,7 @@ public class S3ConsumerRelIT {
         cdcContainer.start();
 
         // Wait for sometime for the cdcsdk-server container to be initialized properly
-        Thread.sleep(10000);
+        Awaitility.await().atMost(Duration.ofSeconds(10));
 
         storage = new S3Storage(s3Config, "");
 
@@ -127,7 +129,7 @@ public class S3ConsumerRelIT {
         }
 
         // Wait for sometime for the data to be pushed to S3
-        Thread.sleep(10000);
+        Awaitility.await().atMost(Duration.ofSeconds(10));
 
         List<String> expected_data = List.of(
                 "{\"id\":0,\"first_name\":\"first_0\",\"last_name\":\"last_0\",\"days_worked\":23.45}",

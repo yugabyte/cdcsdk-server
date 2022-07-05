@@ -102,12 +102,21 @@
       <groupId>com.yugabyte</groupId>
       <artifactId>testcontainers-yugabytedb</artifactId>
       <version>1.0.0-beta-3</version>
+      <scope>test</scope>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
       <version>5.0.1</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.awaitility/awaitility -->
+    <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility</artifactId>
+        <version>4.2.0</version>
+        <scope>test</scope>
     </dependency>
   </dependencies>
 
