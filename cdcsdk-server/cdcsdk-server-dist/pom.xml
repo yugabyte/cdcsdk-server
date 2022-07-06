@@ -40,7 +40,7 @@
             <artifactId>debezium-connector-sqlserver</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.yb</groupId>
+            <groupId>io.debezium</groupId>
             <artifactId>debezium-connector-yugabytedb</artifactId>
         </dependency>
         <dependency>
