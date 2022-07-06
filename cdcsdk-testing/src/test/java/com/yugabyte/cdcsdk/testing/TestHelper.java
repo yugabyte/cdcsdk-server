@@ -106,7 +106,7 @@ public class TestHelper {
 
         containerNetwork = Network.newNetwork();
         container.withNetwork(containerNetwork);
-        container.withCreateContainerCmdModifier(cmd -> cmd.withHostName("10.150.1.22").getHostConfig().withPortBindings(new ArrayList<PortBinding>() {
+        container.withCreateContainerCmdModifier(cmd -> cmd.withHostName("127.0.0.1").getHostConfig().withPortBindings(new ArrayList<PortBinding>() {
             {
                 add(new PortBinding(Ports.Binding.bindPort(7100), new ExposedPort(7100)));
                 add(new PortBinding(Ports.Binding.bindPort(9100), new ExposedPort(9100)));
@@ -136,7 +136,6 @@ public class TestHelper {
         // Add configs for the sink
         configs.put("CDCSDK_SINK_TYPE", "kafka");
         configs.put("CDCSDK_SINK_KAFKA_PRODUCER_BOOTSTRAP_SERVERS", BOOTSTRAP_SERVER);
-        System.out.println("Bootstrap: " + BOOTSTRAP_SERVER);
         configs.put("CDCSDK_SINK_KAFKA_PRODUCER_KEY_SERIALIZER", "org.apache.kafka.common.serialization.StringSerializer");
         configs.put("CDCSDK_SINK_KAFKA_PRODUCER_VALUE_SERIALIZER", "org.apache.kafka.common.serialization.StringSerializer");
         configs.put("CDCSDK_SINK_KAFKA_CLIENT_DNS_LOOKUP", "use_all_dns_ips");

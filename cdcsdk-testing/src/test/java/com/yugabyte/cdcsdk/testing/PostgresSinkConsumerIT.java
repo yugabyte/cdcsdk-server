@@ -50,19 +50,10 @@ public class PostgresSinkConsumerIT {
     private static YugabyteYSQLContainer ybContainer;
     private static GenericContainer<?> cdcContainer;
     private static final DockerImageName KAFKA_TEST_IMAGE = DockerImageName.parse("confluentinc/cp-kafka:6.2.1");
-    private static final DockerImageName ZOOKEEPER_TEST_IMAGE = DockerImageName.parse("confluentinc/cp-zookeeper:4.0.0");
     private static Network network;
 
     @BeforeAll
     public static void beforeClass() throws Exception {
-
-        // GenericContainer<?> zookeeper = new GenericContainer<>(ZOOKEEPER_TEST_IMAGE)
-        // .withNetwork(TestHelper.getNetwork())
-        // .withNetworkAliases("zookeeper")
-        // .withEnv("ZOOKEEPER_CLIENT_PORT", "2181");
-        // zookeeper.start();
-        // System.out.println("getContainerName: " + zookeeper.getContainerName());
-
         network = Network.newNetwork();
     }
 
@@ -73,7 +64,7 @@ public class PostgresSinkConsumerIT {
 
         Path path_kafka = Paths.get("/home/ishaamoncar/test-log-kafka.txt");
         Files.writeString(path_kafka, kafka.getLogs(), StandardCharsets.UTF_8);
-        // Thread.sleep(10000);
+
         cdcContainer.stop();
         // String dropTableSql = "DROP TABLE test_table";
         // TestHelper.execute(dropTableSql);
@@ -83,21 +74,16 @@ public class PostgresSinkConsumerIT {
     public void testAutomationOfKafkaAssertions() throws Exception {
         System.out.println("Starting testAutomationOfKafkaAssertions");
 
-        kafka = new KafkaContainer(KAFKA_TEST_IMAGE).withNetwork(network);
+        kafka = new KafkaContainer(KAFKA_TEST_IMAGE).withNetworkAliases("kafka").withNetwork(network);
         kafka.start();
-
-        System.out.println("Exposed ports " + kafka.getExposedPorts());
-        System.out.println("Kafka PORT " + kafka.KAFKA_PORT);
-        System.out.println("ZOO PORT " + kafka.ZOOKEEPER_PORT);
-        System.out.println("BOOTSTRAP_SERVER PORT " + kafka.getBootstrapServers());
 
         HOST_ADDRESS = InetAddress.getLocalHost().getHostAddress();
         TestHelper.setHost(HOST_ADDRESS);
-        // BOOTSTRAP_SERVER = kafka.getBootstrapServers();
-        BOOTSTRAP_SERVER = kafka.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst().get().getValue().getIpAddress() + ":"
-                + kafka.KAFKA_PORT;
+        // BOOTSTRAP_SERVER = kafka.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst()
+        // .get().getValue().getIpAddress() + ":" + kafka.KAFKA_PORT;
+        // BOOTSTRAP_SERVER = "PLAINTEXT://kafka" + ":" + kafka.KAFKA_PORT;
+        BOOTSTRAP_SERVER = kafka.getNetworkAliases().get(0) + ":9092";
         TestHelper.setBootstrapServer(BOOTSTRAP_SERVER);
-        System.out.println("HOST ADDRESS: " + HOST_ADDRESS);
         String createTableSql = "CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision)";
         String deleteFromTableSql = "DELETE FROM test_table";
         TestHelper.execute(deleteFromTableSql);
@@ -205,9 +191,10 @@ public class PostgresSinkConsumerIT {
 
     }
 
-    private void setKafkaConsumerProperties() {
+    private void setKafkaConsumerProperties() throws Exception {
         Properties props = new Properties();
-        props.put("bootstrap.servers", BOOTSTRAP_SERVER);
+        props.put("bootstrap.servers", kafka.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst()
+                .get().getValue().getIpAddress() + ":" + kafka.KAFKA_PORT);
         props.put("group.id", "myapp");
         props.put("enable.auto.commit", "true");
         props.put("auto.commit.interval.ms", "1000");
