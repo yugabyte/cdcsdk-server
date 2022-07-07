@@ -131,7 +131,7 @@ public class TestHelper {
         configs.put("CDCSDK_SOURCE_TABLE_INCLUDE_LIST", "public.test_table");
         configs.put("CDCSDK_SOURCE_SNAPSHOT_MODE", "never");
         configs.put("CDCSDK_SOURCE_DATABASE_STREAMID", getNewDbStreamId("yugabyte"));
-        configs.put("CDCSDK_SOURCE_BOOTSTRAP_SERVERS", BOOTSTRAP_SERVER);
+        // configs.put("CDCSDK_SOURCE_BOOTSTRAP_SERVERS", BOOTSTRAP_SERVER);
 
         // Add configs for the sink
         configs.put("CDCSDK_SINK_TYPE", "kafka");
@@ -144,7 +144,6 @@ public class TestHelper {
 
         configs.put("CDCSDK_SERVER_TRANSFORMS", "unwrap");
         configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DROP_TOMBSTONES", "false");
-        configs.put("CDCSDK_SERVER_TRANSFORMS_FLATTEN_DROP_TOMBSTONES", "false");
         configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_TYPE", "io.debezium.connector.yugabytedb.transforms.YBExtractNewRecordState");
 
         return configs;
