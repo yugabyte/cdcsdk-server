@@ -106,7 +106,7 @@ public class PostgresSinkConsumerIT {
         }
 
         // Start CDCSDK server testcontainer.
-        cdcContainer = TestHelper.getCdcsdkContainer();
+        cdcContainer = TestHelper.getCdcsdkContainerKafkaSink();
         cdcContainer.withNetwork(network);
         cdcContainer.start();
         Thread.sleep(10000);

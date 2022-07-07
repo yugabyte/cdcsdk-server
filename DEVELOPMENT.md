@@ -38,13 +38,13 @@ As of now, we are targeting 3 different stages of automation:
 2. CDCSDK Server inside TestContainers
 3. Assertion of S3 values and their cleanup
 
-Currently the 3rd part is automated as a part of `S3ConsumerRelIT.java` and to run the test follow these steps:
-* Make sure you have the required creds setup in `~/.aws/credentials`
-* Start a YugabyteDB instance on 127.0.0.1
-* Create a table `test_table`
-  `CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);`
-* Create CDC stream
-* Unzip the cdcsdk-server and create configs for the same
+Currently the 2nd and 3rd part is automated as a part of `S3ConsumerRelIT.java` and to run the test follow these steps:
+* Make sure you have the required creds setup in your env variables
+  * `export AWS_ACCESS_KEY_ID='<your-access-key-id>'`
+  * `export AWS_SECRET_ACCESS_KEY='<your-secret-access-key>'`
+* Start a YugabyteDB instance on you local IP
+  * `./yugabyted start --listen $(hostname -i)` or `./yugabyted start --advertise_address $(hostname -i)` if you're using YugabyteDB version higher than 2.12
+* Run `mvn clean integration-test -PreleaseTests` inside the `cdcsdk-server` repo
 
 The below command will create a docker image of CDCSDK Server and run
 integration tests in cdcsdk-testing
@@ -52,3 +52,22 @@ integration tests in cdcsdk-testing
 
    mvn integration-test -Drun.releaseTests
 
+
+## Create a deploy a package
+
+CDCSDK Server is distributed as an archive (tar.gz) and a Docker image. Use the
+following commands to create and deploy both these artifacts.
+
+
+    # Create cdcsdk-server-dist-<project.version>.tar.gz and
+    # yugabyte/cdcsdk-server:<project.version>
+
+    mvn package
+
+    # Deploy docker image
+
+    mvn deploy
+
+    # Deploy archive to github project
+
+    gh release create v<project.version> --generate-notes --title <An informative title about the major feature/bug> 'cdcsdk-server/cdcsdk-server-dist/target/cdcsdk-server-dist-<project.version>.tar.gz#CDCSDK Server'

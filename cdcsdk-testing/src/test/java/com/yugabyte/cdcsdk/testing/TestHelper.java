@@ -92,7 +92,6 @@ public class TestHelper {
         if (placeholderTable == null) {
             throw new NullPointerException("No table found with the specified name");
         }
-        System.out.println("Going to create a CDC stream...");
 
         return syncClient.createCDCStream(placeholderTable, dbName, "PROTO", "IMPLICIT").getStreamId();
     }
@@ -131,7 +130,35 @@ public class TestHelper {
         configs.put("CDCSDK_SOURCE_TABLE_INCLUDE_LIST", "public.test_table");
         configs.put("CDCSDK_SOURCE_SNAPSHOT_MODE", "never");
         configs.put("CDCSDK_SOURCE_DATABASE_STREAMID", getNewDbStreamId("yugabyte"));
-        // configs.put("CDCSDK_SOURCE_BOOTSTRAP_SERVERS", BOOTSTRAP_SERVER);
+
+        // Add configs for the sink
+        configs.put("CDCSDK_SINK_TYPE", "s3");
+        configs.put("CDCSDK_SINK_S3_BUCKET_NAME", "cdcsdk-test");
+        configs.put("CDCSDK_SINK_S3_REGION", "us-west-2");
+        configs.put("CDCSDK_SINK_S3_BASEDIR", "S3ConsumerIT/");
+        configs.put("CDCSDK_SINK_S3_PATTERN", "stream_12345");
+        configs.put("CDCSDK_SINK_S3_FLUSH_RECORDS", "5");
+        configs.put("CDCSDK_SINK_S3_FLUSH_SIZEMB", "200");
+        configs.put("CDCSDK_SERVER_TRANSFORMS", "FLATTEN");
+        configs.put("CDCSDK_SINK_S3_AWS_ACCESS_KEY_ID", System.getenv("AWS_ACCESS_KEY_ID"));
+        configs.put("CDCSDK_SINK_S3_AWS_SECRET_ACCESS_KEY", System.getenv("AWS_SECRET_ACCESS_KEY"));
+
+        return configs;
+    }
+
+    private static Map<String, String> getConfigMapKafkaSink() throws Exception {
+        Map<String, String> configs = new HashMap<>();
+        configs.put("CDCSDK_SOURCE_CONNECTOR_CLASS", "io.debezium.connector.yugabytedb.YugabyteDBConnector");
+        configs.put("CDCSDK_SOURCE_DATABASE_HOSTNAME", HOST);
+        configs.put("CDCSDK_SOURCE_DATABASE_PORT", "5433");
+        configs.put("CDCSDK_SOURCE_DATABASE_MASTER_ADDRESSES", HOST + ":" + MASTER_PORT);
+        configs.put("CDCSDK_SOURCE_DATABASE_SERVER_NAME", "dbserver1");
+        configs.put("CDCSDK_SOURCE_DATABASE_DBNAME", "yugabyte");
+        configs.put("CDCSDK_SOURCE_DATABASE_USER", "yugabyte");
+        configs.put("CDCSDK_SOURCE_DATABASE_PASSWORD", "yugabyte");
+        configs.put("CDCSDK_SOURCE_TABLE_INCLUDE_LIST", "public.test_table");
+        configs.put("CDCSDK_SOURCE_SNAPSHOT_MODE", "never");
+        configs.put("CDCSDK_SOURCE_DATABASE_STREAMID", getNewDbStreamId("yugabyte"));
 
         // Add configs for the sink
         configs.put("CDCSDK_SINK_TYPE", "kafka");
@@ -150,8 +177,7 @@ public class TestHelper {
     }
 
     public static GenericContainer<?> getCdcsdkContainer() throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(
-                DockerImageName.parse("quay.io/yugabyte/cdcsdk-server:latest"));
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(DockerImageName.parse("quay.io/yugabyte/cdcsdk-server:latest"));
 
         // By the time this container is created, the table should be there in the database already
         cdcsdkContainer.withEnv(getConfigMap());
@@ -160,13 +186,21 @@ public class TestHelper {
         return cdcsdkContainer;
     }
 
+    public static GenericContainer<?> getCdcsdkContainerKafkaSink() throws Exception {
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(
+                DockerImageName.parse("quay.io/yugabyte/cdcsdk-server:latest"));
+
+        // By the time this container is created, the table should be there in the database already
+        cdcsdkContainer.withEnv(getConfigMapKafkaSink());
+        cdcsdkContainer.withNetwork(containerNetwork);
+
+        return cdcsdkContainer;
+    }
+
     public static void execute(String sqlQuery) throws Exception {
         try (Connection conn = getConnection()) {
-            // System.out.println("Creating a statement");
             Statement st = conn.createStatement();
-            // System.out.println("Executing the SQL query");
             st.execute(sqlQuery);
-            // conn.createStatement().execute(sqlQuery);
         }
         catch (Exception e) {
             LOGGER.error("Error executing query: " + sqlQuery, e);

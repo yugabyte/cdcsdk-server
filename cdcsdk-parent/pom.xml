@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.yugabyte</groupId>
     <artifactId>cdcsdk-build-parent</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>0.7.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -162,7 +162,7 @@
                         <dependency>
                             <groupId>io.debezium</groupId>
                             <artifactId>debezium-revapi</artifactId>
-                            <version>${project.version}</version>
+                            <version>${version.debezium}</version>
                         </dependency>
                         <dependency>
                             <groupId>org.revapi</groupId>
