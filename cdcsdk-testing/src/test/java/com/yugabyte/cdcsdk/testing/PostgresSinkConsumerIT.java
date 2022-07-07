@@ -6,14 +6,9 @@ import java.lang.Double;
 import java.lang.Integer;
 import java.lang.String;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,76 +52,50 @@ public class PostgresSinkConsumerIT {
     private static Network network;
     private static DockerImageName myImage = DockerImageName.parse("debezium/example-postgres:1.6").asCompatibleSubstituteFor("postgres");
     private static PostgreSQLContainer<?> postgreSQLContainer;
-    private static DebeziumContainer debeziumContainer;
+    private static DebeziumContainer kafkaConnectContainer;
     private static String POSTGRES_IP;
+    private static ConnectorConfiguration connector;
 
     @BeforeAll
     public static void beforeClass() throws Exception {
         network = Network.newNetwork();
         kafka = new KafkaContainer(KAFKA_TEST_IMAGE).withNetworkAliases("kafka").withNetwork(network);
-
         postgreSQLContainer = new PostgreSQLContainer<>(myImage)
                 .withNetwork(network)
                 .withPassword("postgres")
                 .withUsername("postgres")
                 .withExposedPorts(5432)
                 .withReuse(true);
-        debeziumContainer = new DebeziumContainer("quay.io/yugabyte/debezium-connector:1.3.7-BETA")
+        // Using the Yugabyte's Kafka Connect image since it comes with a bundled JDBCSinkConnector.
+        kafkaConnectContainer = new DebeziumContainer("quay.io/yugabyte/debezium-connector:1.3.7-BETA")
                 .withNetwork(network)
                 .withKafka(kafka)
                 .dependsOn(kafka);
 
-        System.out.println("Starting testAutomationOfKafkaAssertions");
+        // Start test containers.
         kafka.start();
-        System.out.println("Kafka container started.");
-        debeziumContainer.start();
-        System.out.println("Connect container started.");
-
+        kafkaConnectContainer.start();
         postgreSQLContainer.start();
         Thread.sleep(10000);
-        POSTGRES_IP = postgreSQLContainer.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst()
-                .get().getValue().getIpAddress();
-        System.out.println("postgres ip " + POSTGRES_IP);
-        System.out.println("Postgres container started.");
-        // createTableInPostgres();
 
-        Connection connection = DriverManager.getConnection(postgreSQLContainer.getJdbcUrl(),
-                postgreSQLContainer.getUsername(),
-                postgreSQLContainer.getPassword());
-
-        ConnectorConfiguration connector = ConnectorConfiguration
-                .forJdbcContainer(postgreSQLContainer)
-                .with("connector.class", "io.confluent.connect.jdbc.JdbcSinkConnector")
-                .with("tasks.max", "1")
-                .with("topics", "dbserver1.public.test_table")
-                .with("database.server.name", "dbserver1")
-                .with("dialect.name", "PostgreSqlDatabaseDialect")
-                .with("table.name.format", "sink")
-                .with("connection.url", "jdbc:postgresql://" + POSTGRES_IP + ":5432/postgres?user=postgres&password=postgres&sslMode=require")
-                .with("auto.create", "true")
-                .with("insert.mode", "upsert")
-                .with("pk.fields", "id")
-                .with("pk.mode", "record_key")
-                .with("delete.enabled", "true")
-                .with("auto.evolve", "true")
-                .with("value.converter", "org.apache.kafka.connect.json.JsonConverter")
-                .with("value.converter.schemas.enable", "true")
-                .with("key.converter", "org.apache.kafka.connect.json.JsonConverter")
-                .with("key.converter.schemas.enable", "true");
-
-        debeziumContainer.registerConnector("my-connector", connector);
-
+        // Get IPs and addresses.
+        POSTGRES_IP = postgreSQLContainer.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst().get().getValue().getIpAddress();
         HOST_ADDRESS = InetAddress.getLocalHost().getHostAddress();
         TestHelper.setHost(HOST_ADDRESS);
         BOOTSTRAP_SERVER = kafka.getNetworkAliases().get(0) + ":9092";
         TestHelper.setBootstrapServer(BOOTSTRAP_SERVER);
+
+        // Set JDBC sink connector config.
+        setConnectorConfiguration();
+        kafkaConnectContainer.registerConnector("test-connector", connector);
+
+        // Assuming that yugabyted is running.
         String createTableSql = "CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision)";
         TestHelper.execute(createTableSql);
         String deleteFromTableSql = "DELETE FROM test_table";
         TestHelper.execute(deleteFromTableSql);
 
         // Initialise expected_data.
-
         for (int i = 0; i < recordsInserted; i++) {
             Map<String, Object> expected_record = new LinkedHashMap<String, Object>();
             expected_record.put("id", new Integer(i));
@@ -136,41 +105,26 @@ public class PostgresSinkConsumerIT {
             expected_data.add(expected_record);
         }
 
+        // Start CDCSDK server testcontainer.
         cdcContainer = TestHelper.getCdcsdkContainer();
         cdcContainer.withNetwork(network);
         cdcContainer.start();
-        System.out.println("CDCSDK container created at: {}"
-                + cdcContainer.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst().get().getValue().getIpAddress());
-
         Thread.sleep(10000);
 
         // Insert records in YB.
-
         for (int i = 0; i < recordsInserted; ++i) {
             String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);", i, "first_" + i,
                     "last_" + i, 23.45);
             TestHelper.execute(insertSql);
         }
-        Thread.sleep(60000);
-
     }
 
     @AfterAll
     public static void afterClass() throws Exception {
-        Path path_cdcserver = Paths.get("/home/ishaamoncar/test-log.txt");
-        Files.writeString(path_cdcserver, cdcContainer.getLogs(), StandardCharsets.UTF_8);
-
-        Path path_kafka = Paths.get("/home/ishaamoncar/test-log-kafka.txt");
-        Files.writeString(path_kafka, kafka.getLogs(), StandardCharsets.UTF_8);
-
-        Path path_connect = Paths.get("/home/ishaamoncar/test-log-connect.txt");
-        Files.writeString(path_connect, debeziumContainer.getLogs(), StandardCharsets.UTF_8);
-
         cdcContainer.stop();
-        debeziumContainer.stop();
+        kafkaConnectContainer.stop();
         postgreSQLContainer.stop();
         kafka.stop();
-
         String dropTableSql = "DROP TABLE test_table";
         TestHelper.execute(dropTableSql);
     }
@@ -180,46 +134,41 @@ public class PostgresSinkConsumerIT {
     public void testAutomationOfKafkaAssertions() throws Exception {
 
         // Verify data on Kafka.
-        try {
-            setKafkaConsumerProperties();
-            consumer.subscribe(Arrays.asList("dbserver1.public.test_table"));
-            long expectedtime = System.currentTimeMillis() + 10000;
-            int flag = 0;
-            Thread.sleep(5000);
-            while (System.currentTimeMillis() < expectedtime) {
-                consumer.seekToBeginning(consumer.assignment());
-                ConsumerRecords<String, JsonNode> records = consumer.poll(15);
-                // assertEquals(records.count(), recordsInserted);
-                System.out.println("Record count: " + records.count());
-                List<Map<String, Object>> kafkaRecords = new ArrayList<>();
-                for (ConsumerRecord<String, JsonNode> record : records) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    if (record.value() != null) {
-                        JsonNode jsonNode = record.value().get("payload");
-                        Map<String, Object> result = mapper.convertValue(jsonNode, new TypeReference<Map<String, Object>>() {
-                        });
-                        kafkaRecords.add(result);
-                    }
-                }
-                Iterator<Map<String, Object>> it = expected_data.iterator();
-                int recordsAsserted = 0;
 
-                for (Map<String, Object> kafkaRecord : kafkaRecords) {
-                    System.out.println("Kafka record " + kafkaRecord);
-                    assertEquals(it.next(), kafkaRecord);
-                    ++recordsAsserted;
-                    if (recordsAsserted == recordsInserted) {
-                        flag = 1;
-                        break;
-                    }
+        setKafkaConsumerProperties();
+        consumer.subscribe(Arrays.asList("dbserver1.public.test_table"));
+        long expectedtime = System.currentTimeMillis() + 10000;
+        int flag = 0;
+        Thread.sleep(5000);
+        while (System.currentTimeMillis() < expectedtime) {
+            consumer.seekToBeginning(consumer.assignment());
+            ConsumerRecords<String, JsonNode> records = consumer.poll(15);
+            LOGGER.info("Record count: " + records.count());
+            List<Map<String, Object>> kafkaRecords = new ArrayList<>();
+            for (ConsumerRecord<String, JsonNode> record : records) {
+                ObjectMapper mapper = new ObjectMapper();
+                if (record.value() != null) {
+                    JsonNode jsonNode = record.value().get("payload");
+                    Map<String, Object> result = mapper.convertValue(jsonNode, new TypeReference<Map<String, Object>>() {
+                    });
+                    kafkaRecords.add(result);
                 }
-                if (flag == 1) {
+            }
+            Iterator<Map<String, Object>> it = expected_data.iterator();
+            int recordsAsserted = 0;
+
+            for (Map<String, Object> kafkaRecord : kafkaRecords) {
+                LOGGER.info("Kafka record " + kafkaRecord);
+                assertEquals(it.next(), kafkaRecord);
+                ++recordsAsserted;
+                if (recordsAsserted == recordsInserted) {
+                    flag = 1;
                     break;
                 }
             }
-        }
-        catch (SQLException e) {
-            e.getNextException().printStackTrace();
+            if (flag == 1) {
+                break;
+            }
         }
     }
 
@@ -232,7 +181,6 @@ public class PostgresSinkConsumerIT {
         Class.forName("org.postgresql.Driver");
         Connection conn = DriverManager.getConnection("jdbc:postgresql://" + POSTGRES_IP + ":5432/postgres", "postgres",
                 "postgres");
-        System.out.println("Connected to postgres");
         Statement stmt = conn.createStatement();
         Thread.sleep(10000);
 
@@ -251,7 +199,7 @@ public class PostgresSinkConsumerIT {
 
         int recordsAsserted = 0;
         for (Map<String, Object> postgresRecord : postgresRecords) {
-            System.out.println("Postgres record:" + postgresRecord);
+            LOGGER.info("Postgres record:" + postgresRecord);
             assertEquals(it.next(), postgresRecord);
             ++recordsAsserted;
             if (recordsAsserted == recordsInserted) {
@@ -273,5 +221,31 @@ public class PostgresSinkConsumerIT {
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.connect.json.JsonDeserializer");
         consumer = new KafkaConsumer<>(props);
+    }
+
+    private static void setConnectorConfiguration() throws Exception {
+        Connection connection = DriverManager.getConnection(postgreSQLContainer.getJdbcUrl(),
+                postgreSQLContainer.getUsername(),
+                postgreSQLContainer.getPassword());
+
+        connector = ConnectorConfiguration
+                .forJdbcContainer(postgreSQLContainer)
+                .with("connector.class", "io.confluent.connect.jdbc.JdbcSinkConnector")
+                .with("tasks.max", "1")
+                .with("topics", "dbserver1.public.test_table")
+                .with("database.server.name", "dbserver1")
+                .with("dialect.name", "PostgreSqlDatabaseDialect")
+                .with("table.name.format", "sink")
+                .with("connection.url", "jdbc:postgresql://" + POSTGRES_IP + ":5432/postgres?user=postgres&password=postgres&sslMode=require")
+                .with("auto.create", "true")
+                .with("insert.mode", "upsert")
+                .with("pk.fields", "id")
+                .with("pk.mode", "record_key")
+                .with("delete.enabled", "true")
+                .with("auto.evolve", "true")
+                .with("value.converter", "org.apache.kafka.connect.json.JsonConverter")
+                .with("value.converter.schemas.enable", "true")
+                .with("key.converter", "org.apache.kafka.connect.json.JsonConverter")
+                .with("key.converter.schemas.enable", "true");
     }
 }

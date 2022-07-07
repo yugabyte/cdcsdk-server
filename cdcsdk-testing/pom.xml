@@ -110,11 +110,6 @@
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>jdbc</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
       <version>1.17.3</version>
       <scope>test</scope>
@@ -125,13 +120,6 @@
       <version>1.9.4.Final</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.confluent</groupId>
-      <artifactId>kafka-connect-maven-plugin</artifactId>
-      <version>0.12.0</version>
-      <type>maven-plugin</type>
-      <scope>test</scope>
-  </dependency>
   </dependencies>
 
   <build>
