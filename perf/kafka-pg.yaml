@@ -1,0 +1,85 @@
+services:
+  zookeeper:
+    container_name: zookeeper
+    image: debezium/zookeeper:1.6
+    user: "0:0"
+    ports:
+      - 2181:2181
+      - 2888:2888
+      - 3888:3888
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    volumes:
+      - $PWD/volumes/kafka/zk-data:/var/lib/zookeeper/data
+      - $PWD/volumes/kafka/zk-txn-logs:/var/lib/zookeeper/log
+
+  kafka:
+    container_name: kafka
+    image: debezium/kafka:1.6
+    links:
+      - zookeeper
+    user: "0:0"
+    ports:
+      - 9092:9092
+      - 9099:9099
+      - 19092:19092
+    restart: unless-stopped
+    environment:
+      KAFKA_BROKER_ID: 100
+      ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENERS: "CLIENT://:9093,EXTERNAL://:9092,FARAWAY://:19092"
+      KAFKA_ADVERTISED_LISTENERS: "CLIENT://:9093,EXTERNAL://kafka:9092,FARAWAY://${KAFKA_HOST}"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT,FARAWAY:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: CLIENT
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_OPTS: -Djdk.tls.client.protocols=TLSv1.2
+    volumes:
+      - $PWD/volumes/kafka/kafka-data:/var/lib/kafka/data
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8079:8080
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'kafka:9092'
+
+  kafka-connect:
+    container_name: kafka-connect
+    image: quay.io/yugabyte/connect-jdbc-es:1.0
+    depends_on: [ kafka, pg]
+    ports:
+      - 8083:8083
+    restart: unless-stopped
+    environment:
+      BOOTSTRAP_SERVERS: "kafka:9092"
+      GROUP_ID: kafka-connect-group
+      CONFIG_STORAGE_TOPIC: kafka-connect_configs
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_TOPIC: kafka-connect_offset
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_TOPIC: kafka-connect_status
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+
+  pg:
+    container_name: pg
+    image: debezium/example-postgres:1.6
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - $PWD/volumes/pg/:/var/lib/postgresql/data
+

@@ -1,0 +1,8 @@
+services:
+  cdcsdk:
+    environment:
+      CDCSDK_SINK_TYPE: kafka
+      CDCSDK_SINK_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: ${KAFKA_HOST}
+      CDCSDK_SINK_KAFKA_PRODUCER_KEY_SERIALIZER: org.apache.kafka.common.serialization.StringSerializer
+      CDCSDK_SINK_KAFKA_PRODUCER_VALUE_SERIALIZER: org.apache.kafka.common.serialization.StringSerializer
+

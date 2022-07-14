@@ -1,0 +1,8 @@
+scrape_configs:
+   # The job name is added as a label `job=<job_name>` to any timeseries
+   # scraped from this config.
+  - job_name: 'quarkus-micrometer'
+    metrics_path: '/q/metrics'
+    scrape_interval: 3s
+    static_configs:
+    - targets: ['cdcsdk:8080']
