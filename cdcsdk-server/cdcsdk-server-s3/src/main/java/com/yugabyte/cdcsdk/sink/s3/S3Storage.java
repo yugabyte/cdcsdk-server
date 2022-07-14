@@ -17,6 +17,7 @@ package com.yugabyte.cdcsdk.sink.s3;
 
 import static com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig.AWS_ACCESS_KEY_ID_CONFIG;
 import static com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig.AWS_SECRET_ACCESS_KEY_CONFIG;
+import static com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig.AWS_SESSION_TOKEN;
 import static com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig.REGION_CONFIG;
 import static com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig.S3_PATH_STYLE_ACCESS_ENABLED_CONFIG;
 import static com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig.S3_RETRY_BACKOFF_CONFIG;
@@ -37,6 +38,7 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.retry.PredefinedBackoffStrategies;
@@ -162,12 +164,21 @@ public class S3Storage {
     protected AWSCredentialsProvider newCredentialsProvider(S3SinkConnectorConfig config) {
         final String accessKeyId = config.getString(AWS_ACCESS_KEY_ID_CONFIG);
         final String secretKey = config.getPassword(AWS_SECRET_ACCESS_KEY_CONFIG).value();
+        final String sessionToken = config.getPassword(AWS_SESSION_TOKEN).value();
+
         if (StringUtils.isNotBlank(accessKeyId) && StringUtils.isNotBlank(secretKey)) {
-            LOGGER.info("Returning new credentials provider using the access key id and "
-                    + "the secret access key that were directly supplied through the connector's "
-                    + "configuration");
-            BasicAWSCredentials basicCredentials = new BasicAWSCredentials(accessKeyId, secretKey);
-            return new AWSStaticCredentialsProvider(basicCredentials);
+            if (StringUtils.isNotBlank(sessionToken)) {
+                LOGGER.info("Returning session credentials");
+                BasicSessionCredentials creds = new BasicSessionCredentials(accessKeyId, secretKey, sessionToken);
+                return new AWSStaticCredentialsProvider(creds);
+            }
+            else {
+                LOGGER.info("Returning new credentials provider using the access key id and "
+                        + "the secret access key that were directly supplied through the connector's "
+                        + "configuration");
+                BasicAWSCredentials basicCredentials = new BasicAWSCredentials(accessKeyId, secretKey);
+                return new AWSStaticCredentialsProvider(basicCredentials);
+            }
         }
         LOGGER.info(
                 "Returning new credentials provider based on the configured credentials provider class");

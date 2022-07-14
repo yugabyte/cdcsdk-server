@@ -95,6 +95,9 @@ public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
     public static final String AWS_SECRET_ACCESS_KEY_CONFIG = "aws.secret.access.key";
     public static final Password AWS_SECRET_ACCESS_KEY_DEFAULT = new Password(null);
 
+    public static final String AWS_SESSION_TOKEN = "aws.session.token";
+    public static final Password AWS_SESSION_TOKEN_DEFAULT = new Password(null);
+
     public static final String REGION_CONFIG = "region";
     public static final String REGION_DEFAULT = Regions.DEFAULT_REGION.getName();
 
@@ -272,6 +275,17 @@ public class S3SinkConnectorConfig extends StorageSinkConnectorConfig {
                     ++orderInGroup,
                     Width.LONG,
                     "AWS Secret Access Key");
+
+            configDef.define(
+                    AWS_SESSION_TOKEN,
+                    Type.PASSWORD,
+                    AWS_SESSION_TOKEN_DEFAULT,
+                    Importance.HIGH,
+                    "The session token used for session credentials.",
+                    group,
+                    ++orderInGroup,
+                    Width.LONG,
+                    "AWS Session Token");
 
             List<String> validSsea = new ArrayList<>(SSEAlgorithm.values().length + 1);
             validSsea.add("");

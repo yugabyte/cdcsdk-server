@@ -133,6 +133,7 @@ public class TestHelper {
         configs.put("CDCSDK_SERVER_TRANSFORMS", "FLATTEN");
         configs.put("CDCSDK_SINK_S3_AWS_ACCESS_KEY_ID", System.getenv("AWS_ACCESS_KEY_ID"));
         configs.put("CDCSDK_SINK_S3_AWS_SECRET_ACCESS_KEY", System.getenv("AWS_SECRET_ACCESS_KEY"));
+        configs.put("CDCSDK_SINK_S3_AWS_SESSION_TOKEN", System.getenv("AWS_SESSION_TOKEN"));
 
         return configs;
     }
