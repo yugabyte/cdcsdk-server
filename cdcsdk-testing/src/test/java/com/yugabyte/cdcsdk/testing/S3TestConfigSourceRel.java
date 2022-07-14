@@ -19,7 +19,7 @@ public class S3TestConfigSourceRel extends TestConfigSource {
         System.out.println("Created stream ID: " + dbStreamId);
 
         s3Test.put("cdcsdk.sink.type", "s3");
-        s3Test.put("cdcsdk.sink.s3.bucket.name", "cdcsdk-test-vk");
+        s3Test.put("cdcsdk.sink.s3.bucket.name", "cdcsdk-test");
         s3Test.put("cdcsdk.sink.s3.region", "us-west-2");
         s3Test.put("cdcsdk.sink.s3.basedir", "S3ConsumerIT/");
         s3Test.put("cdcsdk.sink.s3.pattern", "stream_{EPOCH}");
