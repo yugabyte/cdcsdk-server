@@ -1,0 +1,34 @@
+services:
+  cdcsdk:
+    image: quay.io/yugabyte/cdcsdk-server:0.7.0-SNAPSHOT
+    container_name: cdcsdk
+    ports:
+      - 8080:8080
+    environment:
+      CDCSDK_SOURCE_CONNECTOR_CLASS: io.debezium.connector.yugabytedb.YugabyteDBConnector
+      CDCSDK_SOURCE_OFFSET_FLUSH_INTERVAL_MS: 0
+      CDCSDK_SOURCE_DATABASE_HOSTNAME: ${PGHOST}
+      CDCSDK_SOURCE_DATABASE_PORT: 5433
+      CDCSDK_SOURCE_DATABASE_USER: yugabyte
+      CDCSDK_SOURCE_DATABASE_PASSWORD: yugabyte
+      CDCSDK_SOURCE_DATABASE_DBNAME: yugabyte
+      CDCSDK_SOURCE_DATABASE_SERVER_NAME: dbserver1
+      CDCSDK_SOURCE_DATABASE_STREAMID: ${CDC_SDK_STREAM_ID}
+      CDCSDK_SOURCE_TABLE_INCLUDE_LIST: ${TABLES}
+      CDCSDK_SOURCE_DATABASE_MASTER_ADDRESSES: ${MASTER_ADDRESSES}
+      CDCSDK_SOURCE_SNAPSHOT_MODE: never
+
+  prometheus:
+    build:
+      context: .
+      dockerfile: Dockerfile.prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana  
+    ports:
+      - 3000:3000
+

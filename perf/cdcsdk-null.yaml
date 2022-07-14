@@ -1,0 +1,5 @@
+services:
+  cdcsdk:
+    environment:
+      CDCSDK_SINK_TYPE: nullStream
+
