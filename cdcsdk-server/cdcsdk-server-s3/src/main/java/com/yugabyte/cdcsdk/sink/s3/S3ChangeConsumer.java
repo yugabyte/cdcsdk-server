@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AmazonClientException;
+import com.yugabyte.cdcsdk.server.Metrics;
 import com.yugabyte.cdcsdk.sink.s3.buffer.BufferStorage;
 import com.yugabyte.cdcsdk.sink.s3.buffer.InMemoryBuffer;
 import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
@@ -136,6 +137,9 @@ public class S3ChangeConsumer extends BaseChangeConsumer
 
                     this.outputStream.write(value.getBytes());
                     this.outputStream.write(System.lineSeparator().getBytes());
+
+                    this.metrics.get(Metrics.bytesWritten).increment(value.getBytes().length);
+                    this.metrics.get(Metrics.recordsWritten).increment();
                 }
                 catch (IOException ioe) {
                     LOGGER.error(ioe.getMessage());

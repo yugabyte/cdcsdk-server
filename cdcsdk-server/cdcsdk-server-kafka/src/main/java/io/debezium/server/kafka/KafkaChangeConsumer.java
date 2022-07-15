@@ -23,6 +23,8 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yugabyte.cdcsdk.server.Metrics;
+
 import io.debezium.DebeziumException;
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
@@ -90,6 +92,20 @@ public class KafkaChangeConsumer extends BaseChangeConsumer implements DebeziumE
                         latch.countDown();
                     }
                 });
+
+                String key = (String) record.key();
+                String value = (String) record.value();
+
+                if (key != null) {
+                    this.metrics.get(Metrics.bytesWritten).increment(
+                            key.getBytes().length
+                    );
+                }
+                if (value != null) {
+                    this.metrics.get(Metrics.bytesWritten).increment(value.getBytes().length);
+                }
+                this.metrics.get(Metrics.recordsWritten).increment();
+
                 committer.markProcessed(record);
             }
             catch (Exception e) {

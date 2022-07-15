@@ -15,7 +15,7 @@ public class Metrics {
     public static final String recordsWritten = "cdcsdk.sink.total.recordsWritten";
 
     public Counter get(String counterName) {
-        return meterRegistry.counter(bytesWritten);
+        return meterRegistry.counter(counterName);
     }
 
     public void apply(long numRecords, long numSize) {
