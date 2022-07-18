@@ -3,7 +3,7 @@
 ## Setup the Dev Server
 
     #install docker
-    ./setup.sh
+    ./setup_docker.sh
 
     # Build CDCSDK Docker Image if required
     git clone https://github.com/yugabyte/cdcsdk-server.git
@@ -24,7 +24,7 @@
 
 ## Setup Tables in Yugabyte
 
-    ./tables.sh
+    ./tables.sh <path to setting file>
 
 # Create a settings file
 
@@ -42,6 +42,7 @@ Rest of the instructions assume the name is `settings.env`
 |KAFKA_HOST| Host and port where Kafka is running|
 |CDC_SDK_STREAM_ID| ID of CDCSDK Stream. Created by `tables.sh`|
 |TABLES| List of tables in namespace that have to be processed|
+|WORKLOAD| One of the workloads in the `workload` directory|
 
 ##  Start all services in docker
 
@@ -58,12 +59,16 @@ Rest of the instructions assume the name is `settings.env`
 
 ## Configure and Run Workloads
 
+Different workloads are available in workloads dir. Choose the workload and run
+the following commands.
+
+
 ### Setup Kafka Connect
 
     # Setup consumers
-    ./kafka_setup.sh
+    ./kafka-setup.sh
 
 ### Setup and run workloads
 
-    ./setup_workloads.sh
-    ./run_workloads.sh
+    ./workloads/${WORKLOAD}/setup_workloads.sh <path to settings file>
+    ./workloads/${WORKLOAD}/run.sh <path to settings file>
