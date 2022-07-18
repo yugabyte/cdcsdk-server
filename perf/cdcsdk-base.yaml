@@ -1,6 +1,6 @@
 services:
   cdcsdk:
-    image: quay.io/yugabyte/cdcsdk-server:0.7.0-SNAPSHOT
+    image: quay.io/yugabyte/cdcsdk-server:latest
     container_name: cdcsdk
     ports:
       - 8080:8080

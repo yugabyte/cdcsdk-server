@@ -129,7 +129,7 @@ public class ServerApp {
     @SuppressWarnings("unchecked")
     @PostConstruct
     public void start() {
-        LOGGER.info("Version {}", version);
+        LOGGER.info("CDCSDK Version {}", version);
 
         final Config config = ConfigProvider.getConfig();
         final String name = config.getValue(PROP_SINK_TYPE, String.class);
