@@ -905,7 +905,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                             }
                             try {
                                 if (changeRecords != null && !changeRecords.isEmpty()) {
-                                    LOGGER.info("Received {} records from the task", changeRecords.size());
+                                    LOGGER.debug("Received {} records from the task", changeRecords.size());
                                     changeRecords = changeRecords.stream()
                                             .map(transformations::transform)
                                             .filter(x -> x != null)
@@ -913,7 +913,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
                                 }
 
                                 if (changeRecords != null && !changeRecords.isEmpty()) {
-                                    LOGGER.info("Received {} transformed records from the task", changeRecords.size());
+                                    LOGGER.debug("Received {} transformed records from the task", changeRecords.size());
 
                                     try {
                                         handler.handleBatch(changeRecords, committer);
