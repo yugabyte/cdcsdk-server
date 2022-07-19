@@ -12,14 +12,12 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,11 +106,6 @@ public class S3ConsumerRelIT {
         GenericContainer<?> cdcContainer = TestHelper.getCdcsdkContainer();
         cdcContainer.start();
 
-        // Wait for sometime for the cdcsdk-server container to be initialized properly
-        // TODO: This block is a major hack to wait for CDCSDK server to come
-        // up. Instead Test Containers should wait for health checks and then
-        // only continue.
-        Thread.sleep(90000);
         assertTrue(cdcContainer.isRunning());
 
         storage = new S3Storage(s3Config, "");
