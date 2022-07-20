@@ -137,13 +137,14 @@ public class PostgresSinkConsumerIT {
 
         setKafkaConsumerProperties();
         consumer.subscribe(Arrays.asList("dbserver1.public.test_table"));
-        long expectedtime = System.currentTimeMillis() + 10000;
-        int flag = 0;
         Thread.sleep(5000);
+        long expectedtime = System.currentTimeMillis() + 20000;
+        int flag = 0;
+        int recordsAsserted = 0;
         while (System.currentTimeMillis() < expectedtime) {
             consumer.seekToBeginning(consumer.assignment());
             ConsumerRecords<String, JsonNode> records = consumer.poll(15);
-            LOGGER.info("Record count: " + records.count());
+            System.out.println("Record count: " + records.count());
             List<Map<String, Object>> kafkaRecords = new ArrayList<>();
             for (ConsumerRecord<String, JsonNode> record : records) {
                 ObjectMapper mapper = new ObjectMapper();
@@ -155,7 +156,6 @@ public class PostgresSinkConsumerIT {
                 }
             }
             Iterator<Map<String, Object>> it = expected_data.iterator();
-            int recordsAsserted = 0;
 
             for (Map<String, Object> kafkaRecord : kafkaRecords) {
                 LOGGER.info("Kafka record " + kafkaRecord);
@@ -166,10 +166,12 @@ public class PostgresSinkConsumerIT {
                     break;
                 }
             }
+
             if (flag == 1) {
                 break;
             }
         }
+        assertNotEquals(recordsAsserted, 0);
     }
 
     @Test
@@ -221,6 +223,11 @@ public class PostgresSinkConsumerIT {
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.connect.json.JsonDeserializer");
         consumer = new KafkaConsumer<>(props);
+        Object[] topics = consumer.listTopics().keySet().toArray();
+        System.out.println("List of topics: ");
+        for (Object obj : topics) {
+            System.out.println(obj.toString());
+        }
     }
 
     private static void setConnectorConfiguration() throws Exception {

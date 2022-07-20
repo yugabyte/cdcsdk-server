@@ -23,6 +23,7 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +100,7 @@ public class S3ConsumerRelIT {
         }
     }
 
+    @Disabled
     @Test
     public void testAutomationOfS3Assertions() throws Exception {
         // Assuming that the yugabyted process is running locally on the host machine
