@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.kafka.clients.consumer.*;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
@@ -66,7 +68,8 @@ public class PostgresSinkConsumerIT {
                 .withUsername("postgres")
                 .withExposedPorts(5432)
                 .withReuse(true);
-        // Using the Yugabyte's Kafka Connect image since it comes with a bundled JDBCSinkConnector.
+
+        // Using the Yugabyte's Kafka Connect image since it comes with a bundled JDBCSinkConnector
         kafkaConnectContainer = new DebeziumContainer("quay.io/yugabyte/debezium-connector:1.3.7-BETA")
                 .withNetwork(network)
                 .withKafka(kafka)
@@ -76,7 +79,7 @@ public class PostgresSinkConsumerIT {
         kafka.start();
         kafkaConnectContainer.start();
         postgreSQLContainer.start();
-        Thread.sleep(10000);
+        Awaitility.await().atMost(Duration.ofSeconds(10)).until(() -> postgreSQLContainer.isRunning());
 
         // Get IPs and addresses.
         POSTGRES_IP = postgreSQLContainer.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst().get().getValue().getIpAddress();
@@ -132,7 +135,6 @@ public class PostgresSinkConsumerIT {
     @Test
     @Order(1)
     public void testAutomationOfKafkaAssertions() throws Exception {
-
         // Verify data on Kafka.
 
         setKafkaConsumerProperties();
@@ -144,7 +146,7 @@ public class PostgresSinkConsumerIT {
         while (System.currentTimeMillis() < expectedtime) {
             consumer.seekToBeginning(consumer.assignment());
             ConsumerRecords<String, JsonNode> records = consumer.poll(15);
-            System.out.println("Record count: " + records.count());
+            LOGGER.debug("Record count: " + records.count());
             List<Map<String, Object>> kafkaRecords = new ArrayList<>();
             for (ConsumerRecord<String, JsonNode> record : records) {
                 ObjectMapper mapper = new ObjectMapper();
@@ -158,7 +160,7 @@ public class PostgresSinkConsumerIT {
             Iterator<Map<String, Object>> it = expected_data.iterator();
 
             for (Map<String, Object> kafkaRecord : kafkaRecords) {
-                LOGGER.info("Kafka record " + kafkaRecord);
+                LOGGER.debug("Kafka record " + kafkaRecord);
                 assertEquals(it.next(), kafkaRecord);
                 ++recordsAsserted;
                 if (recordsAsserted == recordsInserted) {
@@ -177,12 +179,10 @@ public class PostgresSinkConsumerIT {
     @Test
     @Order(2)
     public void testAutomationOfPostgresAssertions() throws Exception {
-
         // Verify data on Postgres.
-
         Class.forName("org.postgresql.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:postgresql://" + POSTGRES_IP + ":5432/postgres", "postgres",
-                "postgres");
+        Connection conn = DriverManager.getConnection("jdbc:postgresql://" + POSTGRES_IP + 
+            ":5432/postgres", "postgres", "postgres");
         Statement stmt = conn.createStatement();
         Thread.sleep(10000);
 
@@ -201,13 +201,14 @@ public class PostgresSinkConsumerIT {
 
         int recordsAsserted = 0;
         for (Map<String, Object> postgresRecord : postgresRecords) {
-            LOGGER.info("Postgres record:" + postgresRecord);
+            LOGGER.debug("Postgres record:" + postgresRecord);
             assertEquals(it.next(), postgresRecord);
             ++recordsAsserted;
             if (recordsAsserted == recordsInserted) {
                 break;
             }
         }
+        assertNotEquals(recordsAsserted, 0);
 
     }
 
@@ -223,11 +224,6 @@ public class PostgresSinkConsumerIT {
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.connect.json.JsonDeserializer");
         consumer = new KafkaConsumer<>(props);
-        Object[] topics = consumer.listTopics().keySet().toArray();
-        System.out.println("List of topics: ");
-        for (Object obj : topics) {
-            System.out.println(obj.toString());
-        }
     }
 
     private static void setConnectorConfiguration() throws Exception {
