@@ -26,6 +26,7 @@ import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.health.Liveness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,9 +123,14 @@ public class ServerApp {
     private List<DebeziumEngine<?>> engines = new ArrayList<>();
     private final Properties props = new Properties();
 
+    @ConfigProperty(name = "quarkus.application.version", defaultValue = "not-set")
+    String version;
+
     @SuppressWarnings("unchecked")
     @PostConstruct
     public void start() {
+        LOGGER.info("Version {}", version);
+
         final Config config = ConfigProvider.getConfig();
         final String name = config.getValue(PROP_SINK_TYPE, String.class);
 
