@@ -25,11 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
-<<<<<<< HEAD
 import org.testcontainers.containers.Network;
-=======
 import org.testcontainers.containers.YugabyteYSQLContainer;
->>>>>>> main
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
