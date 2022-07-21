@@ -42,11 +42,10 @@ import io.debezium.testing.testcontainers.*;
 
 public class PostgresSinkConsumerIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSinkConsumerIT.class);
-    private static String HOST_ADDRESS = "127.0.0.1";
-    protected static String BOOTSTRAP_SERVER = "127.0.0.1:9092";
     private KafkaConsumer<String, JsonNode> consumer;
     private static List<Map<String, Object>> expected_data = new ArrayList<>();
-    private static int recordsInserted = 5;
+    private static int recordsToBeInserted = 5;
+    
     protected static KafkaContainer kafka;
     private static YugabyteYSQLContainer ybContainer;
     private static GenericContainer<?> cdcContainer;
@@ -99,7 +98,7 @@ public class PostgresSinkConsumerIT {
         TestHelper.execute(deleteFromTableSql);
 
         // Initialise expected_data.
-        for (int i = 0; i < recordsInserted; i++) {
+        for (int i = 0; i < recordsToBeInserted; i++) {
             Map<String, Object> expected_record = new LinkedHashMap<String, Object>();
             expected_record.put("id", new Integer(i));
             expected_record.put("first_name", new String("first_" + i));
@@ -115,7 +114,7 @@ public class PostgresSinkConsumerIT {
         Thread.sleep(10000);
 
         // Insert records in YB.
-        for (int i = 0; i < recordsInserted; ++i) {
+        for (int i = 0; i < recordsToBeInserted; ++i) {
             String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);", i, "first_" + i,
                     "last_" + i, 23.45);
             TestHelper.execute(insertSql);
@@ -163,7 +162,7 @@ public class PostgresSinkConsumerIT {
                 LOGGER.debug("Kafka record " + kafkaRecord);
                 assertEquals(it.next(), kafkaRecord);
                 ++recordsAsserted;
-                if (recordsAsserted == recordsInserted) {
+                if (recordsAsserted == recordsToBeInserted) {
                     flag = 1;
                     break;
                 }
@@ -204,7 +203,7 @@ public class PostgresSinkConsumerIT {
             LOGGER.debug("Postgres record:" + postgresRecord);
             assertEquals(it.next(), postgresRecord);
             ++recordsAsserted;
-            if (recordsAsserted == recordsInserted) {
+            if (recordsAsserted == recordsToBeInserted) {
                 break;
             }
         }

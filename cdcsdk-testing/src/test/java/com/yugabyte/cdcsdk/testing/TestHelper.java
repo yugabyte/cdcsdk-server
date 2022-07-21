@@ -34,7 +34,7 @@ public class TestHelper {
     private static int YSQL_PORT = 5433;
     private static int MASTER_PORT = 7100;
     private static Network containerNetwork;
-    private static String BOOTSTRAP_SERVER;
+    private static String BOOTSTRAP_SERVER = "127.0.0.1:9092";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
 
@@ -144,6 +144,7 @@ public class TestHelper {
         configs.put("CDCSDK_SERVER_TRANSFORMS", "FLATTEN");
         configs.put("CDCSDK_SINK_S3_AWS_ACCESS_KEY_ID", System.getenv("AWS_ACCESS_KEY_ID"));
         configs.put("CDCSDK_SINK_S3_AWS_SECRET_ACCESS_KEY", System.getenv("AWS_SECRET_ACCESS_KEY"));
+        configs.put("CDCSDK_SINK_S3_AWS_SESSION_TOKEN", System.getenv("AWS_SESSION_TOKEN"));
 
         return configs;
     }
@@ -174,7 +175,6 @@ public class TestHelper {
         configs.put("CDCSDK_SERVER_TRANSFORMS", "unwrap");
         configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DROP_TOMBSTONES", "false");
         configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_TYPE", "io.debezium.connector.yugabytedb.transforms.YBExtractNewRecordState");
-        configs.put("CDCSDK_SINK_S3_AWS_SESSION_TOKEN", System.getenv("AWS_SESSION_TOKEN"));
 
         return configs;
     }
