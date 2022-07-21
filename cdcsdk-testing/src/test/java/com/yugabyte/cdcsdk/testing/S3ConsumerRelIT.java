@@ -25,7 +25,11 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
+<<<<<<< HEAD
 import org.testcontainers.containers.Network;
+=======
+import org.testcontainers.containers.YugabyteYSQLContainer;
+>>>>>>> main
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -46,6 +50,8 @@ import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
 
 public class S3ConsumerRelIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ConsumerRelIT.class);
+
+    private static YugabyteYSQLContainer ybContainer;
 
     private S3SinkConnectorConfig s3Config;
     private ConfigSourceS3 testConfig;

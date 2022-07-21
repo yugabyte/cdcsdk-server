@@ -6,24 +6,45 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
+<<<<<<< HEAD
+=======
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.YugabyteYSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.utility.DockerImageName;
+>>>>>>> main
 import org.yb.client.AsyncYBClient;
 import org.yb.client.ListTablesResponse;
 import org.yb.client.YBClient;
 import org.yb.client.YBTable;
 import org.yb.master.MasterDdlOuterClass.ListTablesResponsePB.TableInfo;
 
+<<<<<<< HEAD
 import com.yugabyte.cdcsdk.testing.util.CdcsdkContainer;
+=======
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.Ports;
+>>>>>>> main
 
 public class TestHelper {
     private static String HOST = "127.0.0.1";
     private static int YSQL_PORT = 5433;
     private static int MASTER_PORT = 7100;
+<<<<<<< HEAD
     private static String BOOTSTRAP_SERVER = "127.0.0.1:9092";
+=======
+    private static Network containerNetwork;
+>>>>>>> main
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
 
