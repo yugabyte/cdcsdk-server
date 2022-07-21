@@ -12,12 +12,11 @@ import com.yugabyte.cdcsdk.testing.TestHelper;
 
 public class CdcsdkContainer {
     private final DockerImageName cdcsdkContainerImageName = DockerImageName.parse("quay.io/yugabyte/cdcsdk-server:latest");
-    
+
     private String cdcsdkSourceConnectorClass = "io.debezium.connector.yugabytedb.YugabyteDBConnector";
     private String cdcsdkSourceDatabaseHostname = "127.0.0.1";
     private String cdcsdkSourceDatabasePort = "5433";
-    private String masterPort = "7100";
-    private String cdcsdkMasterAddresses = cdcsdkSourceDatabaseHostname + ":" + masterPort;
+    private String cdcsdkSourceDatabaseMasterPort = "7100";
     private String cdcsdkSourceDatabaseUser = "yugabyte";
     private String cdcsdkSourceDatabaseDbname = "yugabyte";
     private String cdcsdkSourceDatabasePassword = "yugabyte";
@@ -48,9 +47,9 @@ public class CdcsdkContainer {
     private String cdcsdkSinkS3Pattern = "stream_12345";
     private String cdcsdkSinkS3FlushRecords = "5";
     private String cdcsdkSinkS3FlushSizemb = "200";
-    private String cdcsdkSinkS3AwsAccessKeyId = System.getenv("AWS_ACCESS_KEY_ID");
-    private String cdcsdkSinkS3AwsSecretAccessKey = System.getenv("AWS_SECRET_ACCESS_KEY");
-    private String cdcsdkSinkS3AwsSessionToken = System.getenv("AWS_SESSION_TOKEN");
+    private String cdcsdkSinkS3AwsAccessKeyId = "";
+    private String cdcsdkSinkS3AwsSecretAccessKey = "";
+    private String cdcsdkSinkS3AwsSessionToken = "";
 
     public CdcsdkContainer withDatabaseHostname(String databaseHostname) {
         this.cdcsdkSourceDatabaseHostname = databaseHostname;
@@ -59,6 +58,11 @@ public class CdcsdkContainer {
 
     public CdcsdkContainer withDatabasePort(String databasePort) {
         this.cdcsdkSourceDatabasePort = databasePort;
+        return this;
+    }
+
+    public CdcsdkContainer withMasterPort(String masterPort) {
+        this.cdcsdkSourceDatabaseMasterPort = masterPort;
         return this;
     }
 
@@ -92,18 +96,37 @@ public class CdcsdkContainer {
         return this;
     }
 
+    // S3 related configuration setters
+
+    public CdcsdkContainer withAwsAccessKeyId(String awsAccessKeyId) {
+        this.cdcsdkSinkS3AwsAccessKeyId = awsAccessKeyId;
+        return this;
+    }
+
+    public CdcsdkContainer withAwsSecretAccessKey(String awsSecretAccessKey) {
+        this.cdcsdkSinkS3AwsSecretAccessKey = awsSecretAccessKey;
+        return this;
+    }
+
+    public CdcsdkContainer withAwsSessionToken(String awsSessionToken) {
+        this.cdcsdkSinkS3AwsSessionToken = awsSessionToken;
+        return this;
+    }
+
+    // Kafka related configuration setters
+
     public CdcsdkContainer withKafkaBootstrapServers(String bootstrapServers) {
         this.cdcsdkSinkKafkaBootstrapServers = bootstrapServers;
         return this;
     }
 
-    private Map<String, String> getDatabaseConfigMap() {
+    private Map<String, String> getDatabaseConfigMap() throws Exception {
         Map<String, String> configs = new HashMap<>();
 
         configs.put("CDCSDK_SOURCE_CONNECTOR_CLASS", this.cdcsdkSourceConnectorClass);
         configs.put("CDCSDK_SOURCE_DATABASE_HOSTNAME", this.cdcsdkSourceDatabaseHostname);
         configs.put("CDCSDK_SOURCE_DATABASE_PORT", this.cdcsdkSourceDatabasePort);
-        configs.put("CDCSDK_SOURCE_DATABASE_MASTER_ADDRESSES", this.cdcsdkSourceDatabaseHostname + ":" + this.cdcsdkSourceDatabasePort);
+        configs.put("CDCSDK_SOURCE_DATABASE_MASTER_ADDRESSES", this.cdcsdkSourceDatabaseHostname + ":" + this.cdcsdkSourceDatabaseMasterPort);
         configs.put("CDCSDK_SOURCE_DATABASE_SERVER_NAME", this.cdcsdkSourceDatabaseServerName);
         configs.put("CDCSDK_SOURCE_DATABASE_DBNAME", this.cdcsdkSourceDatabaseDbname);
         configs.put("CDCSDK_SOURCE_DATABASE_USER", this.cdcsdkSourceDatabaseUser);
@@ -114,8 +137,8 @@ public class CdcsdkContainer {
 
         return configs;
     }
-    
-    public Map<String, String> getConfigMapForKafka() {
+
+    public Map<String, String> getConfigMapForKafka() throws Exception {
         Map<String, String> configs = getDatabaseConfigMap();
 
         configs.put("CDCSDK_SINK_TYPE", "kafka");
@@ -133,7 +156,7 @@ public class CdcsdkContainer {
         return configs;
     }
 
-    public Map<String, String> getConfigMapForS3() {
+    public Map<String, String> getConfigMapForS3() throws Exception {
         Map<String, String> configs = getDatabaseConfigMap();
 
         configs.put("CDCSDK_SINK_TYPE", "s3");
@@ -153,7 +176,7 @@ public class CdcsdkContainer {
         return configs;
     }
 
-    public GenericContainer<?> buildForKafkaSink() {
+    public GenericContainer<?> buildForKafkaSink() throws Exception {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(cdcsdkContainerImageName);
         cdcsdkContainer.withEnv(getConfigMapForKafka());
         cdcsdkContainer.withExposedPorts(8080);
@@ -163,7 +186,7 @@ public class CdcsdkContainer {
         return cdcsdkContainer;
     }
 
-    public GenericContainer<?> buildForS3Sink() {
+    public GenericContainer<?> buildForS3Sink() throws Exception {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(cdcsdkContainerImageName);
         cdcsdkContainer.withEnv(getConfigMapForKafka());
         cdcsdkContainer.withExposedPorts(8080);

@@ -31,7 +31,6 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.YugabyteYSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -45,12 +44,14 @@ public class PostgresSinkConsumerIT {
     private KafkaConsumer<String, JsonNode> consumer;
     private static List<Map<String, Object>> expected_data = new ArrayList<>();
     private static int recordsToBeInserted = 5;
-    
+
+    private static final String createTableSql = "CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision)";
+    private static final String dropTableSql = "DROP TABLE test_table";
+
     protected static KafkaContainer kafka;
-    private static YugabyteYSQLContainer ybContainer;
     private static GenericContainer<?> cdcContainer;
     private static final DockerImageName KAFKA_TEST_IMAGE = DockerImageName.parse("confluentinc/cp-kafka:6.2.1");
-    private static Network network;
+    private static Network containerNetwork;
     private static DockerImageName myImage = DockerImageName.parse("debezium/example-postgres:1.6").asCompatibleSubstituteFor("postgres");
     private static PostgreSQLContainer<?> postgreSQLContainer;
     private static DebeziumContainer kafkaConnectContainer;
@@ -59,10 +60,10 @@ public class PostgresSinkConsumerIT {
 
     @BeforeAll
     public static void beforeClass() throws Exception {
-        network = Network.newNetwork();
-        kafka = new KafkaContainer(KAFKA_TEST_IMAGE).withNetworkAliases("kafka").withNetwork(network);
+        containerNetwork = Network.newNetwork();
+        kafka = new KafkaContainer(KAFKA_TEST_IMAGE).withNetworkAliases("kafka").withNetwork(containerNetwork);
         postgreSQLContainer = new PostgreSQLContainer<>(myImage)
-                .withNetwork(network)
+                .withNetwork(containerNetwork)
                 .withPassword("postgres")
                 .withUsername("postgres")
                 .withExposedPorts(5432)
@@ -70,7 +71,7 @@ public class PostgresSinkConsumerIT {
 
         // Using the Yugabyte's Kafka Connect image since it comes with a bundled JDBCSinkConnector
         kafkaConnectContainer = new DebeziumContainer("quay.io/yugabyte/debezium-connector:1.3.7-BETA")
-                .withNetwork(network)
+                .withNetwork(containerNetwork)
                 .withKafka(kafka)
                 .dependsOn(kafka);
 
@@ -82,20 +83,16 @@ public class PostgresSinkConsumerIT {
 
         // Get IPs and addresses.
         POSTGRES_IP = postgreSQLContainer.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst().get().getValue().getIpAddress();
-        HOST_ADDRESS = InetAddress.getLocalHost().getHostAddress();
-        TestHelper.setHost(HOST_ADDRESS);
-        BOOTSTRAP_SERVER = kafka.getNetworkAliases().get(0) + ":9092";
-        TestHelper.setBootstrapServer(BOOTSTRAP_SERVER);
+
+        TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
+        TestHelper.setBootstrapServer(kafka.getNetworkAliases().get(0) + ":9092");
 
         // Set JDBC sink connector config.
         setConnectorConfiguration();
         kafkaConnectContainer.registerConnector("test-connector", connector);
 
         // Assuming that yugabyted is running.
-        String createTableSql = "CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision)";
         TestHelper.execute(createTableSql);
-        String deleteFromTableSql = "DELETE FROM test_table";
-        TestHelper.execute(deleteFromTableSql);
 
         // Initialise expected_data.
         for (int i = 0; i < recordsToBeInserted; i++) {
@@ -108,10 +105,9 @@ public class PostgresSinkConsumerIT {
         }
 
         // Start CDCSDK server testcontainer.
-        cdcContainer = TestHelper.getCdcsdkContainerKafkaSink();
-        cdcContainer.withNetwork(network);
+        cdcContainer = TestHelper.getCdcsdkContainerForKafkaSink();
+        cdcContainer.withNetwork(containerNetwork);
         cdcContainer.start();
-        Thread.sleep(10000);
 
         // Insert records in YB.
         for (int i = 0; i < recordsToBeInserted; ++i) {
@@ -127,7 +123,6 @@ public class PostgresSinkConsumerIT {
         kafkaConnectContainer.stop();
         postgreSQLContainer.stop();
         kafka.stop();
-        String dropTableSql = "DROP TABLE test_table";
         TestHelper.execute(dropTableSql);
     }
 
@@ -138,11 +133,9 @@ public class PostgresSinkConsumerIT {
 
         setKafkaConsumerProperties();
         consumer.subscribe(Arrays.asList("dbserver1.public.test_table"));
-        Thread.sleep(5000);
-        long expectedtime = System.currentTimeMillis() + 20000;
-        int flag = 0;
+
         int recordsAsserted = 0;
-        while (System.currentTimeMillis() < expectedtime) {
+        while (recordsAsserted != recordsToBeInserted) {
             consumer.seekToBeginning(consumer.assignment());
             ConsumerRecords<String, JsonNode> records = consumer.poll(15);
             LOGGER.debug("Record count: " + records.count());
@@ -163,14 +156,10 @@ public class PostgresSinkConsumerIT {
                 assertEquals(it.next(), kafkaRecord);
                 ++recordsAsserted;
                 if (recordsAsserted == recordsToBeInserted) {
-                    flag = 1;
                     break;
                 }
             }
 
-            if (flag == 1) {
-                break;
-            }
         }
         assertNotEquals(recordsAsserted, 0);
     }
@@ -180,9 +169,12 @@ public class PostgresSinkConsumerIT {
     public void testAutomationOfPostgresAssertions() throws Exception {
         // Verify data on Postgres.
         Class.forName("org.postgresql.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:postgresql://" + POSTGRES_IP + 
-            ":5432/postgres", "postgres", "postgres");
+        Connection conn = DriverManager.getConnection("jdbc:postgresql://" + POSTGRES_IP +
+                ":5432/postgres", "postgres", "postgres");
         Statement stmt = conn.createStatement();
+
+        // Adding Thread.sleep() here because apparently Awaitility didn't seem to work as expected.
+        // TODO Vaibhav: Replace the Thread.sleep() function with Awaitility
         Thread.sleep(10000);
 
         ResultSet rs = stmt.executeQuery("select * from sink");
@@ -226,10 +218,6 @@ public class PostgresSinkConsumerIT {
     }
 
     private static void setConnectorConfiguration() throws Exception {
-        Connection connection = DriverManager.getConnection(postgreSQLContainer.getJdbcUrl(),
-                postgreSQLContainer.getUsername(),
-                postgreSQLContainer.getPassword());
-
         connector = ConnectorConfiguration
                 .forJdbcContainer(postgreSQLContainer)
                 .with("connector.class", "io.confluent.connect.jdbc.JdbcSinkConnector")
