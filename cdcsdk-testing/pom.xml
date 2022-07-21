@@ -97,6 +97,7 @@
       <scope>test</scope>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
       <groupId>com.yugabyte</groupId>
       <artifactId>testcontainers-yugabytedb</artifactId>

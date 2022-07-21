@@ -872,6 +872,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
 
                     recordsSinceLastCommit = 0;
                     Throwable handlerError = null;
+                    LOGGER.info("BEGIN RECORD PROCESSING");
                     try {
                         timeOfLastCommitMillis = clock.currentTimeInMillis();
                         RecordCommitter committer = buildRecordCommitter(offsetWriter, task, commitTimeout);

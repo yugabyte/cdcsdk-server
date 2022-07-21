@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.YugabyteYSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 import org.yb.client.AsyncYBClient;
 import org.yb.client.ListTablesResponse;
@@ -117,7 +119,7 @@ public class TestHelper {
         return container;
     }
 
-    private static Map<String, String> getConfigMap() throws Exception {
+    private static Map<String, String> getConfigMapForS3Sink() throws Exception {
         Map<String, String> configs = new HashMap<>();
         configs.put("CDCSDK_SOURCE_CONNECTOR_CLASS", "io.debezium.connector.yugabytedb.YugabyteDBConnector");
         configs.put("CDCSDK_SOURCE_DATABASE_HOSTNAME", HOST);
@@ -172,6 +174,7 @@ public class TestHelper {
         configs.put("CDCSDK_SERVER_TRANSFORMS", "unwrap");
         configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DROP_TOMBSTONES", "false");
         configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_TYPE", "io.debezium.connector.yugabytedb.transforms.YBExtractNewRecordState");
+        configs.put("CDCSDK_SINK_S3_AWS_SESSION_TOKEN", System.getenv("AWS_SESSION_TOKEN"));
 
         return configs;
     }
@@ -180,7 +183,7 @@ public class TestHelper {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(DockerImageName.parse("quay.io/yugabyte/cdcsdk-server:latest"));
 
         // By the time this container is created, the table should be there in the database already
-        cdcsdkContainer.withEnv(getConfigMap());
+        cdcsdkContainer.withEnv(getConfigMapForS3Sink());
         cdcsdkContainer.withNetwork(containerNetwork);
 
         return cdcsdkContainer;
@@ -193,6 +196,9 @@ public class TestHelper {
         // By the time this container is created, the table should be there in the database already
         cdcsdkContainer.withEnv(getConfigMapKafkaSink());
         cdcsdkContainer.withNetwork(containerNetwork);
+        cdcsdkContainer.withExposedPorts(8080);
+        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*BEGIN RECORD PROCESSING.*\\n", 1));
+        cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
 
         return cdcsdkContainer;
     }
