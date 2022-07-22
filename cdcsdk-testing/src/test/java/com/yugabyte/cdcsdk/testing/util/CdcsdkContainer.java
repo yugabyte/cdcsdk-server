@@ -123,6 +123,10 @@ public class CdcsdkContainer {
     private Map<String, String> getDatabaseConfigMap() throws Exception {
         Map<String, String> configs = new HashMap<>();
 
+        if (this.cdcsdkSourceDatabaseStreamid.isEmpty()) {
+            this.cdcsdkSourceDatabaseStreamid = TestHelper.getNewDbStreamId(this.cdcsdkSourceDatabaseDbname);
+        }
+
         configs.put("CDCSDK_SOURCE_CONNECTOR_CLASS", this.cdcsdkSourceConnectorClass);
         configs.put("CDCSDK_SOURCE_DATABASE_HOSTNAME", this.cdcsdkSourceDatabaseHostname);
         configs.put("CDCSDK_SOURCE_DATABASE_PORT", this.cdcsdkSourceDatabasePort);
@@ -133,7 +137,7 @@ public class CdcsdkContainer {
         configs.put("CDCSDK_SOURCE_DATABASE_PASSWORD", this.cdcsdkSourceDatabasePassword);
         configs.put("CDCSDK_SOURCE_TABLE_INCLUDE_LIST", this.cdcsdkSourceTableIncludeList);
         configs.put("CDCSDK_SOURCE_SNAPSHOT_MODE", this.cdcsdkSourceDatabaseSnapshotMode);
-        configs.put("CDCSDK_SOURCE_DATABASE_STREAMID", TestHelper.getNewDbStreamId(this.cdcsdkSourceDatabaseDbname));
+        configs.put("CDCSDK_SOURCE_DATABASE_STREAMID", this.cdcsdkSourceDatabaseStreamid);
 
         return configs;
     }

@@ -92,6 +92,7 @@ public class TestHelper {
                 .withAwsAccessKeyId(System.getenv("AWS_ACCESS_KEY_ID"))
                 .withAwsSecretAccessKey(System.getenv("AWS_SECRET_ACCESS_KEY"))
                 .withAwsSessionToken(System.getenv("AWS_SESSION_TOKEN"))
+                .withTableIncludeList("public.test_table")
                 .buildForS3Sink();
     }
 
