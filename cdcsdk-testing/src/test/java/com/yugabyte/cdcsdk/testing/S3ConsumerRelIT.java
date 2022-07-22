@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
 import org.testcontainers.containers.YugabyteYSQLContainer;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -53,24 +54,14 @@ public class S3ConsumerRelIT {
     private ConfigSourceS3 testConfig;
     private S3Storage storage;
 
+    private static Network containerNetwork;
+
     @BeforeAll
     public static void beforeClass() throws Exception {
         // This function assumes that we have yugabyted running locally
         TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
 
-        // Commenting out the below code for now because of tserver crash observed inside container
-        /*
-         * System.out.println("Getting the container...");
-         * ybContainer = TestHelper.getYbContainer();
-         * ybContainer.start();
-         * 
-         * System.out.println("Setting the hosts and ports values...");
-         * // TestHelper.setHost(ybContainer.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst().get().getValue().getIpAddress());
-         * // System.out.println("Setting IP as: " + InetAddress.getLocalHost().getHostAddress());
-         * TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
-         * TestHelper.setYsqlPort(ybContainer.getMappedPort(5433));
-         * TestHelper.setMasterPort(ybContainer.getMappedPort(7100));
-         */
+        containerNetwork = Network.newNetwork();
     }
 
     @BeforeEach
@@ -103,7 +94,8 @@ public class S3ConsumerRelIT {
         s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(S3ChangeConsumer.PROP_S3_PREFIX));
 
         // At this point in code, we know that the table exists already so it's safe to get a CDCSDK server instance
-        GenericContainer<?> cdcContainer = TestHelper.getCdcsdkContainer();
+        GenericContainer<?> cdcContainer = TestHelper.getCdcsdkContainerForS3Sink();
+        cdcContainer.withNetwork(containerNetwork);
         cdcContainer.start();
 
         assertTrue(cdcContainer.isRunning());
