@@ -188,7 +188,7 @@ public class CdcsdkContainer {
 
     public GenericContainer<?> buildForS3Sink() throws Exception {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(cdcsdkContainerImageName);
-        cdcsdkContainer.withEnv(getConfigMapForKafka());
+        cdcsdkContainer.withEnv(getConfigMapForS3());
         cdcsdkContainer.withExposedPorts(8080);
         cdcsdkContainer.waitingFor(Wait.forLogMessage(".*BEGIN RECORD PROCESSING.*\\n", 1));
         cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));

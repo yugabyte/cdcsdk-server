@@ -158,6 +158,8 @@ public class S3ConsumerRelIT {
             }
         }
 
+        System.out.println("Wait");
+        Thread.sleep(60000);
         // Kill the cdcsdk-server container and then drop the table before ending the test
         cdcContainer.stop();
     }
