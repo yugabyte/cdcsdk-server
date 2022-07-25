@@ -148,8 +148,6 @@ public class ServerApp {
 
         consumerBean = (Bean<DebeziumEngine.ChangeConsumer<ChangeEvent<Object, Object>>>) beans.iterator().next();
         consumerBeanCreationalContext = beanManager.createCreationalContext(consumerBean);
-        consumer = consumerBean.create(consumerBeanCreationalContext);
-        LOGGER.info("Consumer '{}' instantiated", consumer.getClass().getName());
 
         final Class<Any> keyFormat = (Class<Any>) getFormat(config, PROP_KEY_FORMAT);
         final Class<Any> valueFormat = (Class<Any>) getFormat(config, PROP_VALUE_FORMAT);
@@ -191,10 +189,6 @@ public class ServerApp {
             configToProperties(config, props, PROP_TRANSFORMS_PREFIX, "transforms.");
         }
 
-        if (!consumer.supportsTombstoneEvents()) {
-            props.setProperty(CommonConnectorConfig.TOMBSTONES_ON_DELETE.name(), Boolean.FALSE.toString());
-        }
-
         Integer numThreads = config.getOptionalValue(PROP_THREADS, Integer.class).orElse(DEFAULT_NUM_THREADS);
         LOGGER.info("Number of threads: {}", numThreads);
 
@@ -213,6 +207,12 @@ public class ServerApp {
             props.setProperty("taskId", String.valueOf(index));
             props.setProperty("maxTasks", String.valueOf(numThreads));
             props.setProperty("offset.storage.file.filename", "data/" + String.valueOf(index));
+            consumer = consumerBean.create(consumerBeanCreationalContext);
+            LOGGER.info("Consumer '{}' instantiated for {}. ID: {}", consumer.getClass().getName(), index, consumer);
+            if (!consumer.supportsTombstoneEvents()) {
+                props.setProperty(CommonConnectorConfig.TOMBSTONES_ON_DELETE.name(), Boolean.FALSE.toString());
+            }
+
             DebeziumEngine<?> engine = DebeziumEngine.create(keyFormat, valueFormat)
                     .notifying(consumer)
                     .using(props)
