@@ -23,7 +23,6 @@ import org.apache.kafka.clients.consumer.*;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -40,7 +39,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.testing.testcontainers.*;
 
-@Disabled
+/**
+ * Release test that verifies basic reading from a YugabyteDB database and
+ * writing to Kafka and then further to a PostgreSQL sink database
+ *
+ * @author Isha Amoncar
+ */
 public class PostgresSinkConsumerIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSinkConsumerIT.class);
     private KafkaConsumer<String, JsonNode> consumer;

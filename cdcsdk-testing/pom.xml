@@ -143,13 +143,19 @@
         <scope>test</scope>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.elasticsearch.client/elasticsearch-rest-client -->
-  <dependency>
-      <groupId>org.elasticsearch.client</groupId>
-      <artifactId>elasticsearch-rest-client</artifactId>
-      <version>8.3.2</version>
-      <scope>test</scope>
-  </dependency>
-
+    <dependency>
+        <groupId>org.elasticsearch.client</groupId>
+        <artifactId>elasticsearch-rest-client</artifactId>
+        <version>8.3.2</version>
+        <scope>test</scope>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.json/json -->
+    <dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>20220320</version>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

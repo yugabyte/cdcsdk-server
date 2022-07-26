@@ -40,13 +40,12 @@ import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
 import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
 
 /**
- * Release test that verifies basic reading from PostgreSQL database and
+ * Release test that verifies basic reading from a YugabyteDB database and
  * writing to S3
  *
  * @author Rajat Venkatesh
  */
 
-@Disabled
 public class S3ConsumerRelIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ConsumerRelIT.class);
 

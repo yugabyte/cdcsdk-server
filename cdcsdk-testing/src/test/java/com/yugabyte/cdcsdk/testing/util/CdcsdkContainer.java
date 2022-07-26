@@ -184,7 +184,7 @@ public class CdcsdkContainer {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(cdcsdkContainerImageName);
         cdcsdkContainer.withEnv(getConfigMapForKafka());
         cdcsdkContainer.withExposedPorts(8080);
-        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*BEGIN RECORD PROCESSING.*\\n", 1));
+        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", 1));
         cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
 
         return cdcsdkContainer;
@@ -194,7 +194,7 @@ public class CdcsdkContainer {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(cdcsdkContainerImageName);
         cdcsdkContainer.withEnv(getConfigMapForS3());
         cdcsdkContainer.withExposedPorts(8080);
-        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*BEGIN RECORD PROCESSING.*\\n", 1));
+        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", 1));
         cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
 
         return cdcsdkContainer;
