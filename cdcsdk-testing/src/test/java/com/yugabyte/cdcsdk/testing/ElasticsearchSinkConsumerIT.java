@@ -1,11 +1,14 @@
 package com.yugabyte.cdcsdk.testing;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.net.InetAddress;
 import java.time.Duration;
 import java.util.Arrays;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -154,7 +157,8 @@ public class ElasticsearchSinkConsumerIT {
                             + ":" + esContainer.getMappedPort(9200)
                             + "/dbserver1.public.test_table/_search?pretty";
 
-        Awaitility.await()
+        try {
+            Awaitility.await()
                 .atLeast(Duration.ofSeconds(3))
                 .atMost(Duration.ofSeconds(30))
                 .pollDelay(Duration.ofSeconds(3))
@@ -165,5 +169,10 @@ public class ElasticsearchSinkConsumerIT {
                                                         .getInt("value");
                     return recordsToBeInserted == totalRecordsInElasticSearch;
                 });
+        } catch (ConditionTimeoutException exception) {
+            // If this exception is thrown then it means the records were not found to be equal
+            // within the specified duration. Fail the test at this stage.
+            fail();
+        }
     }
 }
