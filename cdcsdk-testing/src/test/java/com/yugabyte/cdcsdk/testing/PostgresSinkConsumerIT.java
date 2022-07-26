@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.testing.testcontainers.*;
 
+@Disabled
 public class PostgresSinkConsumerIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSinkConsumerIT.class);
     private KafkaConsumer<String, JsonNode> consumer;
