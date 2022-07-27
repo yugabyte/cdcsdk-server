@@ -152,6 +152,15 @@ public class TestHelper {
         }
     }
 
+    public static ResultSet executeAndGetResultSetPostgres(String postgresIp, String sqlQuery) throws SQLException {
+        try (Connection conn = getPostgresConnection(postgresIp)) {
+            return conn.createStatement().executeQuery(sqlQuery);
+        }
+        catch (SQLException e) {
+            throw e;
+        }
+    }
+
     /**
      * Execute a query in the source YugabyteDB database
      * @param sqlQuery The SQL query to be executed
@@ -168,6 +177,12 @@ public class TestHelper {
         }
     }
 
+    /**
+     * Execute a query in the source YugabyteDB database and get the ResultSet
+     * @param sqlQuery the query to be executed
+     * @return the ResultSet object
+     * @throws Exception
+     */
     public static ResultSet executeAndGetResultSet(String sqlQuery) throws Exception {
         try (Connection conn = getConnection()) {
             return conn.createStatement().executeQuery(sqlQuery);

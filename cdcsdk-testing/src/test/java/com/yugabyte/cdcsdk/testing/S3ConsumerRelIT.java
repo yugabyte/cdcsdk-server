@@ -21,7 +21,6 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,7 @@ import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
  *
  * @author Rajat Venkatesh
  */
-@Disabled
+
 public class S3ConsumerRelIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ConsumerRelIT.class);
 

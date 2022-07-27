@@ -23,7 +23,6 @@ import org.apache.kafka.clients.consumer.*;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -46,7 +45,7 @@ import io.debezium.testing.testcontainers.*;
  *
  * @author Isha Amoncar
  */
-@Disabled
+
 public class PostgresSinkConsumerIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSinkConsumerIT.class);
     private KafkaConsumer<String, JsonNode> consumer;

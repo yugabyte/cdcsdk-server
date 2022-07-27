@@ -12,7 +12,6 @@ import org.awaitility.core.ConditionTimeoutException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
@@ -31,7 +30,7 @@ import io.debezium.testing.testcontainers.DebeziumContainer;
  *
  * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
  */
-@Disabled
+
 public class ElasticsearchSinkConsumerIT {
     private static final String KAFKA_CONNECT_IMAGE = "quay.io/yugabyte/connect-jdbc-es:1.0";
     private static final String KAFKA_IMAGE = "confluentinc/cp-kafka:6.2.1";
