@@ -185,4 +185,14 @@ public class MultiOpsSinkConsumerIT {
         }
         assertTrue(isCountInPostgresZero);
     }
+
+    @Test
+    public void testUpdateAfterInsert() throws Exception {
+
+    }
+
+    @Test
+    public void testBatchInserts() throws Exception {
+        
+    }
 }
