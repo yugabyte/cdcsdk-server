@@ -45,7 +45,7 @@ import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
  *
  * @author Rajat Venkatesh
  */
-
+@Disabled
 public class S3ConsumerRelIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ConsumerRelIT.class);
 

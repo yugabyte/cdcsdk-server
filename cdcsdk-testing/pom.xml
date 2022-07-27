@@ -156,6 +156,13 @@
         <version>20220320</version>
         <scope>test</scope>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
+    <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka-clients</artifactId>
+        <version>3.2.0</version>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
