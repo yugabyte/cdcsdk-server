@@ -45,7 +45,6 @@ import io.debezium.testing.testcontainers.*;
  *
  * @author Isha Amoncar
  */
-
 public class PostgresSinkConsumerIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSinkConsumerIT.class);
     private KafkaConsumer<String, JsonNode> consumer;
