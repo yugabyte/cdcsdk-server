@@ -10,7 +10,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import com.yugabyte.cdcsdk.testing.TestHelper;
 
 public class CdcsdkContainer {
-    private String cdcsdkSourceConnectorClass = "io.debezium.connector.yugabytedb.YugabyteDBConnector";
+    private final String cdcsdkSourceConnectorClass = "io.debezium.connector.yugabytedb.YugabyteDBConnector";
     private String cdcsdkSourceDatabaseHostname = "127.0.0.1";
     private String cdcsdkSourceDatabasePort = "5433";
     private String cdcsdkSourceDatabaseMasterPort = "7100";
