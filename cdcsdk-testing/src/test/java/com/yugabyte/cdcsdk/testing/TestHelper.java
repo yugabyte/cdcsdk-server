@@ -1,5 +1,8 @@
 package com.yugabyte.cdcsdk.testing;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -168,6 +171,17 @@ public class TestHelper {
         }
         catch (SQLException e) {
             throw e;
+        }
+    }
+
+    public static void assertRecordCountInPostgres(int recordCount, String pgContainerIp) throws Exception {
+        ResultSet rs = TestHelper.executeAndGetResultSetPostgres(pgContainerIp, "SELECT COUNT(*) FROM test_table;");
+        if (rs.next()) {
+            assertEquals(recordCount, rs.getInt(1));
+        }
+        else {
+            // Fail in case no ResultSet object is retrieved
+            fail();
         }
     }
 

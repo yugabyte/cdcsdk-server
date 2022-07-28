@@ -196,14 +196,7 @@ public class MultiOpsPostgresSinkConsumerIT {
         Thread.sleep(5000);
 
         // Assert for the count of the records
-        ResultSet rs = TestHelper.executeAndGetResultSetPostgres(pgContainerIp, "SELECT COUNT(*) FROM test_table;");
-        if (rs.next()) {
-            assertEquals(totalRowsToBeInserted, rs.getInt(1));
-        }
-        else {
-            // Fail in case no ResultSet object is retrieved
-            fail();
-        }
+        TestHelper.assertRecordCountInPostgres(totalRowsToBeInserted, pgContainerIp);
 
         // Now assert for the values in Postgres
         ResultSet resultSet = TestHelper.executeAndGetResultSetPostgres(pgContainerIp, "SELECT * FROM test_table ORDER BY id;");
@@ -223,14 +216,7 @@ public class MultiOpsPostgresSinkConsumerIT {
         Thread.sleep(70000);
 
         // Assert for the count of the records
-        ResultSet rs = TestHelper.executeAndGetResultSetPostgres(pgContainerIp, "SELECT COUNT(*) FROM test_table;");
-        if (rs.next()) {
-            assertEquals(rowsToBeInserted, rs.getInt(1));
-        }
-        else {
-            // Fail in case no ResultSet object is retrieved
-            fail();
-        }
+        TestHelper.assertRecordCountInPostgres(rowsToBeInserted, pgContainerIp);
 
         // Now assert for the values in Postgres
         ResultSet resultSet = TestHelper.executeAndGetResultSetPostgres(pgContainerIp, "SELECT * FROM test_table ORDER BY id;");
