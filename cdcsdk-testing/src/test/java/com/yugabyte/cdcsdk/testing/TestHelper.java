@@ -8,12 +8,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.DeleteTopicsResult;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
@@ -45,7 +50,12 @@ public class TestHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
 
-    private static Connection getConnection() throws SQLException {
+    /**
+     * Helper function to create and return a JDBC connection on the source YugabyteDB database.
+     * @return The Connection object
+     * @throws SQLException
+     */
+    public static Connection getConnectionOnYugabyteDB() throws SQLException {
         String jdbcUrl = "jdbc:yugabytedb://" + HOST + ":" + YSQL_PORT + "/yugabyte?user=yugabyte&password=yugabyte";
         return DriverManager.getConnection(jdbcUrl);
     }
@@ -167,7 +177,7 @@ public class TestHelper {
      * @throws SQLException if connection cannot be estabished or statement cannot be executed
      */
     public static void execute(String sqlQuery) throws SQLException {
-        try (Connection conn = getConnection()) {
+        try (Connection conn = getConnectionOnYugabyteDB()) {
             Statement st = conn.createStatement();
             st.execute(sqlQuery);
         }
@@ -184,7 +194,7 @@ public class TestHelper {
      * @throws Exception
      */
     public static ResultSet executeAndGetResultSet(String sqlQuery) throws Exception {
-        try (Connection conn = getConnection()) {
+        try (Connection conn = getConnectionOnYugabyteDB()) {
             return conn.createStatement().executeQuery(sqlQuery);
         }
         catch (Exception e) {
@@ -203,6 +213,20 @@ public class TestHelper {
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.connect.json.JsonDeserializer");
         return new KafkaConsumer<>(props);
+    }
+
+    public static void deleteTopicInKafka(String bootstrapServerIp, int kafkaPort, List<String> topicsToBeDeleted) throws Exception {
+        Properties props = new Properties();
+        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServerIp + ":" + kafkaPort);
+        AdminClient adminClient = AdminClient.create(props);
+
+        DeleteTopicsResult res = adminClient.deleteTopics(TopicCollection.ofTopicNames(topicsToBeDeleted));
+        if (LOGGER.isDebugEnabled()) {
+            Map<String, ?> mp = res.topicNameValues();
+            for (Map.Entry<String, ?> element : mp.entrySet()) {
+                LOGGER.debug("Deleting Kafka topic: " + element.getKey());
+            }
+        }
     }
 
     public static boolean waitTillKafkaHasRecords(KafkaConsumer<String, JsonNode> kConsumer, List<String> topics) throws Exception {
