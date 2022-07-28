@@ -37,7 +37,7 @@ public class UtilStrings {
      * @param tableName name of the table
      * @return the CREATE TABLE query for a single tablet
      */
-    public static String getCreateTableYbStmt(String tableName) {
+    public static String getCreateTableYBStmt(String tableName) {
         return getCreateTableYBStmt(tableName, 1);
     }
 
