@@ -30,7 +30,6 @@ import io.debezium.testing.testcontainers.DebeziumContainer;
  *
  * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
  */
-
 public class ElasticsearchSinkConsumerIT {
     private static final String KAFKA_CONNECT_IMAGE = "quay.io/yugabyte/connect-jdbc-es:1.0";
     private static final String KAFKA_IMAGE = "confluentinc/cp-kafka:6.2.1";
@@ -50,7 +49,7 @@ public class ElasticsearchSinkConsumerIT {
     private static GenericContainer<?> getCdcsdkContainerWithoutTransforms() throws Exception {
         GenericContainer<?> container = TestHelper.getCdcsdkContainerForKafkaSink();
 
-        // Removing unwrap related properties since the ES connector needs a schema to propagate
+        // Removing unwrap related properties since the ES connector needs a schema to propagate 
         // records properly
         container.getEnvMap().remove("CDCSDK_SERVER_TRANSFORMS");
         container.getEnvMap().remove("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DROP_TOMBSTONES");
@@ -87,13 +86,13 @@ public class ElasticsearchSinkConsumerIT {
         containerNetwork = Network.newNetwork();
 
         kafkaContainer = new KafkaContainer(DockerImageName.parse(KAFKA_IMAGE))
-                .withNetworkAliases("kafka")
-                .withNetwork(containerNetwork);
+                            .withNetworkAliases("kafka")
+                            .withNetwork(containerNetwork);
 
         kafkaConnectContainer = new DebeziumContainer(KAFKA_CONNECT_IMAGE)
-                .withKafka(kafkaContainer)
-                .dependsOn(kafkaContainer)
-                .withNetwork(containerNetwork);
+                                    .withKafka(kafkaContainer)
+                                    .dependsOn(kafkaContainer)
+                                    .withNetwork(containerNetwork);
 
         esContainer = TestHelper.getElasticsearchContainer(containerNetwork);
         esContainer.getEnvMap().remove("xpack.security.enabled");
@@ -131,47 +130,46 @@ public class ElasticsearchSinkConsumerIT {
         final int recordsToBeInserted = 15;
         // Insert records in YB.
         for (int i = 0; i < recordsToBeInserted; ++i) {
-            String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);",
-                    i, "first_" + i, "last_" + i, 23.45);
+            String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);", 
+                                i, "first_" + i, "last_" + i, 23.45);
             TestHelper.execute(insertSql);
         }
 
         KafkaConsumer<String, JsonNode> kConsumer = TestHelper.getKafkaConsumer(
-                kafkaContainer.getContainerInfo()
-                        .getNetworkSettings()
-                        .getNetworks()
-                        .entrySet().stream().findFirst().get().getValue()
-                        .getIpAddress() + ":9093");
+            kafkaContainer.getContainerInfo()
+                .getNetworkSettings()
+                .getNetworks()
+                .entrySet().stream().findFirst().get().getValue()
+                .getIpAddress() + ":9093");
         Awaitility.await()
                 .atLeast(Duration.ofSeconds(15))
                 .atMost(Duration.ofSeconds(45))
-                .until(() -> TestHelper.waitTillKafkaHasRecords(kConsumer,
-                        Arrays.asList("dbserver1.public.test_table")));
+                .until(() -> TestHelper.waitTillKafkaHasRecords(kConsumer, 
+                                Arrays.asList("dbserver1.public.test_table")));
 
-        sinkConfig = getElasticsearchSinkConfiguration("http://"
-                + InetAddress.getLocalHost().getHostAddress()
-                + ":" + esContainer.getMappedPort(9200));
+        sinkConfig = getElasticsearchSinkConfiguration("http://" 
+                        + InetAddress.getLocalHost().getHostAddress() 
+                        + ":" + esContainer.getMappedPort(9200));
         kafkaConnectContainer.registerConnector("es-sink-connector", sinkConfig);
 
-        String command = "curl -X GET "
-                + InetAddress.getLocalHost().getHostAddress()
-                + ":" + esContainer.getMappedPort(9200)
-                + "/dbserver1.public.test_table/_search?pretty";
+        String command = "curl -X GET " 
+                            + InetAddress.getLocalHost().getHostAddress() 
+                            + ":" + esContainer.getMappedPort(9200)
+                            + "/dbserver1.public.test_table/_search?pretty";
 
         try {
             Awaitility.await()
-                    .atLeast(Duration.ofSeconds(3))
-                    .atMost(Duration.ofSeconds(30))
-                    .pollDelay(Duration.ofSeconds(3))
-                    .until(() -> {
-                        JSONObject response = new JSONObject(TestHelper.executeShellCommand(command));
-                        int totalRecordsInElasticSearch = response.getJSONObject("hits")
-                                .getJSONObject("total")
-                                .getInt("value");
-                        return recordsToBeInserted == totalRecordsInElasticSearch;
-                    });
-        }
-        catch (ConditionTimeoutException exception) {
+                .atLeast(Duration.ofSeconds(3))
+                .atMost(Duration.ofSeconds(30))
+                .pollDelay(Duration.ofSeconds(3))
+                .until(() -> {
+                    JSONObject response = new JSONObject(TestHelper.executeShellCommand(command));
+                    int totalRecordsInElasticSearch = response.getJSONObject("hits")
+                                                        .getJSONObject("total")
+                                                        .getInt("value");
+                    return recordsToBeInserted == totalRecordsInElasticSearch;
+                });
+        } catch (ConditionTimeoutException exception) {
             // If this exception is thrown then it means the records were not found to be equal
             // within the specified duration. Fail the test at this stage.
             fail();
