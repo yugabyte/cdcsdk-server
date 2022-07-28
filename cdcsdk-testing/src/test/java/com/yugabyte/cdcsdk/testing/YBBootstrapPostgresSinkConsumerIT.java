@@ -81,7 +81,7 @@ public class YBBootstrapPostgresSinkConsumerIT {
         hostIp = InetAddress.getLocalHost().getHostAddress();
 
         TestHelper.setHost(hostIp);
-        TestHelper.setBootstrapServer(kafkaContainer.getNetworkAliases().get(0) + ":9092");
+        TestHelper.setBootstrapServerForCdcsdkContainer(kafkaContainer.getNetworkAliases().get(0) + ":9092");
     }
 
     @BeforeEach

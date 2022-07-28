@@ -37,6 +37,7 @@ import org.yb.master.MasterDdlOuterClass.ListTablesResponsePB.TableInfo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkContainer;
+import com.yugabyte.cdcsdk.testing.util.TestImages;
 
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
 
@@ -145,7 +146,7 @@ public class TestHelper {
     }
 
     public static ElasticsearchContainer getElasticsearchContainer(Network containeNetwork) throws Exception {
-        return new ElasticsearchContainer(ELASTIC_SEARCH_IMAGE)
+        return new ElasticsearchContainer(TestImages.ELASTICSEARCH_IMG_NAME)
                 .withNetwork(containerNetwork)
                 .withEnv("http.host", "0.0.0.0")
                 .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")

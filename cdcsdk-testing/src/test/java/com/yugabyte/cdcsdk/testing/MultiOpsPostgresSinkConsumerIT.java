@@ -158,7 +158,8 @@ public class MultiOpsPostgresSinkConsumerIT {
         if (rs.next()) {
             // Expect one row with the updated value of last_name
             assertEquals("Kush", rs.getString("last_name"));
-        } else {
+        }
+        else {
             // Fail in case no ResultSet is retrieved from the query
             fail();
         }
@@ -181,7 +182,8 @@ public class MultiOpsPostgresSinkConsumerIT {
                 // Clear batch for next iteration
                 st.clearBatch();
             }
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw e;
         }
 
@@ -223,7 +225,7 @@ public class MultiOpsPostgresSinkConsumerIT {
     }
 
     private void assertValuesInResultSet(ResultSet rs, int idCol, String firstNameCol, String lastNameCol,
-            double daysWorkedCol)
+                                         double daysWorkedCol)
             throws SQLException {
         assertEquals(idCol, rs.getInt(1));
         assertEquals(firstNameCol, rs.getString(2));

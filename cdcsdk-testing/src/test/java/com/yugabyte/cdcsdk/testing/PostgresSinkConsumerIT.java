@@ -91,7 +91,7 @@ public class PostgresSinkConsumerIT {
         POSTGRES_IP = postgreSQLContainer.getContainerInfo().getNetworkSettings().getNetworks().entrySet().stream().findFirst().get().getValue().getIpAddress();
 
         TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
-        TestHelper.setBootstrapServer(kafka.getNetworkAliases().get(0) + ":9092");
+        TestHelper.setBootstrapServerForCdcsdkContainer(kafka.getNetworkAliases().get(0) + ":9092");
 
         // Set JDBC sink connector config.
         setConnectorConfiguration();

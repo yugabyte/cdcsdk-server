@@ -17,9 +17,12 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
-import org.testcontainers.utility.DockerImageName;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.yugabyte.cdcsdk.testing.util.KafkaHelper;
+import com.yugabyte.cdcsdk.testing.util.TestImages;
+import com.yugabyte.cdcsdk.testing.util.UtilStrings;
+import com.yugabyte.cdcsdk.testing.util.YBHelper;
 
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
 import io.debezium.testing.testcontainers.DebeziumContainer;
@@ -31,11 +34,7 @@ import io.debezium.testing.testcontainers.DebeziumContainer;
  * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
  */
 public class ElasticsearchSinkConsumerIT {
-    private static final String KAFKA_CONNECT_IMAGE = "quay.io/yugabyte/connect-jdbc-es:1.0";
-    private static final String KAFKA_IMAGE = "confluentinc/cp-kafka:6.2.1";
-
-    private static final String createTableSql = "CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision)";
-    private static final String dropTableSql = "DROP TABLE test_table";
+    private static final String TABLE_NAME = "test_table";
 
     private static KafkaContainer kafkaContainer;
     private static ElasticsearchContainer esContainer;
@@ -49,14 +48,14 @@ public class ElasticsearchSinkConsumerIT {
     private static GenericContainer<?> getCdcsdkContainerWithoutTransforms() throws Exception {
         GenericContainer<?> container = TestHelper.getCdcsdkContainerForKafkaSink();
 
-        // Removing unwrap related properties since the ES connector needs a schema to propagate
-        // records properly
+        // Removing unwrap related properties since the ES connector needs a schema to
+        // propagate records properly
         container.getEnvMap().remove("CDCSDK_SERVER_TRANSFORMS");
         container.getEnvMap().remove("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DROP_TOMBSTONES");
         container.getEnvMap().remove("CDCSDK_SERVER_TRANSFORMS_UNWRAP_TYPE");
 
-        // Assuming the container network is initialized by the time cdcsdkContainer is created
-        // If not initialized, throw an exception
+        // Assuming the container network is initialized by the time cdcsdkContainer is
+        // created - if not initialized, throw an exception
         if (containerNetwork == null) {
             throw new RuntimeException("Docker container network not initialized for tests");
         }
@@ -85,11 +84,11 @@ public class ElasticsearchSinkConsumerIT {
     public static void beforeAll() throws Exception {
         containerNetwork = Network.newNetwork();
 
-        kafkaContainer = new KafkaContainer(DockerImageName.parse(KAFKA_IMAGE))
+        kafkaContainer = new KafkaContainer(TestImages.KAFKA)
                 .withNetworkAliases("kafka")
                 .withNetwork(containerNetwork);
 
-        kafkaConnectContainer = new DebeziumContainer(KAFKA_CONNECT_IMAGE)
+        kafkaConnectContainer = new DebeziumContainer(TestImages.KAFKA_CONNECT_ES)
                 .withKafka(kafkaContainer)
                 .dependsOn(kafkaContainer)
                 .withNetwork(containerNetwork);
@@ -101,16 +100,22 @@ public class ElasticsearchSinkConsumerIT {
         kafkaConnectContainer.start();
         try {
             esContainer.start();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println(esContainer.getLogs());
             throw e;
         }
 
-        TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
-        TestHelper.setBootstrapServer(kafkaContainer.getNetworkAliases().get(0) + ":9092");
+        YBHelper.setHost(InetAddress.getLocalHost().getHostAddress());
+        KafkaHelper.setBootstrapServers(kafkaContainer.getContainerInfo()
+                .getNetworkSettings()
+                .getNetworks()
+                .entrySet().stream().findFirst().get().getValue()
+                .getIpAddress() + ":" + kafkaContainer.KAFKA_PORT);
 
-        TestHelper.execute(createTableSql);
+        TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
+        TestHelper.setBootstrapServerForCdcsdkContainer(kafkaContainer.getNetworkAliases().get(0) + ":9092");
+
+        YBHelper.execute(UtilStrings.getCreateTableYBStmt(TABLE_NAME));
 
         cdcsdkContainer = getCdcsdkContainerWithoutTransforms();
         cdcsdkContainer.start();
@@ -122,7 +127,7 @@ public class ElasticsearchSinkConsumerIT {
         kafkaConnectContainer.stop();
         cdcsdkContainer.stop();
         kafkaContainer.stop();
-        TestHelper.execute(dropTableSql);
+        YBHelper.execute(UtilStrings.getDropTableStmt(TABLE_NAME));
     }
 
     @Test
@@ -130,21 +135,14 @@ public class ElasticsearchSinkConsumerIT {
         final int recordsToBeInserted = 15;
         // Insert records in YB.
         for (int i = 0; i < recordsToBeInserted; ++i) {
-            String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);",
-                    i, "first_" + i, "last_" + i, 23.45);
-            TestHelper.execute(insertSql);
+            YBHelper.execute(UtilStrings.getInsertStmt(TABLE_NAME, i, "first_" + i, "last_" + i, 23.45));
         }
 
-        KafkaConsumer<String, JsonNode> kConsumer = TestHelper.getKafkaConsumer(
-                kafkaContainer.getContainerInfo()
-                        .getNetworkSettings()
-                        .getNetworks()
-                        .entrySet().stream().findFirst().get().getValue()
-                        .getIpAddress() + ":9093");
+        KafkaConsumer<String, JsonNode> kConsumer = KafkaHelper.getKafkaConsumer();
         Awaitility.await()
                 .atLeast(Duration.ofSeconds(15))
                 .atMost(Duration.ofSeconds(45))
-                .until(() -> TestHelper.waitTillKafkaHasRecords(kConsumer,
+                .until(() -> KafkaHelper.waitTillKafkaHasRecords(kConsumer,
                         Arrays.asList("dbserver1.public.test_table")));
 
         sinkConfig = getElasticsearchSinkConfiguration("http://"
@@ -169,10 +167,9 @@ public class ElasticsearchSinkConsumerIT {
                                 .getInt("value");
                         return recordsToBeInserted == totalRecordsInElasticSearch;
                     });
-        }
-        catch (ConditionTimeoutException exception) {
-            // If this exception is thrown then it means the records were not found to be equal
-            // within the specified duration. Fail the test at this stage.
+        } catch (ConditionTimeoutException exception) {
+            // If this exception is thrown then it means the records were not found to be
+            // equal within the specified duration. Fail the test at this stage.
             fail();
         }
     }
