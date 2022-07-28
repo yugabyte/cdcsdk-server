@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
-import java.util.Arrays;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
@@ -23,20 +22,23 @@ import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import com.yugabyte.cdcsdk.testing.util.KafkaHelper;
+import com.yugabyte.cdcsdk.testing.util.PgHelper;
+import com.yugabyte.cdcsdk.testing.util.TestImages;
+import com.yugabyte.cdcsdk.testing.util.UtilStrings;
+import com.yugabyte.cdcsdk.testing.util.YBHelper;
+
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
 import io.debezium.testing.testcontainers.DebeziumContainer;
 
 /**
- * Release test that verifies reading of multiple combination of operations from 
- * a YugabyteDB database and writing to Kafka and then further to a PostgreSQL sink database 
+ * Release test that verifies reading of multiple combination of operations from
+ * a YugabyteDB database and writing to Kafka and then further to a PostgreSQL
+ * sink database
  *
  * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
  */
 public class MultiOpsPostgresSinkConsumerIT {
-    private static final String CREATE_TABLE_STMT = "CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision) SPLIT INTO 10 TABLETS;";
-    private static final String DROP_TABLE_STMT = "DROP TABLE test_table";
-    private static final String INSERT_FORMAT_STRING = "INSERT INTO test_table VALUES (%d, '%s', '%s', %f);";
-
     private static final String SINK_CONNECTOR_NAME = "jdbc-sink-pg";
 
     private static KafkaContainer kafkaContainer;
@@ -47,26 +49,26 @@ public class MultiOpsPostgresSinkConsumerIT {
     private static Network containerNetwork;
     private static ConnectorConfiguration sinkConfig;
 
-    private static String pgContainerIp;
+    // private static String pgContainerIp;
     private static String hostIp;
-    private static String kafkaContainerIp;
+    // private static String kafkaContainerIp;
 
     @BeforeAll
     public static void beforeAll() throws Exception {
         containerNetwork = Network.newNetwork();
 
-        kafkaContainer = new KafkaContainer(TestHelper.KAFKA_IMAGE)
+        kafkaContainer = new KafkaContainer(TestImages.KAFKA)
                 .withNetworkAliases("kafka")
                 .withNetwork(containerNetwork);
 
-        pgContainer = new PostgreSQLContainer<>(TestHelper.POSTGRES_IMAGE)
+        pgContainer = new PostgreSQLContainer<>(TestImages.POSTGRES)
                 .withPassword("postgres")
                 .withUsername("postgres")
                 .withExposedPorts(5432)
                 .withReuse(true)
                 .withNetwork(containerNetwork);
 
-        kafkaConnectContainer = new DebeziumContainer("quay.io/yugabyte/debezium-connector:1.3.7-BETA")
+        kafkaConnectContainer = new DebeziumContainer(TestImages.KAFKA_CONNECT)
                 .withKafka(kafkaContainer)
                 .dependsOn(kafkaContainer)
                 .withNetwork(containerNetwork);
@@ -78,20 +80,22 @@ public class MultiOpsPostgresSinkConsumerIT {
                 .atMost(Duration.ofSeconds(20))
                 .until(() -> pgContainer.isRunning());
 
-        kafkaContainerIp = kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
-                .entrySet().stream().findFirst().get().getValue().getIpAddress();
-        pgContainerIp = pgContainer.getContainerInfo().getNetworkSettings().getNetworks()
-                .entrySet().stream().findFirst().get().getValue().getIpAddress();
+        KafkaHelper.setBootstrapServers(kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
+                .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + kafkaContainer.KAFKA_PORT);
+        PgHelper.setHost(pgContainer.getContainerInfo().getNetworkSettings().getNetworks()
+                .entrySet().stream().findFirst().get().getValue().getIpAddress());
         hostIp = InetAddress.getLocalHost().getHostAddress();
+        YBHelper.setHost(hostIp);
 
+        // Keeping this for now because it is being passed to the cdcsdk server configs
         TestHelper.setHost(hostIp);
-        TestHelper.setBootstrapServer(kafkaContainer.getNetworkAliases().get(0) + ":9092");
+        TestHelper.setBootstrapServerForCdcsdkContainer(kafkaContainer.getNetworkAliases().get(0) + ":9092");
     }
 
     @BeforeEach
     public void beforeEachTest() throws Exception {
         // Create table in the YugabyteDB database
-        TestHelper.execute(CREATE_TABLE_STMT);
+        YBHelper.execute(UtilStrings.getCreateTableYBStmt("test_table", 10));
 
         // Initiate the cdcsdkContainer
         cdcsdkContainer = TestHelper.getCdcsdkContainerForKafkaSink(10);
@@ -99,7 +103,7 @@ public class MultiOpsPostgresSinkConsumerIT {
         cdcsdkContainer.start();
 
         // Register the sink connector
-        sinkConfig = TestHelper.getPostgresSinkConfiguration(pgContainerIp, pgContainer);
+        sinkConfig = PgHelper.getJdbcSinkConfiguration(pgContainer, "dbserver1.public.test_table", "test_table", "id");
         kafkaConnectContainer.registerConnector(SINK_CONNECTOR_NAME, sinkConfig);
     }
 
@@ -112,15 +116,11 @@ public class MultiOpsPostgresSinkConsumerIT {
         kafkaConnectContainer.deleteConnector(SINK_CONNECTOR_NAME);
 
         // Delete the topic in Kafka Container
-        TestHelper.deleteTopicInKafka(kafkaContainerIp, kafkaContainer.KAFKA_PORT,
-                Arrays.asList("dbserver1.public.test_table"));
+        KafkaHelper.deleteTopicInKafka("dbserver1.public.test_table");
 
         // Drop the table in YugabyteDB as well as the sink table in Postgres
-        TestHelper.execute(DROP_TABLE_STMT);
-
-        // Using the same drop table statement since the table name is the same for both YugabyteDB
-        // and Postgres
-        TestHelper.executeInPostgres(pgContainerIp, DROP_TABLE_STMT);
+        YBHelper.execute(UtilStrings.getDropTableStmt("test_table"));
+        PgHelper.execute(UtilStrings.getDropTableStmt("test_table"));
     }
 
     @AfterAll
@@ -134,31 +134,31 @@ public class MultiOpsPostgresSinkConsumerIT {
     @Test
     public void testInsertUpdateDelete() throws Exception {
         // At this point in time, all the containers are up and running properly
-        TestHelper.execute(String.format(INSERT_FORMAT_STRING, 1, "Vaibhav", "Kushwaha", 23.456));
-        TestHelper.execute("UPDATE test_table SET last_name='Kush' WHERE id = 1;");
-        TestHelper.execute("DELETE FROM test_table WHERE id = 1;");
+        YBHelper.execute(UtilStrings.getInsertStmt("test_table", 1, "Vaibhav", "Kushwaha", 23.456));
+        YBHelper.execute("UPDATE test_table SET last_name='Kush' WHERE id = 1;");
+        YBHelper.execute("DELETE FROM test_table WHERE id = 1;");
 
-        // Wait some time for the table to get created in postgres and for replication to complete
+        // Wait some time for the table to get created in postgres and for replication
+        // to complete
         Thread.sleep(5000);
 
-        TestHelper.assertRecordCountInPostgres(0, pgContainerIp);
+        PgHelper.assertRecordCountInPostgres(0);
     }
 
     @Test
     public void testUpdateAfterInsert() throws Exception {
-        TestHelper.execute(String.format(INSERT_FORMAT_STRING, 1, "Vaibhav", "Kushwaha", 23.456));
-        TestHelper.execute("UPDATE test_table SET last_name='Kush' WHERE id = 1;");
+        YBHelper.execute(UtilStrings.getInsertStmt("test_table", 1, "Vaibhav", "Kushwaha", 23.456));
+        YBHelper.execute("UPDATE test_table SET last_name='Kush' WHERE id = 1;");
 
-        // Wait some time for the table to get created in postgres and for replication to complete
+        // Wait some time for the table to get created in postgres and for replication
+        // to complete
         Thread.sleep(5000);
 
-        ResultSet rs = TestHelper.executeAndGetResultSetPostgres(pgContainerIp,
-                "SELECT * FROM test_table;");
+        ResultSet rs = PgHelper.executeAndGetResultSet("SELECT * FROM test_table;");
         if (rs.next()) {
             // Expect one row with the updated value of last_name
             assertEquals("Kush", rs.getString("last_name"));
-        }
-        else {
+        } else {
             // Fail in case no ResultSet is retrieved from the query
             fail();
         }
@@ -168,12 +168,12 @@ public class MultiOpsPostgresSinkConsumerIT {
     @Test
     public void testBatchInserts() throws Exception {
         int totalRowsToBeInserted = 50;
-        try (Connection conn = TestHelper.getConnectionOnYugabyteDB()) {
+        try (Connection conn = YBHelper.getConnection()) {
             Statement st = conn.createStatement();
             int ind = 0;
             while (ind < totalRowsToBeInserted) {
                 for (int i = ind; i < ind + 5; ++i) {
-                    st.addBatch(String.format(INSERT_FORMAT_STRING, i, "first_" + i, "last_" + i, 23.456));
+                    st.addBatch(UtilStrings.getInsertStmt("test_table", i, "first_" + i, "last_" + i, 23.456));
                 }
                 st.executeBatch();
                 ind += 5;
@@ -181,8 +181,7 @@ public class MultiOpsPostgresSinkConsumerIT {
                 // Clear batch for next iteration
                 st.clearBatch();
             }
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             throw e;
         }
 
@@ -190,10 +189,10 @@ public class MultiOpsPostgresSinkConsumerIT {
         Thread.sleep(5000);
 
         // Assert for the count of the records
-        TestHelper.assertRecordCountInPostgres(totalRowsToBeInserted, pgContainerIp);
+        PgHelper.assertRecordCountInPostgres(totalRowsToBeInserted);
 
         // Now assert for the values in Postgres
-        ResultSet resultSet = TestHelper.executeAndGetResultSetPostgres(pgContainerIp, "SELECT * FROM test_table ORDER BY id;");
+        ResultSet resultSet = PgHelper.executeAndGetResultSet("SELECT * FROM test_table ORDER BY id;");
         int id = 0;
         while (resultSet.next()) {
             assertValuesInResultSet(resultSet, id, "first_" + id, "last_" + id, 23.456);
@@ -204,16 +203,18 @@ public class MultiOpsPostgresSinkConsumerIT {
     @Test
     public void testLargeTransaction() throws Exception {
         int rowsToBeInserted = 30000;
-        TestHelper.execute(String.format("INSERT INTO test_table VALUES (generate_series(1,%d), 'Vaibhav', 'Kushwaha', 23.456);", rowsToBeInserted));
+        YBHelper.execute(
+                String.format("INSERT INTO test_table VALUES (generate_series(1,%d), 'Vaibhav', 'Kushwaha', 23.456);",
+                        rowsToBeInserted));
 
         // Wait for records to be replicated across Postgres
         Thread.sleep(70000);
 
         // Assert for the count of the records
-        TestHelper.assertRecordCountInPostgres(rowsToBeInserted, pgContainerIp);
+        PgHelper.assertRecordCountInPostgres(rowsToBeInserted);
 
         // Now assert for the values in Postgres
-        ResultSet resultSet = TestHelper.executeAndGetResultSetPostgres(pgContainerIp, "SELECT * FROM test_table ORDER BY id;");
+        ResultSet resultSet = PgHelper.executeAndGetResultSet("SELECT * FROM test_table ORDER BY id;");
         int id = 1;
         while (resultSet.next()) {
             assertValuesInResultSet(resultSet, id, "Vaibhav", "Kushwaha", 23.456);
@@ -221,7 +222,9 @@ public class MultiOpsPostgresSinkConsumerIT {
         }
     }
 
-    private void assertValuesInResultSet(ResultSet rs, int idCol, String firstNameCol, String lastNameCol, double daysWorkedCol) throws SQLException {
+    private void assertValuesInResultSet(ResultSet rs, int idCol, String firstNameCol, String lastNameCol,
+            double daysWorkedCol)
+            throws SQLException {
         assertEquals(idCol, rs.getInt(1));
         assertEquals(firstNameCol, rs.getString(2));
         assertEquals(lastNameCol, rs.getString(3));
