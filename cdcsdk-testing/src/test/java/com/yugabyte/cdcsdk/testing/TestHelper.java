@@ -63,7 +63,7 @@ public class TestHelper {
         return DriverManager.getConnection(jdbcUrl);
     }
 
-    public static void setBootstrapServer(String bootstrapServer) {
+    public static void setBootstrapServerForCdcsdkContainer(String bootstrapServer) {
         BOOTSTRAP_SERVER = bootstrapServer;
     }
 
