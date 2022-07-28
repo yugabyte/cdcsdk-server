@@ -98,7 +98,8 @@ public class KafkaChangeConsumer extends BaseChangeConsumer implements DebeziumE
 
                 if (key != null) {
                     this.metrics.get(Metrics.bytesWritten).increment(
-                            key.getBytes().length);
+                            key.getBytes().length
+                    );
                 }
                 if (value != null) {
                     this.metrics.get(Metrics.bytesWritten).increment(value.getBytes().length);
