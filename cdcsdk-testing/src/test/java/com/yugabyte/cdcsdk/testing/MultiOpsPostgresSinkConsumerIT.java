@@ -1,7 +1,6 @@
 package com.yugabyte.cdcsdk.testing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.InetAddress;
@@ -34,7 +33,7 @@ import io.debezium.testing.testcontainers.DebeziumContainer;
  * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
  */
 public class MultiOpsPostgresSinkConsumerIT {
-    private static final String CREATE_TABLE_STMT = "CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision)";
+    private static final String CREATE_TABLE_STMT = "CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision) SPLIT INTO 10 TABLETS;";
     private static final String DROP_TABLE_STMT = "DROP TABLE test_table";
     private static final String INSERT_FORMAT_STRING = "INSERT INTO test_table VALUES (%d, '%s', '%s', %f);";
 
@@ -95,7 +94,7 @@ public class MultiOpsPostgresSinkConsumerIT {
         TestHelper.execute(CREATE_TABLE_STMT);
 
         // Initiate the cdcsdkContainer
-        cdcsdkContainer = TestHelper.getCdcsdkContainerForKafkaSink();
+        cdcsdkContainer = TestHelper.getCdcsdkContainerForKafkaSink(10);
         cdcsdkContainer.withNetwork(containerNetwork);
         cdcsdkContainer.start();
 
@@ -142,12 +141,7 @@ public class MultiOpsPostgresSinkConsumerIT {
         // Wait some time for the table to get created in postgres and for replication to complete
         Thread.sleep(5000);
 
-        boolean isCountInPostgresZero = false;
-        ResultSet rs = TestHelper.executeAndGetResultSetPostgres(pgContainerIp, "SELECT COUNT(*) FROM test_table;");
-        if (rs.next() && rs.getInt(1) == 0) {
-            isCountInPostgresZero = true;
-        }
-        assertTrue(isCountInPostgresZero);
+        TestHelper.assertRecordCountInPostgres(0, pgContainerIp);
     }
 
     @Test

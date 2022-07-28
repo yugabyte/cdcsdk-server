@@ -130,11 +130,17 @@ public class TestHelper {
     }
 
     public static GenericContainer<?> getCdcsdkContainerForKafkaSink() throws Exception {
+        return getCdcsdkContainerForKafkaSink(1);
+
+    }
+
+    public static GenericContainer<?> getCdcsdkContainerForKafkaSink(int bootstrapLogLineCount) throws Exception {
         return new CdcsdkContainer()
                 .withDatabaseHostname(HOST)
                 .withMasterPort(String.valueOf(MASTER_PORT))
                 .withKafkaBootstrapServers(BOOTSTRAP_SERVER)
                 .withTableIncludeList("public.test_table")
+                .withBootstrapLogLineCount(bootstrapLogLineCount)
                 .buildForKafkaSink();
     }
 
