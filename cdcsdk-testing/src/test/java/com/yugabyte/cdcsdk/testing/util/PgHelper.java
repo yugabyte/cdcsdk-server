@@ -183,7 +183,7 @@ public class PgHelper {
    * @param primaryKeyFields comma separated values of the primary key fields
    * @return the connector configuration for JDBC sink
    */
-  public static ConnectorConfiguration getPostgresSinkConfiguration(PostgreSQLContainer<?> pgContainer,
+  public static ConnectorConfiguration getJdbcSinkConfiguration(PostgreSQLContainer<?> pgContainer,
       String kafkaTopics, String tableNameFormat, String primaryKeyFields) {
     String containerIp = pgContainer.getContainerInfo().getNetworkSettings().getNetworks()
         .entrySet().stream().findFirst().get().getValue().getIpAddress();
