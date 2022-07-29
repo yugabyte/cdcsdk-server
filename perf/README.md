@@ -43,6 +43,8 @@ Rest of the instructions assume the name is `settings.env`
 |CDC_SDK_STREAM_ID| ID of CDCSDK Stream. Created by `tables.sh`|
 |TABLES| List of tables in namespace that have to be processed|
 |WORKLOAD| One of the workloads in the `workload` directory|
+|TOPIC_PREFIX|Prefix for kafka topic. Default is `dbserver1`|
+|UID| uid that docker processes should use. Get from `id -u ${USER}`|
 
 ##  Start all services in docker
 
@@ -53,7 +55,8 @@ Rest of the instructions assume the name is `settings.env`
 
 ### Start CDCSDK Server with Kafka + PG on local system.
 
-    docker compose -f kafka-pg.yaml --env-file settings.env up -d
+    docker compose -f sinks/kafka/confluent.yanl --env-file settings.env up -d
+    docker compose -f sinks/kafka/kafka-pg.yaml --env-file settings.env up -d
     docker compose -f cdcsdk-base.yaml -f cdcsdk-kafka-local.yaml --env-file \
         settings.env up -d
 
@@ -66,7 +69,7 @@ the following commands.
 ### Setup Kafka Connect
 
     # Setup consumers
-    ./kafka-setup.sh
+    ./sinks/kafka/kafka-setup.sh <path to>/settings.env
 
 ### Setup and run workloads
 

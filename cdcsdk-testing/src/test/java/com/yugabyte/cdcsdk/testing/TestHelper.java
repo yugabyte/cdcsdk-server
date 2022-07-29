@@ -41,6 +41,8 @@ import com.yugabyte.cdcsdk.testing.util.TestImages;
 
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
 
+import io.debezium.testing.testcontainers.ConnectorConfiguration;
+
 public class TestHelper {
     private static String HOST = "127.0.0.1";
     private static int YSQL_PORT = 5433;

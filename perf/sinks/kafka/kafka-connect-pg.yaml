@@ -1,0 +1,32 @@
+services:
+  kafka-connect:
+    container_name: kafka-connect
+    image: quay.io/yugabyte/connect-jdbc-es:1.0
+    depends_on: [ pg]
+    ports:
+      - 8083:8083
+    restart: unless-stopped
+    environment:
+      BOOTSTRAP_SERVERS: ${KAFKA_HOST}
+      GROUP_ID: kafka-connect-group
+      CONFIG_STORAGE_TOPIC: kafka-connect_configs
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_TOPIC: kafka-connect_offset
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_TOPIC: kafka-connect_status
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+
+  pg:
+    container_name: pg
+    image: postgres:14
+    user: ${UID}
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - $PWD/volumes/pg/:/var/lib/postgresql/data
+
