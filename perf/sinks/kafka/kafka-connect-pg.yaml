@@ -21,7 +21,7 @@ services:
   pg:
     container_name: pg
     image: postgres:14
-    user: ${UID}
+    user: ${USERID}
     ports:
       - 5432:5432
     environment:

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS host_data (
 	cpu double PRECISION,
 	tempc int,
 	status TEXT	
-);
+) SPLIT INTO 32 TABLETS;
 
 CREATE OR REPLACE FUNCTION random_json(keys TEXT[]='{"a","b","c"}',min_val NUMERIC = 0, max_val NUMERIC = 10) 
    RETURNS JSON AS
