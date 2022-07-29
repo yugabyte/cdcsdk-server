@@ -51,6 +51,11 @@ public class CdcsdkContainer {
     private String cdcsdkSinkS3AwsSecretAccessKey = "";
     private String cdcsdkSinkS3AwsSessionToken = "";
 
+    // Wait until the given number of times this log line is encountered.
+    // This line will be printed for each tablet so basically the count is equal to the total number
+    // of tablets the CDCSDK Server is going to fetch the changes from.
+    private int bootstrapLogLineCount = 1;
+
     public CdcsdkContainer withDatabaseHostname(String databaseHostname) {
         this.cdcsdkSourceDatabaseHostname = databaseHostname;
         return this;
@@ -120,6 +125,11 @@ public class CdcsdkContainer {
         return this;
     }
 
+    public CdcsdkContainer withBootstrapLogLineCount(int bootstrapLogLineCount) {
+        this.bootstrapLogLineCount = bootstrapLogLineCount;
+        return this;
+    }
+
     private Map<String, String> getDatabaseConfigMap() throws Exception {
         Map<String, String> configs = new HashMap<>();
 
@@ -184,7 +194,7 @@ public class CdcsdkContainer {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(cdcsdkContainerImageName);
         cdcsdkContainer.withEnv(getConfigMapForKafka());
         cdcsdkContainer.withExposedPorts(8080);
-        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", 1));
+        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", this.bootstrapLogLineCount));
         cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
 
         return cdcsdkContainer;
@@ -194,7 +204,7 @@ public class CdcsdkContainer {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(cdcsdkContainerImageName);
         cdcsdkContainer.withEnv(getConfigMapForS3());
         cdcsdkContainer.withExposedPorts(8080);
-        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", 1));
+        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", this.bootstrapLogLineCount));
         cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
 
         return cdcsdkContainer;
