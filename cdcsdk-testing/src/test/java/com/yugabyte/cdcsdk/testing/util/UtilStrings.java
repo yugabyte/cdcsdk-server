@@ -19,6 +19,8 @@ public class UtilStrings {
     // Format string with customizable table name and the values for the columns
     private static final String INSERT_FORMAT = "INSERT INTO %s VALUES (%d, '%s', '%s', %f);";
 
+    public static final String DATABASE_SERVER_NAME = "dbserver1";
+
     /**
      * Get a create table statement for table to be created in YugabyteDB database
      * 

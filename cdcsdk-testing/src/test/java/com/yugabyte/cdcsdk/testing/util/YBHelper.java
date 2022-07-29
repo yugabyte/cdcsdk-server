@@ -18,32 +18,76 @@ import org.yb.master.MasterDdlOuterClass.ListTablesResponsePB.TableInfo;
  * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
  */
 public class YBHelper {
-    private static String host = "127.0.0.1";
-    private static int ysqlPort = 5433;
-    private static int masterPort = 7100;
+    private String hostName = "127.0.0.1";
+    private int ysqlPort = 5433;
+    private int masterPort = 7100;
 
-    /**
-     * Set the host IP address on which YugabyteDB is running
-     * @param hostname IP address of the source database
-     */
-    public static void setHost(String hostname) {
-        host = hostname;
+    private String database = "yugabyte";
+    private String username = "yugabyte";
+    private String password = "yugabyte";
+
+    private String sourceTableName;
+
+    public YBHelper(String hostName, String sourceTableName) {
+        this.hostName = hostName;
+        this.sourceTableName = sourceTableName;
+    }
+
+    public YBHelper(String hostName, int ysqlPort, int masterPort, String database, String username, String password, String sourceTableName) {
+        this.hostName = hostName;
+        this.ysqlPort = ysqlPort;
+        this.masterPort = masterPort;
+        this.database = database;
+        this.username = username;
+        this.password = password;
+        this.sourceTableName = sourceTableName;
     }
 
     /**
-     * Set the port on which the YSQL process is running
-     * @param port the port of the YSQL process
+     * Get the host on which YugabyteDB is running
+     * @return hostname of the source database
      */
-    public static void setYsqlPort(int port) {
-        ysqlPort = port;
+    public String getHostName() {
+        return this.hostName;
     }
 
     /**
-     * Set the port on which the master process is running
-     * @param port the port of the master process
+     * Get the port on which the YSQL process is running
+     * @return the port of the YSQL process
      */
-    public static void setMasterPort(int port) {
-        masterPort = port;
+    public int getYsqlPort() {
+        return this.ysqlPort;
+    }
+
+    /**
+     * Get the port on which the master process is running
+     * @return the port of the master process
+     */
+    public int getMasterPort() {
+        return this.masterPort;
+    }
+
+    /**
+     * Get the database name on which this object is created
+     * @return name of the database
+     */
+    public String getDatabaseName() {
+        return this.database;
+    }
+
+    /**
+     * Get the name of the source table
+     * @return name of the source table
+     */
+    public String getSourceTableName() {
+        return this.sourceTableName;
+    }
+
+    /**
+     * Get the name of the Kafka topic based on the name of the source table
+     */
+    public String getKafkaTopicName() {
+        return UtilStrings.DATABASE_SERVER_NAME + ".public." + this.sourceTableName;
     }
 
     /**
@@ -51,10 +95,10 @@ public class YBHelper {
      * @return a JDBC Connection on the YugabyteDB database
      * @throws SQLException if the connection attempt fails
      */
-    public static Connection getConnection() throws SQLException {
-        String connUrl = "jdbc:yugabytedb://" + host + ":" + ysqlPort + "/yugabyte?user=yugabyte&password=yugabyte";
+    public Connection getConnection() throws SQLException {
+        String connUrl = "jdbc:yugabytedb://%s:%d/%s?user=%s&password=%s";
 
-        return DriverManager.getConnection(connUrl);
+        return DriverManager.getConnection(String.format(connUrl, hostName, ysqlPort, database, username, password));
     }
 
     /**
@@ -62,7 +106,7 @@ public class YBHelper {
      * @param sqlQuery the query to be executed
      * @throws SQLException if the connection attempt fails or the statement cannot be executed
      */
-    public static void execute(String sqlQuery) throws SQLException {
+    public void execute(String sqlQuery) throws SQLException {
         try (Connection conn = getConnection()) {
             Statement st = conn.createStatement();
             st.execute(sqlQuery);
@@ -80,7 +124,7 @@ public class YBHelper {
      * @throws SQLException if the connection attempt fails or the statement cannot be executed
      * @see ResultSet
      */
-    public static ResultSet executeAndGetResultSet(String sqlQuery) throws SQLException {
+    public ResultSet executeAndGetResultSet(String sqlQuery) throws SQLException {
         try (Connection conn = getConnection()) {
             Statement st = conn.createStatement();
             return st.executeQuery(sqlQuery);
@@ -95,8 +139,8 @@ public class YBHelper {
      * @return the YBClient instance
      * @see YBClient
      */
-    public static YBClient getYbClient() {
-        AsyncYBClient asyncClient = new AsyncYBClient.AsyncYBClientBuilder(host + ":" + masterPort)
+    public YBClient getYbClient() {
+        AsyncYBClient asyncClient = new AsyncYBClient.AsyncYBClientBuilder(hostName + ":" + masterPort)
                 .defaultAdminOperationTimeoutMs(60000)
                 .defaultOperationTimeoutMs(60000)
                 .defaultSocketReadTimeoutMs(60000)
@@ -116,7 +160,7 @@ public class YBHelper {
      * @see YBClient
      * @see YBTable
      */
-    private static YBTable getTableUUID(YBClient syncClient, String tableName) throws Exception {
+    private YBTable getTableUUID(YBClient syncClient, String tableName) throws Exception {
         ListTablesResponse resp = syncClient.getTablesList();
 
         for (TableInfo tableInfo : resp.getTableInfoList()) {
@@ -138,9 +182,9 @@ public class YBHelper {
      * @see YBClient
      * @see YBTable
      */
-    public static String getNewDbStreamId(String dbName) throws Exception {
+    public String getNewDbStreamId(String dbName) throws Exception {
         YBClient syncClient = getYbClient();
-        YBTable placeholderTable = getTableUUID(syncClient, "test_table");
+        YBTable placeholderTable = getTableUUID(syncClient, sourceTableName);
 
         if (placeholderTable == null) {
             throw new NullPointerException("No table found with the specified name");
