@@ -5,7 +5,7 @@ services:
     image: confluentinc/cp-zookeeper:7.2.1
     hostname: zookeeper
     container_name: zookeeper
-    user: ${UID}
+    user: ${USERID}
     ports:
       - "2181:2181"
     environment:
@@ -19,7 +19,7 @@ services:
     image: confluentinc/cp-server:7.2.1
     hostname: broker
     container_name: broker
-    user: ${UID}
+    user: ${USERID}
     depends_on:
       - zookeeper
     ports:
