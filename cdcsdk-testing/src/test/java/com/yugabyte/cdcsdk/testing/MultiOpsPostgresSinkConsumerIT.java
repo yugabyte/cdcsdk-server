@@ -94,7 +94,6 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
 
     @Test
     public void verifyInsertUpdateDeleteOps() throws Exception {
-        System.out.println("Starting the testInsertUpdateDelete");
         // At this point in time, all the containers are up and running properly
         ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, 1, "Vaibhav", "Kushwaha", 23.456));
         ybHelper.execute("UPDATE " + DEFAULT_TABLE_NAME + " SET last_name='Kush' WHERE id = 1;");
