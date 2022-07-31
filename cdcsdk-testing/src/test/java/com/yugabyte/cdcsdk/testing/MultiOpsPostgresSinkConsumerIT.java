@@ -106,7 +106,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
     }
 
     @Test
-    public void testInsertUpdateDelete() throws Exception {
+    public void verifyInsertUpdateDeleteOps() throws Exception {
         System.out.println("Starting the testInsertUpdateDelete");
         // At this point in time, all the containers are up and running properly
         ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, 1, "Vaibhav", "Kushwaha", 23.456));
@@ -121,7 +121,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
     }
 
     @Test
-    public void testUpdateAfterInsert() throws Exception {
+    public void verifyUpdatesBeingPropagatedProperly() throws Exception {
         ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, 1, "Vaibhav", "Kushwaha", 23.456));
         ybHelper.execute("UPDATE " + DEFAULT_TABLE_NAME + " SET last_name='Kush' WHERE id = 1;");
 
@@ -142,7 +142,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
 
     @Disabled
     @Test
-    public void testBatchInserts() throws Exception {
+    public void batchInsertsToVerifyIntentsBeingReadProperly() throws Exception {
         int totalRowsToBeInserted = 50;
         try (Connection conn = ybHelper.getConnection()) {
             Statement st = conn.createStatement();
@@ -178,7 +178,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
     }
 
     @Test
-    public void testLargeTransaction() throws Exception {
+    public void transactionWithHighOperationCount() throws Exception {
         int rowsToBeInserted = 30000;
         ybHelper.execute(
                 String.format("INSERT INTO " + DEFAULT_TABLE_NAME + " VALUES (generate_series(1,%d), 'Vaibhav', 'Kushwaha', 23.456);",

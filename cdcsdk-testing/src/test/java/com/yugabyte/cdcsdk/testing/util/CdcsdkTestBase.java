@@ -36,14 +36,6 @@ public class CdcsdkTestBase {
     protected static final String DEFAULT_TABLE_NAME = "test_table";
 
     /**
-     * Set the default name of the table
-     * @param tableName the default name to be set
-     */
-    // protected void setDefaultTableName(String tableName) {
-    // DEFAULT_TABLE_NAME = tableName;
-    // }
-
-    /**
      * Base function to create containers
      * @throws Exception if things go wrong
      */

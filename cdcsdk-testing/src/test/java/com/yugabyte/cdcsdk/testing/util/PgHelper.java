@@ -74,6 +74,15 @@ public class PgHelper {
     }
 
     /**
+     * Get the name of the sink table configured for this instance
+     * 
+     * @return name of the sink table
+     */
+    public String getSinkTableName() {
+        return this.sinkTableName;
+    }
+
+    /**
      * Get the name of the Kafka topic based on the name of the sink table
      */
     public String getKafkaTopicName() {

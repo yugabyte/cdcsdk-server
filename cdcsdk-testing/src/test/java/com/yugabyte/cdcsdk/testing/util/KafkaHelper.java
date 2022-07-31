@@ -111,8 +111,7 @@ public class KafkaHelper {
         KafkaConsumer<String, JsonNode> consumer = getKafkaConsumer();
         consumer.subscribe(topics);
         consumer.seekToBeginning(consumer.assignment());
-        ConsumerRecords<String, JsonNode> records = consumer.poll(Duration.ofSeconds(15));
-
+        ConsumerRecords<String, JsonNode> records = consumer.poll(Duration.ofMillis(2000));
         return records.count() != 0;
     }
 

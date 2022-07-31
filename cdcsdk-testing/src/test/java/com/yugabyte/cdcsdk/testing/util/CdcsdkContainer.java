@@ -7,8 +7,6 @@ import java.util.Map;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
-import com.yugabyte.cdcsdk.testing.TestHelper;
-
 public class CdcsdkContainer {
     private final String cdcsdkSourceConnectorClass = "io.debezium.connector.yugabytedb.YugabyteDBConnector";
     private String cdcsdkSourceDatabaseHostname = "127.0.0.1";
@@ -129,10 +127,6 @@ public class CdcsdkContainer {
 
     private Map<String, String> getDatabaseConfigMap() throws Exception {
         Map<String, String> configs = new HashMap<>();
-
-        if (this.cdcsdkSourceDatabaseStreamid.isEmpty()) {
-            this.cdcsdkSourceDatabaseStreamid = TestHelper.getNewDbStreamId(this.cdcsdkSourceDatabaseDbname);
-        }
 
         configs.put("CDCSDK_SOURCE_CONNECTOR_CLASS", this.cdcsdkSourceConnectorClass);
         configs.put("CDCSDK_SOURCE_DATABASE_HOSTNAME", this.cdcsdkSourceDatabaseHostname);
