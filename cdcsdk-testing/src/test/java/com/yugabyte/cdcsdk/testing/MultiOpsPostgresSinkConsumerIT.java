@@ -51,15 +51,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
         kafkaHelper = new KafkaHelper(kafkaContainer.getNetworkAliases().get(0) + ":9092",
                 kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
                         .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + KafkaContainer.KAFKA_PORT);
-        // KafkaHelper.setBootstrapServers(kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
-        // .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + kafkaContainer.KAFKA_PORT);
-        // PgHelper.setHost(pgContainer.getContainerInfo().getNetworkSettings().getNetworks()
-        // .entrySet().stream().findFirst().get().getValue().getIpAddress());
         pgHelper = new PgHelper(postgresContainer, DEFAULT_TABLE_NAME);
-
-        // Keeping this for now because it is being passed to the cdcsdk server configs
-        // TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
-        // TestHelper.setBootstrapServerForCdcsdkContainer(kafkaContainer.getNetworkAliases().get(0) + ":9092");
     }
 
     @BeforeEach
@@ -74,12 +66,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
 
         // Register the sink connector
         sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
-        // sinkConfig = PgHelper.getJdbcSinkConfiguration(pgContainer, "dbserver1.public.test_table", "test_table", "id");
         kafkaConnectContainer.registerConnector(SINK_CONNECTOR_NAME, sinkConfig);
-
-        // System.out.println("Going to print Kafka connect logs in 3 seconds");
-        // Thread.sleep(3000);
-        // System.out.println(kafkaConnectContainer.getLogs());
     }
 
     @AfterEach
