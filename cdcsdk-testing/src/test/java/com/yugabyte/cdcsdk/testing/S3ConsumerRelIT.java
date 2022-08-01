@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -37,7 +36,6 @@ import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
 import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
-import com.yugabyte.cdcsdk.testing.util.YBHelper;
 
 /**
  * Release test that verifies basic reading from a YugabyteDB database and

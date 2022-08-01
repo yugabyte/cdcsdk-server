@@ -22,14 +22,11 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.KafkaContainer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
-import com.yugabyte.cdcsdk.testing.util.KafkaHelper;
-import com.yugabyte.cdcsdk.testing.util.PgHelper;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 
 import io.debezium.testing.testcontainers.*;

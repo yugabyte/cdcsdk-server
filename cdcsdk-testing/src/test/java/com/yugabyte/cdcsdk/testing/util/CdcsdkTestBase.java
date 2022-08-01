@@ -75,8 +75,8 @@ public class CdcsdkTestBase {
 
         if (initKafkaHelper) {
             kafkaHelper = new KafkaHelper(kafkaContainer.getNetworkAliases().get(0) + ":9092",
-                kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
-                        .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + KafkaContainer.KAFKA_PORT);
+                    kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
+                            .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + KafkaContainer.KAFKA_PORT);
         }
 
         if (initPgHelper) {
