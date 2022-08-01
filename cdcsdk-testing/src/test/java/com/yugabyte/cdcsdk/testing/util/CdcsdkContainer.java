@@ -6,14 +6,9 @@ import java.util.Map;
 
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.utility.DockerImageName;
-
-import com.yugabyte.cdcsdk.testing.TestHelper;
 
 public class CdcsdkContainer {
-    private final DockerImageName cdcsdkContainerImageName = DockerImageName.parse("quay.io/yugabyte/cdcsdk-server:latest");
-
-    private String cdcsdkSourceConnectorClass = "io.debezium.connector.yugabytedb.YugabyteDBConnector";
+    private final String cdcsdkSourceConnectorClass = "io.debezium.connector.yugabytedb.YugabyteDBConnector";
     private String cdcsdkSourceDatabaseHostname = "127.0.0.1";
     private String cdcsdkSourceDatabasePort = "5433";
     private String cdcsdkSourceDatabaseMasterPort = "7100";
@@ -133,10 +128,6 @@ public class CdcsdkContainer {
     private Map<String, String> getDatabaseConfigMap() throws Exception {
         Map<String, String> configs = new HashMap<>();
 
-        if (this.cdcsdkSourceDatabaseStreamid.isEmpty()) {
-            this.cdcsdkSourceDatabaseStreamid = TestHelper.getNewDbStreamId(this.cdcsdkSourceDatabaseDbname);
-        }
-
         configs.put("CDCSDK_SOURCE_CONNECTOR_CLASS", this.cdcsdkSourceConnectorClass);
         configs.put("CDCSDK_SOURCE_DATABASE_HOSTNAME", this.cdcsdkSourceDatabaseHostname);
         configs.put("CDCSDK_SOURCE_DATABASE_PORT", this.cdcsdkSourceDatabasePort);
@@ -191,7 +182,7 @@ public class CdcsdkContainer {
     }
 
     public GenericContainer<?> buildForKafkaSink() throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(cdcsdkContainerImageName);
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
         cdcsdkContainer.withEnv(getConfigMapForKafka());
         cdcsdkContainer.withExposedPorts(8080);
         cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", this.bootstrapLogLineCount));
@@ -201,7 +192,7 @@ public class CdcsdkContainer {
     }
 
     public GenericContainer<?> buildForS3Sink() throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(cdcsdkContainerImageName);
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
         cdcsdkContainer.withEnv(getConfigMapForS3());
         cdcsdkContainer.withExposedPorts(8080);
         cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", this.bootstrapLogLineCount));

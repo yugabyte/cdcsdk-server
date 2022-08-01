@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,9 +24,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.containers.YugabyteYSQLContainer;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -38,6 +34,8 @@ import com.yugabyte.cdcsdk.sink.s3.S3ChangeConsumer;
 import com.yugabyte.cdcsdk.sink.s3.S3Storage;
 import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
 import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
+import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
+import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 
 /**
  * Release test that verifies basic reading from a YugabyteDB database and
@@ -46,60 +44,43 @@ import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
  * @author Rajat Venkatesh
  */
 
-public class S3ConsumerRelIT {
+public class S3ConsumerRelIT extends CdcsdkTestBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ConsumerRelIT.class);
-
-    private static YugabyteYSQLContainer ybContainer;
 
     private S3SinkConnectorConfig s3Config;
     private ConfigSourceS3 testConfig;
     private S3Storage storage;
 
-    private static Network containerNetwork;
-
     @BeforeAll
     public static void beforeClass() throws Exception {
-        // This function assumes that we have yugabyted running locally
-        TestHelper.setHost(InetAddress.getLocalHost().getHostAddress());
+        initializeContainers();
 
-        containerNetwork = Network.newNetwork();
+        // Initialize the YBHelper instance only since that is the only thing required for this test
+        initHelpers(true, false, false);
     }
 
     @BeforeEach
-    public void createTable() throws Exception {
-        TestHelper.execute("CREATE TABLE IF NOT EXISTS test_table (id int primary key, first_name varchar(30), last_name varchar(50), days_worked double precision);");
+    public void beforeEachTest() throws Exception {
+        ybHelper.execute(UtilStrings.getCreateTableYBStmt(DEFAULT_TABLE_NAME));
     }
 
     @AfterEach
     public void dropTable() throws Exception {
-        String dropTableSql = "DROP TABLE IF EXISTS test_table";
-        TestHelper.execute(dropTableSql);
+        ybHelper.execute(UtilStrings.getDropTableStmt(DEFAULT_TABLE_NAME));
         clearBucket(s3Config.getBucketName(), getBaseDir());
     }
 
-    private String getBaseDir() {
-        return testConfig.getValue("cdcsdk.sink.storage.basedir");
-    }
-
-    private void clearBucket(String bucketName, String prefix) {
-        AmazonS3 S3Client = storage.client();
-        List<String> files = S3Utils.getDirectoryFiles(S3Client, bucketName, prefix);
-        for (String file : files) {
-            S3Client.deleteObject(bucketName, file);
-        }
-    }
-
     @Test
-    public void testAutomationOfS3Assertions() throws Exception {
+    public void automationOfS3Assertions() throws Exception {
         testConfig = new ConfigSourceS3();
         s3Config = new S3SinkConnectorConfig(testConfig.getMapSubset(S3ChangeConsumer.PROP_S3_PREFIX));
 
         // At this point in code, we know that the table exists already so it's safe to get a CDCSDK server instance
-        GenericContainer<?> cdcContainer = TestHelper.getCdcsdkContainerForS3Sink();
-        cdcContainer.withNetwork(containerNetwork);
-        cdcContainer.start();
+        cdcsdkContainer = TestHelper.getCdcsdkContainerForS3Sink(ybHelper, "public." + DEFAULT_TABLE_NAME);
+        cdcsdkContainer.withNetwork(containerNetwork);
+        cdcsdkContainer.start();
 
-        assertTrue(cdcContainer.isRunning());
+        assertTrue(cdcsdkContainer.isRunning());
 
         storage = new S3Storage(s3Config, "");
 
@@ -111,15 +92,12 @@ public class S3ConsumerRelIT {
 
         int recordsInserted = 5;
         for (int i = 0; i < recordsInserted; ++i) {
-            String insertSql = String.format("INSERT INTO test_table VALUES (%d, '%s', '%s', %f);", i, "first_" + i, "last_" + i, 23.45);
-            TestHelper.execute(insertSql);
+            ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, i, "first_" + i, "last_" + i, 23.45));
         }
 
         // Wait for sometime for the data to be pushed to S3
         S3Utils.waitForFilesInDirectory(storage.client(), s3Config.getBucketName(),
                 this.getBaseDir(), 1, 60);
-
-        LOGGER.debug(cdcContainer.getLogs());
 
         List<String> expected_data = List.of(
                 "{\"id\":0,\"first_name\":\"first_0\",\"last_name\":\"last_0\",\"days_worked\":23.45}",
@@ -160,7 +138,19 @@ public class S3ConsumerRelIT {
         }
 
         // Kill the cdcsdk-server container and then drop the table before ending the test
-        cdcContainer.stop();
+        cdcsdkContainer.stop();
+    }
+
+    private String getBaseDir() {
+        return testConfig.getValue("cdcsdk.sink.storage.basedir");
+    }
+
+    private void clearBucket(String bucketName, String prefix) {
+        AmazonS3 S3Client = storage.client();
+        List<String> files = S3Utils.getDirectoryFiles(S3Client, bucketName, prefix);
+        for (String file : files) {
+            S3Client.deleteObject(bucketName, file);
+        }
     }
 
     private class ConfigSourceS3 {
