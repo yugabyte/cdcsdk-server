@@ -129,6 +129,24 @@ public class MultiTablePostgresSinkConsumerIT extends CdcsdkTestBase {
 
         pgHelper.assertRecordCountInPostgres(recordsToBeInserted);
         pgHelper2.assertRecordCountInPostgres(recordsToBeInserted);
+
+        // Assert the values in both the tables
+        ResultSet rs1 = pgHelper.executeAndGetResultSet(String.format("SELECT * FROM %s ORDER BY id;", TABLE_1));
+        // Getting the result set in descending order will help us in iterating since the primary keys are negative
+        // in the second table
+        ResultSet rs2 = pgHelper2.executeAndGetResultSet(String.format("SELECT * FROM %s ORDER BY id DESC;", TABLE_2));
+
+        int id = 1;
+        while (rs1.next()) {
+            assertValuesInResultSet(rs1, id, "first_" + id, "last_" + id, 23.45);
+            ++id;
+        }
+
+        id = -1;
+        while (rs2.next()) {
+            assertValuesInResultSet(rs2, id, "first_" + id, "last_" + id, 123.45);
+            --id;
+        }
     }
 
     private void assertValuesInResultSet(ResultSet rs, int idCol, String firstNameCol, String lastNameCol,
