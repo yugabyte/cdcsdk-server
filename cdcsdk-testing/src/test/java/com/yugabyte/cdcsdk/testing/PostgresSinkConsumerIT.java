@@ -58,10 +58,8 @@ public class PostgresSinkConsumerIT extends CdcsdkTestBase {
         postgresContainer.start();
         Awaitility.await().atMost(Duration.ofSeconds(10)).until(() -> postgresContainer.isRunning());
 
-        pgHelper = new PgHelper(postgresContainer, DEFAULT_TABLE_NAME);
-        kafkaHelper = new KafkaHelper(kafkaContainer.getNetworkAliases().get(0) + ":9092",
-                kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
-                        .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + KafkaContainer.KAFKA_PORT);
+        // Initialize all the helpers
+        initHelpers();
 
         // Set JDBC sink connector config.
         connector = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");

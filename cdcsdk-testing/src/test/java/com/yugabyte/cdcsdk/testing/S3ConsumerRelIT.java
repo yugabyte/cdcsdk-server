@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,6 +21,7 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,7 @@ import com.yugabyte.cdcsdk.sink.s3.config.S3SinkConnectorConfig;
 import com.yugabyte.cdcsdk.sink.s3.util.S3Utils;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
+import com.yugabyte.cdcsdk.testing.util.YBHelper;
 
 /**
  * Release test that verifies basic reading from a YugabyteDB database and
@@ -53,6 +56,9 @@ public class S3ConsumerRelIT extends CdcsdkTestBase {
     @BeforeAll
     public static void beforeClass() throws Exception {
         initializeContainers();
+
+        // Initialize the YBHelper instance only since that is the only thing required for this test
+        initHelpers(true, false, false);
     }
 
     @BeforeEach

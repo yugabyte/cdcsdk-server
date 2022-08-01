@@ -48,10 +48,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
                 .atMost(Duration.ofSeconds(20))
                 .until(() -> postgresContainer.isRunning());
 
-        kafkaHelper = new KafkaHelper(kafkaContainer.getNetworkAliases().get(0) + ":9092",
-                kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
-                        .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + KafkaContainer.KAFKA_PORT);
-        pgHelper = new PgHelper(postgresContainer, DEFAULT_TABLE_NAME);
+        initHelpers();
     }
 
     @BeforeEach

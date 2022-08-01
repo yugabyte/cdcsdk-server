@@ -58,9 +58,8 @@ public class ElasticsearchSinkConsumerIT extends CdcsdkTestBase {
         kafkaConnectContainer.start();
         esContainer.start();
 
-        kafkaHelper = new KafkaHelper(kafkaContainer.getNetworkAliases().get(0) + ":9092",
-                kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
-                        .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + KafkaContainer.KAFKA_PORT);
+        // Initialize only the YBHelper and the KafkaHelper only
+        initHelpers(true, true, false);
     }
 
     @BeforeEach
