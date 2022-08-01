@@ -1,6 +1,7 @@
 package com.yugabyte.cdcsdk.testing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.InetAddress;
 import java.sql.ResultSet;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.KafkaContainer;
 
@@ -114,6 +116,7 @@ public class MultiTablePostgresSinkConsumerIT extends CdcsdkTestBase {
         kafkaContainer.stop();
     }
 
+    @Disabled
     @Test
     public void insertDataInBothSourceTablesAlternatively() throws Exception {
         int recordsToBeInserted = 10;
@@ -146,6 +149,61 @@ public class MultiTablePostgresSinkConsumerIT extends CdcsdkTestBase {
         while (rs2.next()) {
             assertValuesInResultSet(rs2, id, "first_" + id, "last_" + id, 123.45);
             --id;
+        }
+    }
+
+    @Test
+    public void performOpsOnOneTableAndKeepSecondOneIdle() throws Exception {
+        int recordsToBeInserted = 1000;
+        for (int i = 0; i < recordsToBeInserted; ++i) {
+            ybHelper.execute(UtilStrings.getInsertStmt(TABLE_1, i, "first_" + i, "last_" + i, 23.45));
+        }
+
+        // Wait for records to be replicated across Postgres
+        Thread.sleep(10000);
+
+        pgHelper.assertRecordCountInPostgres(recordsToBeInserted);
+        ResultSet rs = pgHelper.executeAndGetResultSet(String.format("SELECT * FROM %s ORDER BY id;", TABLE_1));
+        int id = 0;
+        while (rs.next()) {
+            assertValuesInResultSet(rs, id, "first_" + id, "last_" + id, 23.45);
+            ++id;
+        }
+
+        // The second table would not even get created owing to the fact that there's no record for it in Kafka yet
+        // so the next try block should throw a SQLException
+        try {
+            pgHelper2.execute("SELECT * FROM " + TABLE_2 + ";");
+        }
+        catch (SQLException sqlException) {
+            String errorMessage = String.format("relation \"%s\" does not exist", TABLE_2);
+            assertTrue(sqlException.getMessage().contains(errorMessage));
+        }
+
+        // Delete some records from table 1
+        ybHelper.execute("DELETE FROM " + TABLE_1 + " WHERE id % 2 = 0;");
+
+        // The records in the sink table will be deleted as well, wait for some time
+        Thread.sleep(5000);
+
+        // We have deleted the records with even primary key, so only half of the records will be there now
+        pgHelper.assertRecordCountInPostgres(recordsToBeInserted / 2);
+
+        // Reset the ResultSet and id instance to match the requirements for the next call
+        rs = pgHelper.executeAndGetResultSet(String.format("SELECT * FROM %s ORDER BY id;", TABLE_1));
+        id = 1;
+        while (rs.next()) {
+            assertValuesInResultSet(rs, id, "first_" + id, "last_" + id, 23.45);
+            id += 2;
+        }
+
+        // Again, make sure that no data has come for the second table
+        try {
+            pgHelper2.execute("SELECT * FROM " + TABLE_2 + ";");
+        }
+        catch (SQLException sqlException) {
+            String errorMessage = String.format("relation \"%s\" does not exist", TABLE_2);
+            assertTrue(sqlException.getMessage().contains(errorMessage));
         }
     }
 
