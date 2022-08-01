@@ -16,11 +16,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.KafkaContainer;
 
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
-import com.yugabyte.cdcsdk.testing.util.KafkaHelper;
-import com.yugabyte.cdcsdk.testing.util.PgHelper;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
@@ -48,10 +45,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
                 .atMost(Duration.ofSeconds(20))
                 .until(() -> postgresContainer.isRunning());
 
-        kafkaHelper = new KafkaHelper(kafkaContainer.getNetworkAliases().get(0) + ":9092",
-                kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
-                        .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + KafkaContainer.KAFKA_PORT);
-        pgHelper = new PgHelper(postgresContainer, DEFAULT_TABLE_NAME);
+        initHelpers();
     }
 
     @BeforeEach

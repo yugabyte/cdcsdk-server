@@ -20,6 +20,7 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,9 @@ public class S3ConsumerRelIT extends CdcsdkTestBase {
     @BeforeAll
     public static void beforeClass() throws Exception {
         initializeContainers();
+
+        // Initialize the YBHelper instance only since that is the only thing required for this test
+        initHelpers(true, false, false);
     }
 
     @BeforeEach

@@ -58,8 +58,38 @@ public class CdcsdkTestBase {
                 .withExposedPorts(5432)
                 .withReuse(true)
                 .withNetwork(containerNetwork);
+    }
 
-        ybHelper = new YBHelper(InetAddress.getLocalHost().getHostAddress(), DEFAULT_TABLE_NAME);
+    /**
+     * Initialize the required base helper instances to ease the test automation. Note that this function
+     * is supposed to be called after all the required containers are started.
+     * @param initYBHelper whether to initialize YBHelper
+     * @param initKafkaHelper whether to initialize KafkaHelper
+     * @param initPgHelper whether to initialize PgHelper
+     * @throws Exception
+     */
+    protected static void initHelpers(boolean initYBHelper, boolean initKafkaHelper, boolean initPgHelper) throws Exception {
+        if (initKafkaHelper) {
+            ybHelper = new YBHelper(InetAddress.getLocalHost().getHostAddress(), DEFAULT_TABLE_NAME);
+        }
+
+        if (initKafkaHelper) {
+            kafkaHelper = new KafkaHelper(kafkaContainer.getNetworkAliases().get(0) + ":9092",
+                    kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
+                            .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + KafkaContainer.KAFKA_PORT);
+        }
+
+        if (initPgHelper) {
+            pgHelper = new PgHelper(postgresContainer, DEFAULT_TABLE_NAME);
+        }
+    }
+
+    /**
+     * Initialize all the base helper instances
+     * @throws Exception
+     */
+    protected static void initHelpers() throws Exception {
+        initHelpers(true, true, true);
     }
 
     /**

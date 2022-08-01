@@ -21,7 +21,6 @@ import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
-import com.yugabyte.cdcsdk.testing.util.KafkaHelper;
 import com.yugabyte.cdcsdk.testing.util.TestImages;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 
@@ -58,9 +57,8 @@ public class ElasticsearchSinkConsumerIT extends CdcsdkTestBase {
         kafkaConnectContainer.start();
         esContainer.start();
 
-        kafkaHelper = new KafkaHelper(kafkaContainer.getNetworkAliases().get(0) + ":9092",
-                kafkaContainer.getContainerInfo().getNetworkSettings().getNetworks()
-                        .entrySet().stream().findFirst().get().getValue().getIpAddress() + ":" + KafkaContainer.KAFKA_PORT);
+        // Initialize only the YBHelper and the KafkaHelper only
+        initHelpers(true, true, false);
     }
 
     @BeforeEach
