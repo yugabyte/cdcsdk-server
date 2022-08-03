@@ -79,10 +79,10 @@
             <groupId>com.yugabyte</groupId>
             <artifactId>cdcsdk-server-kafka</artifactId>
         </dependency>
-        <!--<dependency>
+        <dependency>
             <groupId>com.yugabyte</groupId>
             <artifactId>cdcsdk-server-pravega</artifactId>
-        </dependency>-->
+        </dependency>
         <dependency>
             <groupId>com.yugabyte</groupId>
             <artifactId>cdcsdk-server-nats-streaming</artifactId>
