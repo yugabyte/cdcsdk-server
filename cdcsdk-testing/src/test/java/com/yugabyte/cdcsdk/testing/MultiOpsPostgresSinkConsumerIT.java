@@ -95,9 +95,14 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
 
         // Wait some time for the table to get created in postgres and for replication
         // to complete
-        Thread.sleep(5000);
+        Awaitility.await()
+                .atLeast(Duration.ofMillis(20))
+                .atMost(Duration.ofMillis(5000))
+                .ignoreExceptionsInstanceOf(SQLException.class)
+                .until(() -> pgHelper.verifyRecordCount(0));
 
         pgHelper.assertRecordCountInPostgres(0);
+
     }
 
     @Test
@@ -107,7 +112,11 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
 
         // Wait some time for the table to get created in postgres and for replication
         // to complete
-        Thread.sleep(5000);
+        Awaitility.await()
+                .atLeast(Duration.ofMillis(20))
+                .atMost(Duration.ofMillis(5000))
+                .ignoreExceptionsInstanceOf(SQLException.class)
+                .until(() -> pgHelper.verifyRecordCount(1));
 
         ResultSet rs = pgHelper.executeAndGetResultSet("SELECT * FROM " + DEFAULT_TABLE_NAME + ";");
         if (rs.next()) {
@@ -143,7 +152,11 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
         }
 
         // Wait for records to be replicated across Postgres
-        Thread.sleep(5000);
+        Awaitility.await()
+                .atLeast(Duration.ofMillis(20))
+                .atMost(Duration.ofMillis(5000))
+                .ignoreExceptionsInstanceOf(SQLException.class)
+                .until(() -> pgHelper.verifyRecordCount(totalRowsToBeInserted));
 
         // Assert for the count of the records
         pgHelper.assertRecordCountInPostgres(totalRowsToBeInserted);
@@ -165,7 +178,11 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
                         rowsToBeInserted));
 
         // Wait for records to be replicated across Postgres
-        Thread.sleep(70000);
+        Awaitility.await()
+                .atLeast(Duration.ofMillis(20))
+                .atMost(Duration.ofMillis(70000))
+                .ignoreExceptionsInstanceOf(SQLException.class)
+                .until(() -> pgHelper.verifyRecordCount(rowsToBeInserted));
 
         // Assert for the count of the records
         pgHelper.assertRecordCountInPostgres(rowsToBeInserted);

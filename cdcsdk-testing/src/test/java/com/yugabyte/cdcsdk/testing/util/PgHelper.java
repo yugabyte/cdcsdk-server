@@ -198,4 +198,15 @@ public class PgHelper {
     public ConnectorConfiguration getJdbcSinkConfiguration(PostgreSQLContainer<?> pgContainer, String primaryKeyFields) {
         return getJdbcSinkConfiguration(pgContainer, this.sinkTableName, primaryKeyFields);
     }
+
+    public boolean verifyRecordCount(int expectedRecordCount) throws Exception {
+        ResultSet rs = executeAndGetResultSet(String.format("SELECT COUNT(*) FROM %s;", sinkTableName));
+        if (rs.next()) {
+            return expectedRecordCount == rs.getInt(1);
+        }
+        else {
+            // This means that the result set is empty
+            return false;
+        }
+    }
 }
