@@ -15,7 +15,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.KafkaContainer;
 
@@ -116,7 +115,6 @@ public class MultiTablePostgresSinkConsumerIT extends CdcsdkTestBase {
         kafkaContainer.stop();
     }
 
-    @Disabled
     @Test
     public void insertDataInBothSourceTablesAlternatively() throws Exception {
         int recordsToBeInserted = 10;
@@ -128,7 +126,8 @@ public class MultiTablePostgresSinkConsumerIT extends CdcsdkTestBase {
         }
 
         // Wait for records to be reflected across postgres
-        Thread.sleep(5000);
+        pgHelper.waitTillRecordsAreVerified(recordsToBeInserted, 5000);
+        pgHelper2.waitTillRecordsAreVerified(recordsToBeInserted, 5000);
 
         pgHelper.assertRecordCountInPostgres(recordsToBeInserted);
         pgHelper2.assertRecordCountInPostgres(recordsToBeInserted);
@@ -160,7 +159,7 @@ public class MultiTablePostgresSinkConsumerIT extends CdcsdkTestBase {
         }
 
         // Wait for records to be replicated across Postgres
-        Thread.sleep(10000);
+        pgHelper.waitTillRecordsAreVerified(recordsToBeInserted, 10000);
 
         pgHelper.assertRecordCountInPostgres(recordsToBeInserted);
         ResultSet rs = pgHelper.executeAndGetResultSet(String.format("SELECT * FROM %s ORDER BY id;", TABLE_1));
