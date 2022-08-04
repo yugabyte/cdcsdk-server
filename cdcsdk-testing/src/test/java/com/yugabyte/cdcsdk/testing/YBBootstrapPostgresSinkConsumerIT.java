@@ -93,7 +93,7 @@ public class YBBootstrapPostgresSinkConsumerIT extends CdcsdkTestBase {
         }
 
         // Wait for records to be replicated across Postgres
-        Thread.sleep(5000);
+        pgHelper.waitTillRecordsAreVerified(recordsInsertedAfterBootstrap, 5000);
 
         // Assert for record count
         pgHelper.assertRecordCountInPostgres(recordsInsertedAfterBootstrap);

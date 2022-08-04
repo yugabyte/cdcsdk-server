@@ -8,7 +8,10 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 
+import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
@@ -197,5 +200,38 @@ public class PgHelper {
      */
     public ConnectorConfiguration getJdbcSinkConfiguration(PostgreSQLContainer<?> pgContainer, String primaryKeyFields) {
         return getJdbcSinkConfiguration(pgContainer, this.sinkTableName, primaryKeyFields);
+    }
+
+    /**
+     * Verifies if the record count matches expected record count
+     * 
+     * @param expectedRecordCount   Number of records expected
+     * @return                      true if expected record count matches the actual record count
+     * @throws Exception            if connection cannot be created or the query cannot be
+     *                              executed
+     */
+    public boolean verifyRecordCount(int expectedRecordCount) throws Exception {
+        ResultSet rs = executeAndGetResultSet(String.format("SELECT COUNT(*) FROM %s;", sinkTableName));
+        if (rs.next()) {
+            return expectedRecordCount == rs.getInt(1);
+        }
+        else {
+            // This means that the result set is empty
+            return false;
+        }
+    }
+
+    /**
+     * 
+     * @param expectedRecordCount  Number of records expected
+     * @param milliSecondsToWait   Maximum milli seconds to wait
+     * @throws ConditionTimeoutException if condition not met within 5 seconds
+     */
+    public void waitTillRecordsAreVerified(int expectedRecordCount, long milliSecondsToWait) throws ConditionTimeoutException {
+        Awaitility.await()
+                .atLeast(Duration.ofMillis(10))
+                .atMost(Duration.ofMillis(milliSecondsToWait))
+                .ignoreExceptionsInstanceOf(SQLException.class)
+                .until(() -> verifyRecordCount(expectedRecordCount));
     }
 }
