@@ -6,7 +6,6 @@ import java.lang.Double;
 import java.lang.Integer;
 import java.lang.String;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -135,14 +134,7 @@ public class PostgresSinkConsumerIT extends CdcsdkTestBase {
     @Test
     @Order(2)
     public void verifyRecordsInPostgresFromKafka() throws Exception {
-        // Adding Thread.sleep() here because apparently Awaitility didn't seem to work as expected.
-        // TODO Vaibhav: Replace the Thread.sleep() function with Awaitility
-        // Thread.sleep(10000);
-        Awaitility.await()
-                .atLeast(Duration.ofMillis(20))
-                .atMost(Duration.ofMillis(10000))
-                .ignoreExceptionsInstanceOf(SQLException.class)
-                .until(() -> pgHelper.verifyRecordCount(recordsToBeInserted));
+        pgHelper.waitTillRecordsAreVerified(recordsToBeInserted, 10000);
 
         ResultSet rs = pgHelper.executeAndGetResultSet(String.format("SELECT * FROM %s;", DEFAULT_TABLE_NAME));
         List<Map<String, Object>> postgresRecords = new ArrayList<>();
