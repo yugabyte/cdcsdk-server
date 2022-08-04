@@ -95,9 +95,10 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
 
         // Wait some time for the table to get created in postgres and for replication
         // to complete
-        Thread.sleep(5000);
+        pgHelper.waitTillRecordsAreVerified(0, 5000);
 
         pgHelper.assertRecordCountInPostgres(0);
+
     }
 
     @Test
@@ -107,7 +108,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
 
         // Wait some time for the table to get created in postgres and for replication
         // to complete
-        Thread.sleep(5000);
+        pgHelper.waitTillRecordsAreVerified(1, 5000);
 
         ResultSet rs = pgHelper.executeAndGetResultSet("SELECT * FROM " + DEFAULT_TABLE_NAME + ";");
         if (rs.next()) {
@@ -143,7 +144,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
         }
 
         // Wait for records to be replicated across Postgres
-        Thread.sleep(5000);
+        pgHelper.waitTillRecordsAreVerified(totalRowsToBeInserted, 5000);
 
         // Assert for the count of the records
         pgHelper.assertRecordCountInPostgres(totalRowsToBeInserted);
@@ -165,7 +166,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
                         rowsToBeInserted));
 
         // Wait for records to be replicated across Postgres
-        Thread.sleep(70000);
+        pgHelper.waitTillRecordsAreVerified(rowsToBeInserted, 70000);
 
         // Assert for the count of the records
         pgHelper.assertRecordCountInPostgres(rowsToBeInserted);
