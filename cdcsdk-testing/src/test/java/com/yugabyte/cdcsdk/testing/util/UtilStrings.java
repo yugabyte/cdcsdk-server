@@ -14,7 +14,7 @@ public class UtilStrings {
 
     // Format string with customizable name which can be used in both YugabyteDB and
     // Postgres
-    private static final String DROP_TABLE_FORMAT = "DROP TABLE %s;";
+    private static final String DROP_TABLE_FORMAT = "DROP TABLE IF EXISTS %s;";
 
     // Format string with customizable table name and the values for the columns
     private static final String INSERT_FORMAT = "INSERT INTO %s VALUES (%d, '%s', '%s', %f);";
