@@ -12,6 +12,11 @@ import org.junit.jupiter.api.Test;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 
+/**
+ * Release tests that the health checks are working properly when the CDCSDK Server is running
+ *
+ * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
+ */
 public class HealthChecksIT extends CdcsdkTestBase {
     private int healthCheckMappedPort;
 
