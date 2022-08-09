@@ -1,23 +1,24 @@
+package com.yugabyte.cdcsdk.testing.util;
+
 public class IOT implements TestTable {
 
     public final String tableName;
     public final int numTablets;
 
-    private final String createStatement = "CREATE TABLE IF NOT EXISTS %s (id SERIAL PRIMARY KEY,"
-            + "date timestamptz NOT NULL,"
+    private final String createStatement = "CREATE TABLE %s (id SERIAL PRIMARY KEY,"
+            + "host_id int,"
+            + "date timestamp NOT NULL,"
             + "cpu double PRECISION,"
-            + "tempc int,"
-            + "status TEXT)";
+            + "tempc int) ";
 
     private final String createYBStmt = createStatement + "SPLIT INTO %d TABLETS;";
 
-    private final String insertStmt = "INSERT INTO %s(date,host_id,cpu,tempc,status) SELECT date, host_id,"
-            + "random_between(5,100,3) AS cpu, random_between(28,90) AS tempc,"
-            + "random_text(20,75) AS status "
+    private final String insertStmt = "INSERT INTO %s(date,host_id,cpu,tempc) SELECT date, host_id,"
+            + "random() * 100 AS cpu, random() * 70 AS tempc "
             + "FROM generate_series('2022-07-01'::date, '2022-07-01'::Date + INTERVAL '1 minute',"
             + " INTERVAL '10 seconds') AS date, generate_series(1,10) AS host_id;";
 
-    private final String dropStatement = "DROP TABLE IF EXISTS %d;";
+    private final String dropStatement = "DROP TABLE %s;";
 
     public IOT(String tableName, int numTablets) {
         this.tableName = tableName;

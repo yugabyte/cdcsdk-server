@@ -1,3 +1,5 @@
+package com.yugabyte.cdcsdk.testing.util;
+
 public interface TestTable {
 
     /**

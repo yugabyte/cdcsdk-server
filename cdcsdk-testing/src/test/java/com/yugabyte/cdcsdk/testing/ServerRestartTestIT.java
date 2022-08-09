@@ -2,13 +2,11 @@ package com.yugabyte.cdcsdk.testing;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.lang.Double;
-import java.lang.Integer;
 import java.lang.String;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,13 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
-import com.yugabyte.cdcsdk.testing.util.UtilStrings;
-import com.yugabyte.cdcsdk.testing.util.TestTable;
 import com.yugabyte.cdcsdk.testing.util.IOT;
+import com.yugabyte.cdcsdk.testing.util.TestTable;
 
 import io.debezium.testing.testcontainers.*;
 
@@ -43,7 +38,7 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerRestartTestIT.class);
     private KafkaConsumer<String, JsonNode> consumer;
     private static List<Map<String, Object>> expectedDataInKafka = new ArrayList<>();
-    private static int recordsToBeInserted = 6;
+    private static int recordsToBeInserted = 70;
 
     private static ConnectorConfiguration connector;
 
@@ -71,22 +66,16 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
         // Assuming that yugabyted is running.
         ybHelper.execute(testTable.getCreateTableYBStmt());
 
-        // Initialise expected_data.
-        for (int i = 0; i < recordsToBeInserted; i++) {
-            Map<String, Object> expectedRecord = new LinkedHashMap<String, Object>();
-            expectedRecord.put("id", new Integer(i));
-            expectedRecord.put("first_name", new String("first_" + i));
-            expectedRecord.put("last_name", new String("last_" + i));
-            expectedRecord.put("days_worked", new Double(23.45));
-            expectedDataInKafka.add(expectedRecord);
-        }
-
         // Start CDCSDK server testcontainer.
         cdcsdkContainer = kafkaHelper.getCdcsdkContainer(ybHelper, "public." + DEFAULT_TABLE_NAME, 1);
         cdcsdkContainer.withNetwork(containerNetwork);
         cdcsdkContainer.start();
 
         ybHelper.execute(testTable.insertStmt());
+        ResultSet rs = ybHelper
+                .executeAndGetResultSet(String.format("SELECT * FROM %s order by id;", DEFAULT_TABLE_NAME));
+        expectedDataInKafka = extracted(rs);
+
     }
 
     @AfterAll
@@ -100,58 +89,15 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
 
     @Test
     @Order(1)
-    public void verifyRecordsInKafka() throws Exception {
-        consumer = kafkaHelper.getKafkaConsumer();
-        consumer.subscribe(Arrays.asList(ybHelper.getKafkaTopicName()));
-
-        int recordsAsserted = 0;
-        while (recordsAsserted != recordsToBeInserted) {
-            consumer.seekToBeginning(consumer.assignment());
-            ConsumerRecords<String, JsonNode> records = consumer.poll(15);
-            LOGGER.debug("Record count: " + records.count());
-            List<Map<String, Object>> kafkaRecords = new ArrayList<>();
-            for (ConsumerRecord<String, JsonNode> record : records) {
-                ObjectMapper mapper = new ObjectMapper();
-                if (record.value() != null) {
-                    JsonNode jsonNode = record.value().get("payload");
-                    Map<String, Object> result = mapper.convertValue(jsonNode,
-                            new TypeReference<Map<String, Object>>() {
-                            });
-                    kafkaRecords.add(result);
-                }
-            }
-            Iterator<Map<String, Object>> it = expectedDataInKafka.iterator();
-
-            for (Map<String, Object> kafkaRecord : kafkaRecords) {
-                LOGGER.debug("Kafka record " + kafkaRecord);
-                assertEquals(it.next(), kafkaRecord);
-                ++recordsAsserted;
-                if (recordsAsserted == recordsToBeInserted) {
-                    break;
-                }
-            }
-        }
-        assertNotEquals(recordsAsserted, 0);
-    }
-
-    @Test
-    @Order(2)
     public void verifyRecordsInPostgresFromKafka() throws Exception {
         // Adding Thread.sleep() here because apparently Awaitility didn't seem to work
         // as expected.
         // TODO Vaibhav: Replace the Thread.sleep() function with Awaitility
         Thread.sleep(10000);
 
-        ResultSet rs = pgHelper.executeAndGetResultSet(String.format("SELECT * FROM %s;", DEFAULT_TABLE_NAME));
-        List<Map<String, Object>> postgresRecords = new ArrayList<>();
-        while (rs.next()) {
-            Map<String, Object> result = new LinkedHashMap<String, Object>();
-            result.put("id", rs.getInt("id"));
-            result.put("first_name", rs.getString("first_name"));
-            result.put("last_name", rs.getString("last_name"));
-            result.put("days_worked", rs.getDouble("days_worked"));
-            postgresRecords.add(result);
-        }
+        ResultSet rs = pgHelper
+                .executeAndGetResultSet(String.format("SELECT * FROM %s order by id;", DEFAULT_TABLE_NAME));
+        List<Map<String, Object>> postgresRecords = extracted(rs);
 
         Iterator<Map<String, Object>> it = expectedDataInKafka.iterator();
 
@@ -160,10 +106,24 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
             LOGGER.debug("Postgres record:" + postgresRecord);
             assertEquals(it.next(), postgresRecord);
             ++recordsAsserted;
-            if (recordsAsserted == recordsToBeInserted) {
+            if (!it.hasNext()) {
                 break;
             }
         }
-        assertNotEquals(recordsAsserted, 0);
+        assertEquals(recordsToBeInserted, recordsAsserted);
+    }
+
+    private static List<Map<String, Object>> extracted(ResultSet rs) throws SQLException {
+        List<Map<String, Object>> records = new ArrayList<>();
+        while (rs.next()) {
+            Map<String, Object> result = new LinkedHashMap<String, Object>();
+            result.put("id", rs.getInt("id"));
+            result.put("host_id", rs.getInt("host_id"));
+            // result.put("date", rs.getTimestamp("date"));
+            result.put("cpu", rs.getDouble("cpu"));
+            result.put("tempc", rs.getInt("tempc"));
+            records.add(result);
+        }
+        return records;
     }
 }
