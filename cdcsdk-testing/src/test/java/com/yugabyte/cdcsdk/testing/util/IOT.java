@@ -15,8 +15,10 @@ public class IOT implements TestTable {
 
     private final String insertStmt = "INSERT INTO %s(date,host_id,cpu,tempc) SELECT date, host_id,"
             + "random() * 100 AS cpu, random() * 70 AS tempc "
-            + "FROM generate_series('2022-07-01'::date, '2022-07-01'::Date + INTERVAL '1 minute',"
+            + "FROM generate_series('%s'::date, '%s'::Date + INTERVAL '1 minute',"
             + " INTERVAL '10 seconds') AS date, generate_series(1,10) AS host_id;";
+
+    private final String defaultStartDate = "2022-07-01";
 
     private final String dropStatement = "DROP TABLE %s;";
 
@@ -39,9 +41,13 @@ public class IOT implements TestTable {
         return String.format(this.createStatement, this.tableName);
     }
 
+    public String insertStmt(String date) {
+        return String.format(this.insertStmt, this.tableName, date, date);
+    }
+
     @Override
     public String insertStmt() {
-        return String.format(this.insertStmt, this.tableName);
+        return this.insertStmt(this.defaultStartDate);
     }
 
     @Override

@@ -14,17 +14,18 @@ import java.util.Map;
 
 import org.apache.kafka.clients.consumer.*;
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.GenericContainer;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.yugabyte.cdcsdk.testing.util.CdcsdkContainer;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
 import com.yugabyte.cdcsdk.testing.util.IOT;
-import com.yugabyte.cdcsdk.testing.util.TestTable;
 
 import io.debezium.testing.testcontainers.*;
 
@@ -36,13 +37,13 @@ import io.debezium.testing.testcontainers.*;
  */
 public class ServerRestartTestIT extends CdcsdkTestBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerRestartTestIT.class);
-    private KafkaConsumer<String, JsonNode> consumer;
     private static List<Map<String, Object>> expectedDataInKafka = new ArrayList<>();
-    private static int recordsToBeInserted = 70;
 
     private static ConnectorConfiguration connector;
 
-    private static TestTable testTable;
+    private static IOT testTable;
+
+    private static String streamId;
 
     @BeforeAll
     public static void beforeClass() throws Exception {
@@ -66,10 +67,26 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
         // Assuming that yugabyted is running.
         ybHelper.execute(testTable.getCreateTableYBStmt());
 
+        streamId = ybHelper.getNewDbStreamId(ybHelper.getDatabaseName());
+
         // Start CDCSDK server testcontainer.
-        cdcsdkContainer = kafkaHelper.getCdcsdkContainer(ybHelper, "public." + DEFAULT_TABLE_NAME, 1);
+        cdcsdkContainer = new CdcsdkContainer()
+                .withDatabaseHostname(ybHelper.getHostName())
+                .withMasterPort(String.valueOf(ybHelper.getMasterPort()))
+                .withKafkaBootstrapServers(kafkaHelper.getBootstrapServersAlias())
+                .withTableIncludeList("public."
+                        + DEFAULT_TABLE_NAME)
+                .withStreamId(streamId)
+                // .withLogMessageRegex(".*Mapping table.*\\n")
+                .buildForKafkaSink();
+
         cdcsdkContainer.withNetwork(containerNetwork);
-        cdcsdkContainer.start();
+        try {
+            cdcsdkContainer.start();
+        } catch (Exception e) {
+            LOGGER.error(cdcsdkContainer.getLogs());
+            throw e;
+        }
 
         ybHelper.execute(testTable.insertStmt());
         ResultSet rs = ybHelper
@@ -90,10 +107,13 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
     @Test
     @Order(1)
     public void verifyRecordsInPostgresFromKafka() throws Exception {
-        // Adding Thread.sleep() here because apparently Awaitility didn't seem to work
-        // as expected.
-        // TODO Vaibhav: Replace the Thread.sleep() function with Awaitility
-        Thread.sleep(10000);
+        try {
+            waitForRecordsInPG();
+        } catch (ConditionTimeoutException exception) {
+            // If this exception is thrown then it means the records were not found to be
+            // equal within the specified duration. Fail the test at this stage.
+            fail();
+        }
 
         ResultSet rs = pgHelper
                 .executeAndGetResultSet(String.format("SELECT * FROM %s order by id;", DEFAULT_TABLE_NAME));
@@ -110,7 +130,79 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
                 break;
             }
         }
-        assertEquals(recordsToBeInserted, recordsAsserted);
+        assertEquals(expectedDataInKafka.size(), recordsAsserted);
+    }
+
+    private void waitForRecordsInPG() throws ConditionTimeoutException {
+        Awaitility.await()
+                .atLeast(Duration.ofSeconds(3))
+                .atMost(Duration.ofSeconds(30))
+                .pollDelay(Duration.ofSeconds(3))
+                .until(() -> {
+                    try {
+                        ResultSet rs = pgHelper
+                                .executeAndGetResultSet(
+                                        String.format("SELECT count(*) FROM %s;", DEFAULT_TABLE_NAME));
+                        rs.next();
+                        LOGGER.debug("No. of records: {}", rs.getInt(1));
+                        return rs.getInt(1) == expectedDataInKafka.size();
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage());
+                        return false;
+                    }
+                });
+    }
+
+    @Test
+    @Order(2)
+    public void verifyRecordsAfterRestart() throws Exception {
+        cdcsdkContainer.stop();
+        ybHelper.execute(testTable.insertStmt("2022-07-02"));
+        ResultSet rs_expected = ybHelper
+                .executeAndGetResultSet(String.format("SELECT * FROM %s order by id;", DEFAULT_TABLE_NAME));
+        expectedDataInKafka = extracted(rs_expected);
+
+        GenericContainer<?> restartContainer = new CdcsdkContainer()
+                .withDatabaseHostname(ybHelper.getHostName())
+                .withMasterPort(String.valueOf(ybHelper.getMasterPort()))
+                .withKafkaBootstrapServers(kafkaHelper.getBootstrapServersAlias())
+                .withTableIncludeList("public."
+                        + DEFAULT_TABLE_NAME)
+                .withStreamId(streamId)
+                .withLogMessageRegex(".*Mapping table.*\\n")
+                .buildForKafkaSink();
+        restartContainer.withNetwork(containerNetwork);
+        try {
+            restartContainer.start();
+        } catch (Exception e) {
+            LOGGER.error(restartContainer.getLogs());
+            throw e;
+        }
+
+        try {
+            waitForRecordsInPG();
+        } catch (ConditionTimeoutException exception) {
+            // If this exception is thrown then it means the records were not found to be
+            // equal within the specified duration. Fail the test at this stage.
+            fail();
+        }
+
+        ResultSet rs = pgHelper
+                .executeAndGetResultSet(String.format("SELECT * FROM %s order by id;", DEFAULT_TABLE_NAME));
+        List<Map<String, Object>> postgresRecords = extracted(rs);
+
+        Iterator<Map<String, Object>> it = expectedDataInKafka.iterator();
+
+        int recordsAsserted = 0;
+        for (Map<String, Object> postgresRecord : postgresRecords) {
+            LOGGER.debug("Postgres record:" + postgresRecord);
+            assertEquals(it.next(), postgresRecord);
+            ++recordsAsserted;
+            if (!it.hasNext()) {
+                break;
+            }
+        }
+        assertEquals(expectedDataInKafka.size(), recordsAsserted);
     }
 
     private static List<Map<String, Object>> extracted(ResultSet rs) throws SQLException {

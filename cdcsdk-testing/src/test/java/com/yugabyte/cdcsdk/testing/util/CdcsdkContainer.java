@@ -203,7 +203,8 @@ public class CdcsdkContainer {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
         cdcsdkContainer.withEnv(getConfigMapForS3());
         cdcsdkContainer.withExposedPorts(8080);
-        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", this.bootstrapLogLineCount));
+        cdcsdkContainer.waitingFor(
+                Wait.forLogMessage(String.format(".*%s.*\\n", bootstrapLogLineRegex), this.bootstrapLogLineCount));
         cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
 
         return cdcsdkContainer;
