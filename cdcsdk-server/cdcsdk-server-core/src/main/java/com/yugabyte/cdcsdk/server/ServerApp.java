@@ -201,6 +201,7 @@ public class ServerApp {
         }
         LOGGER.debug("Configuration for DebeziumEngine: {}", props);
 
+        health.setEngines(numThreads);
         executor = Executors.newFixedThreadPool(numThreads);
 
         for (int index = 0; index < numThreads; index++) {
