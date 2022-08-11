@@ -12,7 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.kafka.clients.consumer.*;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.AfterAll;
@@ -77,10 +76,9 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
                 .withTableIncludeList("public."
                         + DEFAULT_TABLE_NAME)
                 .withStreamId(streamId)
-                // .withLogMessageRegex(".*Mapping table.*\\n")
                 .buildForKafkaSink();
 
-        cdcsdkContainer.withNetwork(containerNetwork);
+        cdcsdkContainer.withNetwork(containerNetwork).withExposedPorts(8080);
         try {
             cdcsdkContainer.start();
         } catch (Exception e) {
