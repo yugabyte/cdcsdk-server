@@ -16,6 +16,12 @@ import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
 
+/**
+ * Release tests that verify the snapshot functionality of Change data capture (CDC) using the
+ * Debezium Connector for YugabyteDB.
+ *
+ * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
+ */
 public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
     private static final String SINK_CONNECTOR_NAME = "jdbc-sink-pg";
 
