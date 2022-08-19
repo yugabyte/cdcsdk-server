@@ -83,7 +83,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
     public void verifyBasicSnapshotStreaming() throws Exception {
         int rowsToBeInserted = 100;
         // Insert data to the source table
-        TestHelper.insertRowsInSourceTable(ybHelper, DEFAULT_TABLE_NAME, rowsToBeInserted);
+        ybHelper.insertBulk(0, rowsToBeInserted);
 
         // Start the CDCSDKContainer with initial snapshot mode
         cdcsdkContainer = kafkaHelper.getCdcsdkContainer(ybHelper, "public." + DEFAULT_TABLE_NAME, 10, "initial");
@@ -99,7 +99,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
     public void performStreamingAfterSnapshotAndPerformInsUpdDelOps() throws Exception {
         int rowsToBeInserted = 100;
         // Insert data to the source table
-        TestHelper.insertRowsInSourceTable(ybHelper, DEFAULT_TABLE_NAME, rowsToBeInserted);
+        ybHelper.insertBulk(0, rowsToBeInserted);
 
         // Start the CDCSDKContainer with initial snapshot mode
         cdcsdkContainer = kafkaHelper.getCdcsdkContainer(ybHelper, "public." + DEFAULT_TABLE_NAME, 10, "initial");
@@ -115,9 +115,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         cdcsdkContainer.withEnv("CDCSDK_SOURCE_SNAPSHOT_MODE", "never");
         cdcsdkContainer.start();
 
-        for (int i = 100; i < 150; ++i) {
-            ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, i, "first_" + i, "last_" + i, 23.45));
-        }
+        ybHelper.insertBulk(100, 150);
 
         pgHelper.waitTillRecordsAreVerified(150, 10000);
         pgHelper.assertRecordCountInPostgres(150);
@@ -148,15 +146,15 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
 
     @Test
     public void restartCdcsdkServerWhileSnapshotInProgress() throws Exception {
-        int rowsToBeInserted = 500;
-        TestHelper.insertRowsInSourceTable(ybHelper, DEFAULT_TABLE_NAME, rowsToBeInserted);
+        int rowsToBeInserted = 10000;
+        ybHelper.insertBulk(0, rowsToBeInserted);
 
         // Get the cdcsdk container instance
         cdcsdkContainer = kafkaHelper.getCdcsdkContainer(ybHelper, "public." + DEFAULT_TABLE_NAME, 10, "initial");
         cdcsdkContainer.withNetwork(containerNetwork);
         cdcsdkContainer.start();
 
-        // Wait for at least 1000 rows to be replicated across postgres sink and then restart the cdcsdk server
+        // Wait for at least 500 rows to be replicated across postgres sink and then restart the cdcsdk server
         // Doing the above would effectively mean that the server will take the snapshot again
         // Ignore the exceptions of type SQLException which may be thrown if the table does not exist
         Awaitility.await()
@@ -165,7 +163,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
                 .until(() -> {
                     ResultSet rSet = pgHelper.executeAndGetResultSet("SELECT COUNT(*) FROM " + DEFAULT_TABLE_NAME + ";");
                     rSet.next();
-                    return rSet.getInt(1) >= 100;
+                    return rSet.getInt(1) >= 500;
                 });
 
         // Restart the cdcsdk container
@@ -181,8 +179,8 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
 
     @Test
     public void restartSnapshotOnceCompleted() throws Exception {
-        int rowsToBeInserted = 100;
-        TestHelper.insertRowsInSourceTable(ybHelper, DEFAULT_TABLE_NAME, rowsToBeInserted);
+        int rowsToBeInserted = 1000;
+        ybHelper.insertBulk(0, rowsToBeInserted);
 
         // Start the cdcsdk container
         cdcsdkContainer = kafkaHelper.getCdcsdkContainer(ybHelper, "public." + DEFAULT_TABLE_NAME, 10, "initial");
@@ -205,8 +203,8 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
 
     @Test
     public void performOpsWhileCdcsdkServerIsStopped() throws Exception {
-        int rowsToBeInserted = 5000;
-        TestHelper.insertRowsInSourceTable(ybHelper, DEFAULT_TABLE_NAME, rowsToBeInserted);
+        int rowsToBeInserted = 10000;
+        ybHelper.insertBulk(0, rowsToBeInserted);
 
         // Start the cdcsdk container
         cdcsdkContainer = kafkaHelper.getCdcsdkContainer(ybHelper, "public." + DEFAULT_TABLE_NAME, 10, "initial");
@@ -227,9 +225,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         // Stop the container and insert some more rows
         cdcsdkContainer.stop();
 
-        for (int i = -100; i < 0; ++i) {
-            ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, i, "first_" + i, "last_" + i, 23.45));
-        }
+        ybHelper.insertBulk(-100, 0);
 
         // When the container is started, it would take a snapshot again
         // TODO: this snapshot may contain some rows which were inserted while the cdcsdk server was stopped
@@ -243,6 +239,14 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
                     rSet.next();
                     return rSet.getInt(1) >= rowsToBeInserted;
                 });
+
+        // Restart the connector with never snapshot mode
+        cdcsdkContainer.stop();
+        cdcsdkContainer.withEnv("CDCSDK_SOURCE_SNAPSHOT_MODE", "never");
+        cdcsdkContainer.start();
+
+        // Wait for records to be replicated
+        pgHelper.waitTillRecordsAreVerified(rowsToBeInserted + 100, 10000);
 
         // Check final record count in postgres
         pgHelper.assertRecordCountInPostgres(rowsToBeInserted + 100 /* records inserted while cdcsdk container was stopped */);
@@ -262,7 +266,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         kafkaConnectContainer.registerConnector("all-types-connector", config);
 
         // Insert data into the table
-        int rowsToBeInserted = 100;
+        int rowsToBeInserted = 50;
         for (int i = 0; i < rowsToBeInserted; ++i) {
             yb.execute(String.format(UtilStrings.INSERT_ALL_TYPES_FORMAT, i));
         }
