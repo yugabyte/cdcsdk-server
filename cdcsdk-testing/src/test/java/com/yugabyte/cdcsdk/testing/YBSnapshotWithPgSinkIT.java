@@ -1,7 +1,11 @@
 package com.yugabyte.cdcsdk.testing;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.net.InetAddress;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.time.Duration;
 
 import org.awaitility.Awaitility;
@@ -12,7 +16,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
+import com.yugabyte.cdcsdk.testing.util.PgHelper;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
+import com.yugabyte.cdcsdk.testing.util.YBHelper;
 
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
 
@@ -240,5 +246,78 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
 
         // Check final record count in postgres
         pgHelper.assertRecordCountInPostgres(rowsToBeInserted + 100 /* records inserted while cdcsdk container was stopped */);
+    }
+
+    @Test
+    public void verifySnapshotForAllSupportedDatatypes() throws Exception {
+        final String tableName = UtilStrings.ALL_TYPES_TABLE_NAME;
+
+        YBHelper yb = new YBHelper(InetAddress.getLocalHost().getHostAddress(), tableName);
+        PgHelper pg = new PgHelper(postgresContainer, tableName);
+
+        yb.execute(UtilStrings.CREATE_ALL_TYPES_TABLE);
+
+        // Register the sink connector
+        ConnectorConfiguration config = pg.getJdbcSinkConfiguration(postgresContainer, "id");
+        kafkaConnectContainer.registerConnector("all-types-connector", config);
+
+        // Insert data into the table
+        int rowsToBeInserted = 100;
+        for (int i = 0; i < rowsToBeInserted; ++i) {
+            yb.execute(String.format(UtilStrings.INSERT_ALL_TYPES_FORMAT, i));
+        }
+
+        cdcsdkContainer = kafkaHelper.getCdcsdkContainer(yb, "public." + tableName, 1, "initial");
+        cdcsdkContainer.withNetwork(containerNetwork);
+        cdcsdkContainer.start();
+
+        // Wait till the records are replicated across the sink
+        pg.waitTillRecordsAreVerified(rowsToBeInserted, 10000);
+
+        // Verify the count of records in the sink
+        pg.assertRecordCountInPostgres(rowsToBeInserted);
+
+        // Verify data in postgres
+        ResultSet rs = pg.executeAndGetResultSet("SELECT * FROM " + tableName + " ORDER BY id;");
+
+        // Now since all the rows will have the same data, asserting the data of a single row should do
+        rs.next();
+        DecimalFormat df = new DecimalFormat("###.###");
+        assertEquals(0, rs.getInt(1));
+        assertEquals(123456, rs.getInt(2));
+        assertEquals("11011", rs.getString(3));
+        assertEquals("10101", rs.getString(4));
+        assertEquals(false, rs.getBoolean(5));
+        assertEquals("\\x01", rs.getString(6));
+        assertEquals("five5", rs.getString(7));
+        assertEquals("sample_text", rs.getString(8));
+        assertEquals("10.1.0.0/16", rs.getString(9));
+        assertEquals(19047, rs.getInt(10));
+        assertEquals(12.345, Double.valueOf(df.format(rs.getDouble(11))));
+        assertEquals("127.0.0.1", rs.getString(12));
+        assertEquals(2505600000000L, rs.getLong(13));
+        assertEquals("{\"a\":\"b\"}", rs.getString(14));
+        assertEquals("{\"a\": \"b\"}", rs.getString(15));
+        assertEquals("2c:54:91:88:c9:e3", rs.getString(16));
+        assertEquals("22:00:5c:03:55:08:01:02", rs.getString(17));
+        assertEquals(100.500, Double.valueOf(df.format(rs.getDouble(18))));
+        assertEquals(12.345, Double.valueOf(df.format(rs.getDouble(19))));
+        assertEquals(32.145, Double.valueOf(df.format(rs.getDouble(20))));
+        assertEquals(12, rs.getInt(21));
+        assertEquals("[2,10)", rs.getString(22));
+        assertEquals("[101,200)", rs.getString(23));
+        assertEquals("(10.45,21.32)", rs.getString(24));
+        assertEquals("(\"1970-01-01 00:00:00\",\"2000-01-01 12:00:00\")", rs.getString(25));
+        assertEquals("(\"2017-07-04 12:30:30+00\",\"2021-07-04 07:00:30+00\")", rs.getString(26));
+        assertEquals("[2019-10-08,2021-10-07)", rs.getString(27));
+        assertEquals("text to verify behaviour", rs.getString(28));
+        assertEquals(46052000, rs.getInt(29));
+        assertEquals("06:30:00Z", rs.getString(30));
+        assertEquals(1637841600000L, rs.getLong(31));
+        assertEquals("2021-11-25T06:30:00Z", rs.getString(32));
+        assertEquals("ffffffff-ffff-ffff-ffff-ffffffffffff", rs.getString(33));
+
+        // Drop the created tables
+        dropTablesAfterEachTest(tableName);
     }
 }
