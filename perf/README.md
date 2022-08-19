@@ -64,7 +64,7 @@ Rest of the instructions assume the name is `settings.env`
 
 ### Start Kafka-Connect with Kafka + PG on local system
 
-    docker compose -f sinks/kafka/kafka-confluent.yaml --env-file settings.env up -d
+    docker compose -f sinks/kafka/confluent.yaml --env-file settings.env up -d
     docker compose -f sinks/kafka/kafka-pg.yaml --env-file settings.env up -d
     docker compose -f yb-connect.yaml --env-file settings.env
     ./yb-connect.sh settings.en
