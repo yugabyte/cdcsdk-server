@@ -123,7 +123,7 @@ public class KafkaHelper {
      * @return a {@link GenericContainer} for CDCSDK server
      * @throws Exception if things go wrong
      */
-    public GenericContainer<?> getCdcsdkContainer(YBHelper ybHelper, String tableIncludeList, int bootstrapLogLineCount) throws Exception {
+    public GenericContainer<?> getCdcsdkContainer(YBHelper ybHelper, String tableIncludeList, int bootstrapLogLineCount, String snapshotMode) throws Exception {
         return new CdcsdkContainer()
                 .withDatabaseHostname(ybHelper.getHostName())
                 .withMasterPort(String.valueOf(ybHelper.getMasterPort()))
@@ -131,6 +131,11 @@ public class KafkaHelper {
                 .withTableIncludeList(tableIncludeList)
                 .withStreamId(ybHelper.getNewDbStreamId(ybHelper.getDatabaseName()))
                 .withBootstrapLogLineCount(bootstrapLogLineCount)
+                .withSnapshotMode(snapshotMode)
                 .buildForKafkaSink();
+    }
+
+    public GenericContainer<?> getCdcsdkContainer(YBHelper ybHelper, String tableIncludeList, int bootstrapLogLineCount) throws Exception {
+        return getCdcsdkContainer(ybHelper, tableIncludeList, bootstrapLogLineCount, "never");
     }
 }
