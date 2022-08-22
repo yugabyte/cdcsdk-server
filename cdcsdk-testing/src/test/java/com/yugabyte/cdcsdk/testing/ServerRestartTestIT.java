@@ -32,7 +32,7 @@ import io.debezium.testing.testcontainers.*;
  * Release test that verifies basic reading from a YugabyteDB database and
  * writing to Kafka and then further to a PostgreSQL sink database
  *
- * @author Isha Amoncar, Vaibhav Kushwaha (vkushwaha@yugabyte.com)
+ * @author Rajat Venkatesh
  */
 public class ServerRestartTestIT extends CdcsdkTestBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerRestartTestIT.class);
