@@ -8,7 +8,10 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 public class CdcsdkContainer {
+    private final String bootstrapLogLineRegex = "Checkpoint for tablet";
+
     private final String cdcsdkSourceConnectorClass = "io.debezium.connector.yugabytedb.YugabyteDBConnector";
+
     private String cdcsdkSourceDatabaseHostname = "127.0.0.1";
     private String cdcsdkSourceDatabasePort = "5433";
     private String cdcsdkSourceDatabaseMasterPort = "7100";
@@ -78,6 +81,11 @@ public class CdcsdkContainer {
 
     public CdcsdkContainer withDatabaseDbname(String databaseName) {
         this.cdcsdkSourceDatabaseDbname = databaseName;
+        return this;
+    }
+
+    public CdcsdkContainer withSnapshotMode(String snapshotMode) {
+        this.cdcsdkSourceDatabaseSnapshotMode = snapshotMode;
         return this;
     }
 
@@ -185,7 +193,7 @@ public class CdcsdkContainer {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
         cdcsdkContainer.withEnv(getConfigMapForKafka());
         cdcsdkContainer.withExposedPorts(8080);
-        cdcsdkContainer.waitingFor(Wait.forLogMessage(".*Bootstrapping the tablet.*\\n", this.bootstrapLogLineCount));
+        cdcsdkContainer.waitingFor(Wait.forLogMessage(String.format(".*%s.*\\n", bootstrapLogLineRegex), this.bootstrapLogLineCount));
         cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
 
         return cdcsdkContainer;
