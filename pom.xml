@@ -10,7 +10,7 @@
 
     <groupId>com.yugabyte</groupId>
     <artifactId>cdcsdk-build-parent</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.8.0</version>
     <name>CDCSDK Build Aggregator</name>
     <description>Yugabyte CDCSDK Server is a streaming platform for change data capture from YugabyteDB</description>
     <packaging>pom</packaging>
