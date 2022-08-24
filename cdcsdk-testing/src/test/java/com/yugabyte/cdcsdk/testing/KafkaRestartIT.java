@@ -1,9 +1,5 @@
 package com.yugabyte.cdcsdk.testing;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 
 import org.awaitility.Awaitility;
@@ -63,8 +59,8 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         cdcsdkContainer.start();
 
         // Register the sink connector
-        sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
-        kafkaConnectContainer.registerConnector(SINK_CONNECTOR_NAME, sinkConfig);
+        // sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
+        // kafkaConnectContainer.registerConnector(SINK_CONNECTOR_NAME, sinkConfig);
     }
 
     @AfterEach
@@ -76,7 +72,7 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         // kafkaConnectContainer.deleteConnector(SINK_CONNECTOR_NAME);
 
         // Delete the Kafka topic so that it can be again created/used by the next test
-        // kafkaHelper.deleteTopicInKafka(pgHelper.getKafkaTopicName());
+        kafkaHelper.deleteTopicInKafka(pgHelper.getKafkaTopicName());
 
         // Drop the tables
         dropTablesAfterEachTest(DEFAULT_TABLE_NAME);
@@ -93,6 +89,8 @@ public class KafkaRestartIT extends CdcsdkTestBase {
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
     public void restartKafkaAssociatedContainersAndValidatePipelineIntegrity(boolean restartKafka) throws Exception {
+        sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
+        kafkaConnectContainer.registerConnector("jdbc-sink-" + restartKafka, sinkConfig);
         int rowsToBeInserted = 5;
         for (int i = 0; i < rowsToBeInserted; ++i) {
             ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, i, "first_" + i, "last_" + i, 23.45));
@@ -125,10 +123,13 @@ public class KafkaRestartIT extends CdcsdkTestBase {
 
         // Verify the record count in the sink
         pgHelper.assertRecordCountInPostgres(15);
+        kafkaConnectContainer.deleteConnector("jdbc-sink-" + restartKafka);
     }
 
     @Test
     public void insertRecordsWhileKafkaConnectIsDown() throws Exception {
+        sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
+        kafkaConnectContainer.registerConnector("jdbc-sink-kafka-down", sinkConfig);
         int rowsToBeInsertedBeforeStopping = 5;
         ybHelper.insertBulk(0, rowsToBeInsertedBeforeStopping);
 
@@ -144,16 +145,19 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         // Start Kafka Connect process
         dockerClient.startContainerCmd(kafkaConnectContainer.getContainerId()).exec();
 
-        Thread.sleep(5000);
-        Path kafkaConnectLogPath = Paths.get("/home/ec2-user/kafka-connect-log.txt");
-        Files.writeString(kafkaConnectLogPath, kafkaConnectContainer.getLogs(), StandardCharsets.UTF_8);
-        System.out.println("Wrote log files");
+        // Thread.sleep(5000);
+        // Path kafkaConnectLogPath = Paths.get("/home/ec2-user/kafka-connect-log.txt");
+        // Files.writeString(kafkaConnectLogPath, kafkaConnectContainer.getLogs(), StandardCharsets.UTF_8);
+        // System.out.println("Wrote log files");
 
         pgHelper.waitTillRecordsAreVerified(15, 30000);
+        kafkaConnectContainer.deleteConnector("jdbc-sink-kafka-down");
     }
 
     @Test
     public void insertRecordsWhileKafkaIsDown() throws Exception {
+        sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
+        kafkaConnectContainer.registerConnector("jdbc-sink-connect-down", sinkConfig);
         int rowsToBeInsertedBeforeStopping = 5;
         ybHelper.insertBulk(0, rowsToBeInsertedBeforeStopping);
 
@@ -169,12 +173,13 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         // Start Kafka process
         dockerClient.startContainerCmd(kafkaContainer.getContainerId()).exec();
 
-        Thread.sleep(5000);
-        Path kafkaLogPath = Paths.get("/home/ec2-user/kafka-log.txt");
-        Files.writeString(kafkaLogPath, kafkaContainer.getLogs(), StandardCharsets.UTF_8);
-        System.out.println("Wrote log files");
+        // Thread.sleep(5000);
+        // Path kafkaLogPath = Paths.get("/home/ec2-user/kafka-log.txt");
+        // Files.writeString(kafkaLogPath, kafkaContainer.getLogs(), StandardCharsets.UTF_8);
+        // System.out.println("Wrote log files");
 
         pgHelper.waitTillRecordsAreVerified(15, 30000);
+        kafkaConnectContainer.deleteConnector("jdbc-sink-connect-down");
     }
 
     /**
@@ -194,5 +199,4 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         dockerClient.stopContainerCmd(kafkaContainer.getContainerId()).exec();
         dockerClient.startContainerCmd(kafkaContainer.getContainerId()).exec();
     }
-
 }
