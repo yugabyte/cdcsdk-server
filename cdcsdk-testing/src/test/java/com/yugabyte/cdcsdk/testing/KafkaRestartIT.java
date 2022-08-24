@@ -12,7 +12,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.testcontainers.DockerClientFactory;
 
+import com.github.dockerjava.api.DockerClient;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 
@@ -29,6 +33,8 @@ public class KafkaRestartIT extends CdcsdkTestBase {
 
     private static ConnectorConfiguration sinkConfig;
 
+    private static DockerClient dockerClient;
+
     @BeforeAll
     public static void beforeAll() throws Exception {
         initializeContainers();
@@ -42,6 +48,8 @@ public class KafkaRestartIT extends CdcsdkTestBase {
                 .until(() -> postgresContainer.isRunning());
 
         initHelpers();
+
+        dockerClient = DockerClientFactory.lazyClient();
     }
 
     @BeforeEach
@@ -65,10 +73,10 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         cdcsdkContainer.stop();
 
         // Delete the sink connector
-        kafkaConnectContainer.deleteConnector(SINK_CONNECTOR_NAME);
+        // kafkaConnectContainer.deleteConnector(SINK_CONNECTOR_NAME);
 
         // Delete the Kafka topic so that it can be again created/used by the next test
-        kafkaHelper.deleteTopicInKafka(pgHelper.getKafkaTopicName());
+        // kafkaHelper.deleteTopicInKafka(pgHelper.getKafkaTopicName());
 
         // Drop the tables
         dropTablesAfterEachTest(DEFAULT_TABLE_NAME);
@@ -82,8 +90,9 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         kafkaContainer.stop();
     }
 
-    @Test
-    public void restartKafkaAndVerifyPipelineIntegrity() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    public void restartKafkaAssociatedContainersAndValidatePipelineIntegrity(boolean restartKafka) throws Exception {
         int rowsToBeInserted = 5;
         for (int i = 0; i < rowsToBeInserted; ++i) {
             ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, i, "first_" + i, "last_" + i, 23.45));
@@ -92,23 +101,89 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         // Wait for records to be replicated across Postgres sink
         pgHelper.waitTillRecordsAreVerified(rowsToBeInserted, 10000);
 
-        restartKafkaContainer();
+        // If restartKafka flag is true, then we will restart the kafkaContainer but in case it is
+        // false, we will restart the kafkaConnectContainer
+        if (restartKafka) {
+            restartKafkaContainer();
+        }
+        else {
+            restartKafkaConnectContainer();
+        }
 
-        // Insert some more records after Kafka container is restarted
+        // Insert some more records after the container is restarted
         for (int i = 5; i < 15; ++i) {
             ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, i, "first_" + i, "last_" + i, 23.45));
         }
 
-        Path kafkaLogPath = Paths.get("/home/ec2-user/kafka-log.txt");
-        Path kafkaConnectLogPath = Paths.get("/home/ec2-user/kafka-connect-log.txt");
+        // Path kafkaLogPath = Paths.get("/home/ec2-user/kafka-log.txt");
+        // Path kafkaConnectLogPath = Paths.get("/home/ec2-user/kafka-connect-log.txt");
 
-        Files.writeString(kafkaLogPath, kafkaContainer.getLogs(), StandardCharsets.UTF_8);
-        Files.writeString(kafkaConnectLogPath, kafkaConnectContainer.getLogs(), StandardCharsets.UTF_8);
-        System.out.println("Wrote the logs to the respective files");
-        pgHelper.waitTillRecordsAreVerified(15, 10000);
+        // Files.writeString(kafkaLogPath, kafkaContainer.getLogs(), StandardCharsets.UTF_8);
+        // Files.writeString(kafkaConnectLogPath, kafkaConnectContainer.getLogs(), StandardCharsets.UTF_8);
+        // System.out.println("Wrote the logs to the respective files");
+        pgHelper.waitTillRecordsAreVerified(15, 30000);
 
         // Verify the record count in the sink
         pgHelper.assertRecordCountInPostgres(15);
+    }
+
+    @Test
+    public void insertRecordsWhileKafkaConnectIsDown() throws Exception {
+        int rowsToBeInsertedBeforeStopping = 5;
+        ybHelper.insertBulk(0, rowsToBeInsertedBeforeStopping);
+
+        // Wait for records to be replicated across Postgres
+        pgHelper.waitTillRecordsAreVerified(rowsToBeInsertedBeforeStopping, 10000);
+
+        // Stop the Kafka Connect
+        dockerClient.stopContainerCmd(kafkaConnectContainer.getContainerId()).exec();
+
+        // Insert more records - this will make the total records as 15
+        ybHelper.insertBulk(rowsToBeInsertedBeforeStopping, 15);
+
+        // Start Kafka Connect process
+        dockerClient.startContainerCmd(kafkaConnectContainer.getContainerId()).exec();
+
+        Thread.sleep(5000);
+        Path kafkaConnectLogPath = Paths.get("/home/ec2-user/kafka-connect-log.txt");
+        Files.writeString(kafkaConnectLogPath, kafkaConnectContainer.getLogs(), StandardCharsets.UTF_8);
+        System.out.println("Wrote log files");
+
+        pgHelper.waitTillRecordsAreVerified(15, 30000);
+    }
+
+    @Test
+    public void insertRecordsWhileKafkaIsDown() throws Exception {
+        int rowsToBeInsertedBeforeStopping = 5;
+        ybHelper.insertBulk(0, rowsToBeInsertedBeforeStopping);
+
+        // Wait for records to be replicated across Postgres
+        pgHelper.waitTillRecordsAreVerified(rowsToBeInsertedBeforeStopping, 10000);
+
+        // Stop the Kafka process
+        dockerClient.stopContainerCmd(kafkaContainer.getContainerId()).exec();
+
+        // Insert more records - this will make the total records as 15
+        ybHelper.insertBulk(rowsToBeInsertedBeforeStopping, 15);
+
+        // Start Kafka process
+        dockerClient.startContainerCmd(kafkaContainer.getContainerId()).exec();
+
+        Thread.sleep(5000);
+        Path kafkaLogPath = Paths.get("/home/ec2-user/kafka-log.txt");
+        Files.writeString(kafkaLogPath, kafkaContainer.getLogs(), StandardCharsets.UTF_8);
+        System.out.println("Wrote log files");
+
+        pgHelper.waitTillRecordsAreVerified(15, 30000);
+    }
+
+    /**
+     * Helper function to restart the Kafka connect container
+     * @throws Exception if the container cannot be stopped or started after stopping
+     */
+    public void restartKafkaConnectContainer() throws Exception {
+        dockerClient.stopContainerCmd(kafkaConnectContainer.getContainerId()).exec();
+        dockerClient.startContainerCmd(kafkaConnectContainer.getContainerId()).exec();
     }
 
     /**
@@ -116,8 +191,8 @@ public class KafkaRestartIT extends CdcsdkTestBase {
      * @throws Exception if the container cannot be stopped or started after stopping
      */
     public void restartKafkaContainer() throws Exception {
-        kafkaContainer.stop();
-        kafkaContainer.start();
+        dockerClient.stopContainerCmd(kafkaContainer.getContainerId()).exec();
+        dockerClient.startContainerCmd(kafkaContainer.getContainerId()).exec();
     }
 
 }
