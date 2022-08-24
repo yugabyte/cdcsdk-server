@@ -33,7 +33,6 @@ do
           '${START} days $((${HOUR}+1)) hours', INTERVAL '15 seconds') AS date, generate_series(1,10) AS host_id;"
         echo "$INSERT_TIMESERIES"
         ysqlsh -c "$INSERT_TIMESERIES" &
-        sleep 0.5
         pid_list[${HOUR}]=$!
     done
     for p in ${pid_list[*]}; do
