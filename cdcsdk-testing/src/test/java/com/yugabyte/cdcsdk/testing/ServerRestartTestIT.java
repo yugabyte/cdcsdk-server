@@ -107,7 +107,7 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
     @Order(1)
     public void verifyRecordsInPostgresFromKafka() throws Exception {
         try {
-            waitForRecordsInPG();
+            pgHelper.waitTillRecordsAreVerified(expectedDataInKafka.size(), 3000);
         }
         catch (ConditionTimeoutException exception) {
             // If this exception is thrown then it means the records were not found to be
@@ -131,27 +131,6 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
             }
         }
         assertEquals(expectedDataInKafka.size(), recordsAsserted);
-    }
-
-    private void waitForRecordsInPG() throws ConditionTimeoutException {
-        Awaitility.await()
-                .atLeast(Duration.ofSeconds(3))
-                .atMost(Duration.ofSeconds(30))
-                .pollDelay(Duration.ofSeconds(3))
-                .until(() -> {
-                    try {
-                        ResultSet rs = pgHelper
-                                .executeAndGetResultSet(
-                                        String.format("SELECT count(*) FROM %s;", DEFAULT_TABLE_NAME));
-                        rs.next();
-                        LOGGER.debug("No. of records: {}", rs.getInt(1));
-                        return rs.getInt(1) == expectedDataInKafka.size();
-                    }
-                    catch (Exception e) {
-                        LOGGER.error(e.getMessage());
-                        return false;
-                    }
-                });
     }
 
     @Test
@@ -181,7 +160,7 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
         }
 
         try {
-            waitForRecordsInPG();
+            pgHelper.waitTillRecordsAreVerified(expectedDataInKafka.size(), 3000);
         }
         catch (ConditionTimeoutException exception) {
             // If this exception is thrown then it means the records were not found to be
