@@ -167,7 +167,6 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
                 .withTableIncludeList("public."
                         + DEFAULT_TABLE_NAME)
                 .withStreamId(streamId)
-                .withLogMessageRegex(".*Mapping table.*\\n")
                 .buildForKafkaSink();
         restartContainer.withNetwork(containerNetwork);
         try {
