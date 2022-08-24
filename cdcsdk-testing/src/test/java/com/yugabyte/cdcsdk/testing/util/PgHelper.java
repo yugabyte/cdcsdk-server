@@ -224,13 +224,13 @@ public class PgHelper {
     /**
      * 
      * @param expectedRecordCount  Number of records expected
-     * @param milliSecondsToWait   Maximum milli seconds to wait
-     * @throws ConditionTimeoutException if condition not met within 5 seconds
+     * @param maxMilliSecondsToWait   Maximum milli seconds to wait
+     * @throws ConditionTimeoutException if condition not met within the specified time
      */
-    public void waitTillRecordsAreVerified(int expectedRecordCount, long milliSecondsToWait) throws ConditionTimeoutException {
+    public void waitTillRecordsAreVerified(int expectedRecordCount, long maxMilliSecondsToWait) throws ConditionTimeoutException {
         Awaitility.await()
                 .atLeast(Duration.ofMillis(10))
-                .atMost(Duration.ofMillis(milliSecondsToWait))
+                .atMost(Duration.ofMillis(maxMilliSecondsToWait))
                 .ignoreExceptionsInstanceOf(SQLException.class)
                 .until(() -> verifyRecordCount(expectedRecordCount));
     }
