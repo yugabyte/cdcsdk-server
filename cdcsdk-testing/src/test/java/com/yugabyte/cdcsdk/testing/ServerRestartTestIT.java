@@ -81,7 +81,8 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
         cdcsdkContainer.withNetwork(containerNetwork).withExposedPorts(8080);
         try {
             cdcsdkContainer.start();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             LOGGER.error(cdcsdkContainer.getLogs());
             throw e;
         }
@@ -107,7 +108,8 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
     public void verifyRecordsInPostgresFromKafka() throws Exception {
         try {
             waitForRecordsInPG();
-        } catch (ConditionTimeoutException exception) {
+        }
+        catch (ConditionTimeoutException exception) {
             // If this exception is thrown then it means the records were not found to be
             // equal within the specified duration. Fail the test at this stage.
             fail();
@@ -144,7 +146,8 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
                         rs.next();
                         LOGGER.debug("No. of records: {}", rs.getInt(1));
                         return rs.getInt(1) == expectedDataInKafka.size();
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e) {
                         LOGGER.error(e.getMessage());
                         return false;
                     }
@@ -171,14 +174,16 @@ public class ServerRestartTestIT extends CdcsdkTestBase {
         restartContainer.withNetwork(containerNetwork);
         try {
             restartContainer.start();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             LOGGER.error(restartContainer.getLogs());
             throw e;
         }
 
         try {
             waitForRecordsInPG();
-        } catch (ConditionTimeoutException exception) {
+        }
+        catch (ConditionTimeoutException exception) {
             // If this exception is thrown then it means the records were not found to be
             // equal within the specified duration. Fail the test at this stage.
             fail();
