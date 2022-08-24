@@ -58,9 +58,11 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         cdcsdkContainer.withNetwork(containerNetwork);
         cdcsdkContainer.start();
 
+        System.out.println("Sleeping for 15 s, check container health status");
+        Thread.sleep(15000);
         // Register the sink connector
-        // sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
-        // kafkaConnectContainer.registerConnector(SINK_CONNECTOR_NAME, sinkConfig);
+        sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
+        kafkaConnectContainer.registerConnector(SINK_CONNECTOR_NAME, sinkConfig);
     }
 
     @AfterEach
@@ -69,7 +71,7 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         cdcsdkContainer.stop();
 
         // Delete the sink connector
-        // kafkaConnectContainer.deleteConnector(SINK_CONNECTOR_NAME);
+        kafkaConnectContainer.deleteConnector(SINK_CONNECTOR_NAME);
 
         // Delete the Kafka topic so that it can be again created/used by the next test
         kafkaHelper.deleteTopicInKafka(pgHelper.getKafkaTopicName());
@@ -89,8 +91,8 @@ public class KafkaRestartIT extends CdcsdkTestBase {
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
     public void restartKafkaAssociatedContainersAndValidatePipelineIntegrity(boolean restartKafka) throws Exception {
-        sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
-        kafkaConnectContainer.registerConnector("jdbc-sink-" + restartKafka, sinkConfig);
+        // sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
+        // kafkaConnectContainer.registerConnector("jdbc-sink-" + restartKafka, sinkConfig);
         int rowsToBeInserted = 5;
         for (int i = 0; i < rowsToBeInserted; ++i) {
             ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, i, "first_" + i, "last_" + i, 23.45));
@@ -123,13 +125,13 @@ public class KafkaRestartIT extends CdcsdkTestBase {
 
         // Verify the record count in the sink
         pgHelper.assertRecordCountInPostgres(15);
-        kafkaConnectContainer.deleteConnector("jdbc-sink-" + restartKafka);
+        // kafkaConnectContainer.deleteConnector("jdbc-sink-" + restartKafka);
     }
 
     @Test
     public void insertRecordsWhileKafkaConnectIsDown() throws Exception {
         sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
-        kafkaConnectContainer.registerConnector("jdbc-sink-kafka-down", sinkConfig);
+        kafkaConnectContainer.registerConnector("jdbc-sink-connect-down", sinkConfig);
         int rowsToBeInsertedBeforeStopping = 5;
         ybHelper.insertBulk(0, rowsToBeInsertedBeforeStopping);
 
@@ -151,13 +153,13 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         // System.out.println("Wrote log files");
 
         pgHelper.waitTillRecordsAreVerified(15, 30000);
-        kafkaConnectContainer.deleteConnector("jdbc-sink-kafka-down");
+        kafkaConnectContainer.deleteConnector("jdbc-sink-connet-down");
     }
 
     @Test
     public void insertRecordsWhileKafkaIsDown() throws Exception {
         sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
-        kafkaConnectContainer.registerConnector("jdbc-sink-connect-down", sinkConfig);
+        kafkaConnectContainer.registerConnector("jdbc-sink-kafka-down", sinkConfig);
         int rowsToBeInsertedBeforeStopping = 5;
         ybHelper.insertBulk(0, rowsToBeInsertedBeforeStopping);
 
@@ -179,7 +181,7 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         // System.out.println("Wrote log files");
 
         pgHelper.waitTillRecordsAreVerified(15, 30000);
-        kafkaConnectContainer.deleteConnector("jdbc-sink-connect-down");
+        kafkaConnectContainer.deleteConnector("jdbc-sink-kafka-down");
     }
 
     /**
