@@ -25,6 +25,10 @@ payload() {
         "database.server.name": "${TOPIC_PREFIX}",
         "table.include.list":"${TABLES}",
         "database.streamid":"${CDC_SDK_STREAM_ID}",
+        "key.converter.schemas.enable":"false",
+        "value.converter.schemas.enable":"false",
+        "transforms":"unwrap",
+        "transforms.unwrap.type":"io.debezium.connector.yugabytedb.transforms.YBExtractNewRecordState",
         "snapshot.mode":"never"
     }
 }
