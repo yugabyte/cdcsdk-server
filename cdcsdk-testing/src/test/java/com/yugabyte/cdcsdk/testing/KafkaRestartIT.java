@@ -158,8 +158,8 @@ public class KafkaRestartIT extends CdcsdkTestBase {
 
     @Test
     public void insertRecordsWhileKafkaIsDown() throws Exception {
-        sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
-        kafkaConnectContainer.registerConnector("jdbc-sink-kafka-down", sinkConfig);
+        // sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
+        // kafkaConnectContainer.registerConnector("jdbc-sink-kafka-down", sinkConfig);
         int rowsToBeInsertedBeforeStopping = 5;
         ybHelper.insertBulk(0, rowsToBeInsertedBeforeStopping);
 
@@ -167,13 +167,15 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         pgHelper.waitTillRecordsAreVerified(rowsToBeInsertedBeforeStopping, 10000);
 
         // Stop the Kafka process
-        dockerClient.stopContainerCmd(kafkaContainer.getContainerId()).exec();
+        kafkaContainer.getDockerClient().stopContainerCmd(kafkaContainer.getContainerId()).exec();
+        // dockerClient.stopContainerCmd(kafkaContainer.getContainerId()).exec();
 
         // Insert more records - this will make the total records as 15
         ybHelper.insertBulk(rowsToBeInsertedBeforeStopping, 15);
 
         // Start Kafka process
-        dockerClient.startContainerCmd(kafkaContainer.getContainerId()).exec();
+        kafkaContainer.getDockerClient().startContainerCmd(kafkaContainer.getContainerId()).exec();
+        // dockerClient.startContainerCmd(kafkaContainer.getContainerId()).exec();
 
         // Thread.sleep(5000);
         // Path kafkaLogPath = Paths.get("/home/ec2-user/kafka-log.txt");
@@ -181,7 +183,7 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         // System.out.println("Wrote log files");
 
         pgHelper.waitTillRecordsAreVerified(15, 30000);
-        kafkaConnectContainer.deleteConnector("jdbc-sink-kafka-down");
+        // kafkaConnectContainer.deleteConnector("jdbc-sink-kafka-down");
     }
 
     /**
