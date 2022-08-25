@@ -25,3 +25,6 @@ hs_err_pid*
 **/target/
 **/volumes/
 .idea/
+.settings
+.classpath
+.project

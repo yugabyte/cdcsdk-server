@@ -5,6 +5,8 @@
  */
 package io.debezium.server;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
@@ -39,7 +41,9 @@ public class ConnectorLifecycle implements HealthCheck, DebeziumEngine.Connector
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorLifecycle.class);
 
-    private volatile boolean live = false;
+    private AtomicInteger numLive;
+
+    private int numEngines = 0;
 
     @Inject
     Event<ConnectorStartedEvent> connectorStartedEvent;
@@ -62,6 +66,11 @@ public class ConnectorLifecycle implements HealthCheck, DebeziumEngine.Connector
     @PostConstruct
     public void init() {
         Gauge.builder("cdcsdk.server.health", this::getStatusCode).strongReference(true).register(metrics.registry());
+        this.numLive = new AtomicInteger(0);
+    }
+
+    public void setEngines(int engines) {
+        this.numEngines = engines;
     }
 
     @Override
@@ -80,29 +89,30 @@ public class ConnectorLifecycle implements HealthCheck, DebeziumEngine.Connector
     public void taskStarted() {
         LOGGER.debug("Task started");
         taskStartedEvent.fire(new TaskStartedEvent());
-        live = true;
+        this.numLive.incrementAndGet();
     }
 
     @Override
     public void taskStopped() {
         LOGGER.debug("Task stopped");
         taskStoppedEvent.fire(new TaskStoppedEvent());
+        this.numLive.decrementAndGet();
     }
 
     @Override
     public void handle(boolean success, String message, Throwable error) {
         LOGGER.info("Connector completed: success = '{}', message = '{}', error = '{}'", success, message, error);
         connectorCompletedEvent.fire(new ConnectorCompletedEvent(success, message, error));
-        live = false;
+        this.numLive.set(0);
     }
 
     @Override
     public HealthCheckResponse call() {
-        LOGGER.trace("Healthcheck called - live = '{}'", live);
-        return HealthCheckResponse.named("cdcsdk-server").status(live).build();
+        LOGGER.trace("Healthcheck called - live = '{}'", numLive);
+        return HealthCheckResponse.named("cdcsdk-server").status(this.numLive.get() == this.numEngines).build();
     }
 
     private int getStatusCode() {
-        return live ? 0 : 1;
+        return (this.numLive.get() == this.numEngines) ? 0 : 1;
     }
 }
