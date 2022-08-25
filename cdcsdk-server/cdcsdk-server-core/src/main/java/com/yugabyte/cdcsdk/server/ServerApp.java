@@ -201,9 +201,11 @@ public class ServerApp {
         }
         LOGGER.debug("Configuration for DebeziumEngine: {}", props);
 
+        health.setEngines(numThreads);
         executor = Executors.newFixedThreadPool(numThreads);
 
         for (int index = 0; index < numThreads; index++) {
+            props.setProperty("name", String.format("MTEngine %d", index));
             props.setProperty("taskId", String.valueOf(index));
             props.setProperty("maxTasks", String.valueOf(numThreads));
             props.setProperty("offset.storage.file.filename", "data/" + String.valueOf(index));
