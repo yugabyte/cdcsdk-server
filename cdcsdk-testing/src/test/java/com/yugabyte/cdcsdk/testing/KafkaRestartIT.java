@@ -1,8 +1,16 @@
 package com.yugabyte.cdcsdk.testing;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.ResultSet;
 import java.time.Duration;
 
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -71,7 +79,10 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         cdcsdkContainer.stop();
 
         // Delete the sink connector
-        kafkaConnectContainer.deleteConnector(SINK_CONNECTOR_NAME);
+        System.out.println("Resistered connectors: " + kafkaConnectContainer.getRegisteredConnectors());
+        if (kafkaConnectContainer.isConnectorConfigured(SINK_CONNECTOR_NAME)) {
+            kafkaConnectContainer.deleteConnector(SINK_CONNECTOR_NAME);
+        }
 
         // Delete the Kafka topic so that it can be again created/used by the next test
         kafkaHelper.deleteTopicInKafka(pgHelper.getKafkaTopicName());
@@ -130,8 +141,8 @@ public class KafkaRestartIT extends CdcsdkTestBase {
 
     @Test
     public void insertRecordsWhileKafkaConnectIsDown() throws Exception {
-        sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
-        kafkaConnectContainer.registerConnector("jdbc-sink-connect-down", sinkConfig);
+        // sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
+        // kafkaConnectContainer.registerConnector("jdbc-sink-connect-down", sinkConfig);
         int rowsToBeInsertedBeforeStopping = 5;
         ybHelper.insertBulk(0, rowsToBeInsertedBeforeStopping);
 
@@ -139,21 +150,40 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         pgHelper.waitTillRecordsAreVerified(rowsToBeInsertedBeforeStopping, 10000);
 
         // Stop the Kafka Connect
-        dockerClient.stopContainerCmd(kafkaConnectContainer.getContainerId()).exec();
+        kafkaConnectContainer.getDockerClient().stopContainerCmd(kafkaConnectContainer.getContainerId()).exec();
 
         // Insert more records - this will make the total records as 15
         ybHelper.insertBulk(rowsToBeInsertedBeforeStopping, 15);
 
         // Start Kafka Connect process
-        dockerClient.startContainerCmd(kafkaConnectContainer.getContainerId()).exec();
+        kafkaConnectContainer.getDockerClient().startContainerCmd(kafkaConnectContainer.getContainerId()).exec();
+
+        System.out.println("Sleeping for 50s to get a list of connectors...");
+        Thread.sleep(50000);
+        System.out.println(kafkaConnectContainer.getConnectorsUri());
 
         // Thread.sleep(5000);
-        // Path kafkaConnectLogPath = Paths.get("/home/ec2-user/kafka-connect-log.txt");
-        // Files.writeString(kafkaConnectLogPath, kafkaConnectContainer.getLogs(), StandardCharsets.UTF_8);
-        // System.out.println("Wrote log files");
+        Path kafkaConnectLogPath = Paths.get("/home/ec2-user/kafka-connect-log.txt");
+        Files.writeString(kafkaConnectLogPath, kafkaConnectContainer.getLogs(), StandardCharsets.UTF_8);
+        System.out.println("Wrote log files");
 
-        pgHelper.waitTillRecordsAreVerified(15, 30000);
-        kafkaConnectContainer.deleteConnector("jdbc-sink-connet-down");
+        try {
+            pgHelper.waitTillRecordsAreVerified(15, 30000);
+        }
+        catch (ConditionTimeoutException ce) {
+            ResultSet rs = pgHelper.executeAndGetResultSet("SELECT * FROM " + DEFAULT_TABLE_NAME + " ORDER BY id;");
+            System.out.println("Result set in PG: ");
+            while (rs.next()) {
+                System.out.println("id: " + rs.getInt(1));
+            }
+            fail("Failed because of the ConditionTimeoutException");
+        }
+        // ResultSet rs = pgHelper.executeAndGetResultSet("SELECT * FROM " + DEFAULT_TABLE_NAME + " ORDER BY id;");
+        // System.out.println("Result set in PG: ");
+        // while (rs.next()) {
+        // System.out.println("id: " + rs.getInt(1));
+        // }
+        // kafkaConnectContainer.deleteConnector("jdbc-sink-connet-down");
     }
 
     @Test
