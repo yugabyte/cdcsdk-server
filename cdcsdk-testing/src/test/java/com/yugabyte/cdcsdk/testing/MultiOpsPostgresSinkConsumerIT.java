@@ -97,9 +97,6 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
         pgHelper.waitTillRecordsAreVerified(0, 5000);
 
         pgHelper.assertRecordCountInPostgres(0);
-        // Sleep for 5 minutes to verify connector endpoints
-        System.out.println("Sleeping for 5 minutes");
-        Thread.sleep(300000);
     }
 
     @Test
