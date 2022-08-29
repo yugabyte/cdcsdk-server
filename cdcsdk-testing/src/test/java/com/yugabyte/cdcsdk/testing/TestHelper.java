@@ -2,6 +2,7 @@ package com.yugabyte.cdcsdk.testing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,6 +15,15 @@ import org.testcontainers.containers.GenericContainer;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkContainer;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 import com.yugabyte.cdcsdk.testing.util.YBHelper;
+
+import io.debezium.testing.testcontainers.Connector;
+import io.debezium.testing.testcontainers.ConnectorConfiguration;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class TestHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
@@ -66,5 +76,54 @@ public class TestHelper {
         assertEquals(firstNameCol, rs.getString(2));
         assertEquals(lastNameCol, rs.getString(3));
         assertEquals(daysWorkedCol, rs.getDouble(4));
+    }
+
+    /**
+     * Helper function to register connectors to the Kafka Connect container.
+     * 
+     * We cannot use {@code kafkaConnectContainer.registerConnector()} since the command didn't work
+     * after the containers were restarted i.e. in the backend the command was still referring to the
+     * mapped ports before the restart. 
+     * @param connectorsEndpoint connector URI
+     * @param connectorName name of the connector
+     * @param config configuration for the connector to be deployed
+     */
+    public static void registerConnector(String connectorsEndpoint, String connectorName, ConnectorConfiguration config) {
+        final OkHttpClient httpClient = new OkHttpClient();
+        final Connector connector = Connector.from(connectorName, config);
+
+        final RequestBody requestBody = RequestBody.create(connector.toJson(), MediaType.get("application/json; charset=utf-8"));
+        final Request request = new Request.Builder().url(connectorsEndpoint).post(requestBody).build();
+
+        try (final Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new RuntimeException("Cannot deploy the connector: " + connectorName);
+            }
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Error connecting to Debezium container", e);
+        }
+    }
+
+    public static String getJsonConfig(String connectorName, ConnectorConfiguration config) {
+        final Connector connector = Connector.from(connectorName, config);
+        return connector.toJson();
+    }
+
+    /**
+     * Helper function to delete connectors from Kafka Connect container.
+     * @param connectorUriString connector URI with connector name
+     */
+    public static void deleteConnector(String connectorUriString) {
+        final OkHttpClient httpClient = new OkHttpClient();
+        final Request request = new Request.Builder().url(connectorUriString).delete().build();
+        try (final Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new RuntimeException("Error deleting the connector");
+            }
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Error deleting the connector", e);
+        }
     }
 }
