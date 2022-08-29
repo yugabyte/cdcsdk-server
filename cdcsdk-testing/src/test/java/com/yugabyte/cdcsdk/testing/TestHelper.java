@@ -12,6 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.Ports.Binding;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkContainer;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 import com.yugabyte.cdcsdk.testing.util.YBHelper;
@@ -81,8 +84,8 @@ public class TestHelper {
     /**
      * Helper function to register connectors to the Kafka Connect container.
      * 
-     * We cannot use {@code kafkaConnectContainer.registerConnector()} since the command didn't work
-     * after the containers were restarted i.e. in the backend the command was still referring to the
+     * We cannot use {@code kafkaConnectContainer.registerConnector()} since the command doesn't work
+     * after the containers were restarted i.e. in the backend the command still refers to the
      * mapped ports before the restart. 
      * @param connectorsEndpoint connector URI
      * @param connectorName name of the connector
@@ -105,11 +108,6 @@ public class TestHelper {
         }
     }
 
-    public static String getJsonConfig(String connectorName, ConnectorConfiguration config) {
-        final Connector connector = Connector.from(connectorName, config);
-        return connector.toJson();
-    }
-
     /**
      * Helper function to delete connectors from Kafka Connect container.
      * @param connectorUriString connector URI with connector name
@@ -125,5 +123,17 @@ public class TestHelper {
         catch (IOException e) {
             throw new RuntimeException("Error deleting the connector", e);
         }
+    }
+
+    /**
+     * Helper function to retrieve the mapped port on the host machine for the given port in the docker container
+     * @param container the container instance
+     * @param port the exposed port in docker container 
+     * @return the mapped port on host machine
+     */
+    public static int getContainerMappedPortFor(GenericContainer<?> container, int port) {
+        Ports ports = container.getCurrentContainerInfo().getNetworkSettings().getPorts();
+        Binding[] binding = ports.getBindings().get(ExposedPort.tcp(port));
+        return Integer.valueOf(binding[0].getHostPortSpec());
     }
 }

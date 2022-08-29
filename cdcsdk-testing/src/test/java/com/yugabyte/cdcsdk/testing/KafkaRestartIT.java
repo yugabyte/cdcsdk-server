@@ -60,7 +60,7 @@ public class KafkaRestartIT extends CdcsdkTestBase {
 
         // Register the sink connector
         sinkConfig = pgHelper.getJdbcSinkConfiguration(postgresContainer, "id");
-        int mappedPort = getContainerMappedPortFor(kafkaConnectContainer, 8083);
+        int mappedPort = TestHelper.getContainerMappedPortFor(kafkaConnectContainer, 8083);
         TestHelper.registerConnector(String.format(CONNECTOR_URI, mappedPort), SINK_CONNECTOR_NAME, sinkConfig);
     }
 
@@ -70,7 +70,7 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         cdcsdkContainer.stop();
 
         // Delete the sink connector
-        TestHelper.deleteConnector(String.format(CONNECTOR_URI, getContainerMappedPortFor(kafkaConnectContainer, 8083)) + SINK_CONNECTOR_NAME);
+        TestHelper.deleteConnector(String.format(CONNECTOR_URI, TestHelper.getContainerMappedPortFor(kafkaConnectContainer, 8083)) + SINK_CONNECTOR_NAME);
 
         // Delete the Kafka topic so that it can be again created/used by the next test
         kafkaHelper.deleteTopicInKafka(pgHelper.getKafkaTopicName());
@@ -173,11 +173,5 @@ public class KafkaRestartIT extends CdcsdkTestBase {
     public void restartKafkaContainer() throws Exception {
         kafkaContainer.getDockerClient().stopContainerCmd(kafkaContainer.getContainerId()).exec();
         kafkaContainer.getDockerClient().startContainerCmd(kafkaContainer.getContainerId()).exec();
-    }
-
-    private int getContainerMappedPortFor(GenericContainer<?> container, int port) {
-        Ports ports = container.getCurrentContainerInfo().getNetworkSettings().getPorts();
-        Binding[] binding = ports.getBindings().get(ExposedPort.tcp(port));
-        return Integer.valueOf(binding[0].getHostPortSpec());
     }
 }
