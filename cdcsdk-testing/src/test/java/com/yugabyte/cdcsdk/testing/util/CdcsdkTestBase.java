@@ -45,11 +45,13 @@ public class CdcsdkTestBase {
 
         kafkaContainer = new KafkaContainer(TestImages.KAFKA)
                 .withNetworkAliases("kafka")
+                .withReuse(true)
                 .withNetwork(containerNetwork);
 
         kafkaConnectContainer = new DebeziumContainer(TestImages.KAFKA_CONNECT)
                 .withKafka(kafkaContainer)
                 .dependsOn(kafkaContainer)
+                .withReuse(true)
                 .withNetwork(containerNetwork);
 
         postgresContainer = new PostgreSQLContainer<>(TestImages.POSTGRES)

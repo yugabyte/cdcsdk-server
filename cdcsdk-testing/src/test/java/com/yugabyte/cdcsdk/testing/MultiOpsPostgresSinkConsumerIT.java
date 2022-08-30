@@ -97,7 +97,6 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
         pgHelper.waitTillRecordsAreVerified(0, 5000);
 
         pgHelper.assertRecordCountInPostgres(0);
-
     }
 
     @Test
