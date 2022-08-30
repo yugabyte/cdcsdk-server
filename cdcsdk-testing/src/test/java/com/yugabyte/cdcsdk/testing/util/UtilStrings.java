@@ -14,12 +14,32 @@ public class UtilStrings {
 
     // Format string with customizable name which can be used in both YugabyteDB and
     // Postgres
-    private static final String DROP_TABLE_FORMAT = "DROP TABLE %s;";
+    private static final String DROP_TABLE_FORMAT = "DROP TABLE IF EXISTS %s;";
 
     // Format string with customizable table name and the values for the columns
     private static final String INSERT_FORMAT = "INSERT INTO %s VALUES (%d, '%s', '%s', %f);";
 
     public static final String DATABASE_SERVER_NAME = "dbserver1";
+
+    public static final String ALL_TYPES_TABLE_NAME = "all_types";
+
+    public static final String CREATE_ALL_TYPES_TABLE = "CREATE TABLE " + ALL_TYPES_TABLE_NAME
+            + " (id INT PRIMARY KEY, "
+            + "bigintcol bigint, bitcol bit(5), varbitcol varbit(5), booleanval boolean, byteaval bytea, "
+            + "ch char(5), vchar varchar(25), cidrval cidr, dt date, dp double precision, inetval inet, "
+            + "intervalval interval, jsonval json, jsonbval jsonb, mc macaddr, mc8 macaddr8, mn money, "
+            + "nm numeric, rl real, si smallint, i4r int4range, i8r int8range, nr numrange, tsr tsrange, "
+            + "tstzr tstzrange, dr daterange, txt text, tm time, tmtz timetz, ts timestamp, "
+            + "tstz timestamptz, uuidval uuid)";
+
+    public static final String INSERT_ALL_TYPES_FORMAT = "INSERT INTO " + ALL_TYPES_TABLE_NAME
+            + " (id, bigintcol, bitcol, varbitcol, booleanval, byteaval, ch, vchar, cidrval, dt, dp, inetval, "
+            + "intervalval, jsonval, jsonbval, mc, mc8, mn, nm, rl, si, i4r, i8r, nr, tsr, tstzr, dr, txt, tm, tmtz, ts, tstz, uuidval) VALUES "
+            + "(%d, 123456, '11011', '10101', FALSE, E'\\\\001', 'five5', 'sample_text', '10.1.0.0/16', '2022-02-24', 12.345, '127.0.0.1', "
+            + "'2020-03-10 00:00:00'::timestamp-'2020-02-10 00:00:00'::timestamp, '{\"a\":\"b\"}', '{\"a\":\"b\"}', '2C:54:91:88:C9:E3', '22:00:5c:03:55:08:01:02', '$100.500', "
+            + "12.345, 32.145, 12, '(1, 10)', '(100, 200)', '(10.45, 21.32)', '(1970-01-01 00:00:00, 2000-01-01 12:00:00)', "
+            + "'(2017-07-04 12:30:30 UTC, 2021-07-04 12:30:30+05:30)', '(2019-10-07, 2021-10-07)', 'text to verify behaviour', '12:47:32', '12:00:00+05:30', "
+            + "'2021-11-25 12:00:00', '2021-11-25 12:00:00+05:30', 'ffffffff-ffff-ffff-ffff-ffffffffffff');";
 
     /**
      * Get a create table statement for table to be created in YugabyteDB database

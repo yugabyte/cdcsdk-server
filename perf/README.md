@@ -71,6 +71,16 @@ Rest of the instructions assume the name is `settings.env`
     ./yb-connect/yb-connect.sh <path to>/settings.env
 
 
+##  Running with Kafka-Connect
+
+### Start Kafka-Connect with Kafka + PG on local system
+
+    docker compose -f sinks/kafka/confluent.yaml --env-file settings.env up -d
+    docker compose -f sinks/kafka/kafka-pg.yaml --env-file settings.env up -d
+    docker compose -f yb-connect.yaml --env-file settings.env
+    ./yb-connect.sh settings.en
+
+
 ## Configure and Run Workloads
 
 Different workloads are available in workloads dir. Choose the workload and run

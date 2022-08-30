@@ -45,11 +45,13 @@ public class CdcsdkTestBase {
 
         kafkaContainer = new KafkaContainer(TestImages.KAFKA)
                 .withNetworkAliases("kafka")
+                .withReuse(true)
                 .withNetwork(containerNetwork);
 
         kafkaConnectContainer = new DebeziumContainer(TestImages.KAFKA_CONNECT)
                 .withKafka(kafkaContainer)
                 .dependsOn(kafkaContainer)
+                .withReuse(true)
                 .withNetwork(containerNetwork);
 
         postgresContainer = new PostgreSQLContainer<>(TestImages.POSTGRES)
@@ -69,7 +71,7 @@ public class CdcsdkTestBase {
      * @throws Exception
      */
     protected static void initHelpers(boolean initYBHelper, boolean initKafkaHelper, boolean initPgHelper) throws Exception {
-        if (initKafkaHelper) {
+        if (initYBHelper) {
             ybHelper = new YBHelper(InetAddress.getLocalHost().getHostAddress(), DEFAULT_TABLE_NAME);
         }
 

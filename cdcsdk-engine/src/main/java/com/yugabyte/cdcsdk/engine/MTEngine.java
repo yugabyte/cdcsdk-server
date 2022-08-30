@@ -1208,7 +1208,7 @@ public final class MTEngine implements DebeziumEngine<SourceRecord> {
 
     @Override
     public String toString() {
-        return "EmbeddedEngine{id=" + config.getString(ENGINE_NAME) + '}';
+        return "MTEngine{id=" + config.getString(ENGINE_NAME) + '}';
     }
 
     public void runWithTask(Consumer<SourceTask> consumer) {

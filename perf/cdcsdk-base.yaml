@@ -2,9 +2,11 @@ services:
   cdcsdk:
     image: quay.io/yugabyte/cdcsdk-server:latest
     container_name: cdcsdk
+    user: "${USERID}:${GROUPID}"
     ports:
       - 8080:8080
     environment:
+      JAVA_OPTS: "-Xms8g -Xmx12g -Xlog:gc:/var/log/cdcsdk/gc.log -XX:+PrintGCDetails -XX:-PrintCommandLineFlags"
       CDCSDK_SOURCE_CONNECTOR_CLASS: io.debezium.connector.yugabytedb.YugabyteDBConnector
       CDCSDK_SOURCE_OFFSET_FLUSH_INTERVAL_MS: 0
       CDCSDK_SOURCE_DATABASE_HOSTNAME: ${PGHOST}
@@ -17,7 +19,13 @@ services:
       CDCSDK_SOURCE_TABLE_INCLUDE_LIST: ${TABLES}
       CDCSDK_SOURCE_DATABASE_MASTER_ADDRESSES: ${MASTER_ADDRESSES}
       CDCSDK_SOURCE_SNAPSHOT_MODE: never
+      CDCSDK_SERVER_FORMAT_KEY_CONVERTER_SCHEMAS_ENABLE: "false" 
+      CDCSDK_SERVER_FORMAT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CDCSDK_SERVER_TRANSFORMS: "unwrap"
+      CDCSDK_SERVER_TRANSFORMS_UNWRAP_TYPE: "io.debezium.connector.yugabytedb.transforms.YBExtractNewRecordState"
       CDCSDK_SERVER_THREADS: ${THREADS:-1}
+    volumes:
+      - $PWD/volumes/cdcsdk/log/:/var/log/cdcsdk/
 
   prometheus:
     build:
