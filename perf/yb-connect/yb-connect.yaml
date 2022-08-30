@@ -1,6 +1,7 @@
 services:
   connect:
-    image: custom-connect:latest
+    build:
+      context: ./jmx-exporter
     container_name: yb-connect
     ports:
       - 8083:8083
@@ -21,10 +22,11 @@ services:
       - 9090:9090
     image: prom/prometheus
     volumes:
-      - ./kafka-connect-prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./yb-connect-prometheus.yml:/etc/prometheus/prometheus.yml
 
   grafana:
-    image: custom-grafana:latest
+    build:
+      context: ./grafana-dashboard
     ports:
       - 3000:3000
     links:
