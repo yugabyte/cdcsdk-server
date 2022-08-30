@@ -44,8 +44,6 @@ import com.yugabyte.cdcsdk.testing.util.UtilStrings;
  */
 
 public class S3ConsumerRelIT extends CdcsdkTestBase {
-    private static final Logger LOGGER = LoggerFactory.getLogger(S3ConsumerRelIT.class);
-
     private S3SinkConnectorConfig s3Config;
     private ConfigSourceS3 testConfig;
     private S3Storage storage;
