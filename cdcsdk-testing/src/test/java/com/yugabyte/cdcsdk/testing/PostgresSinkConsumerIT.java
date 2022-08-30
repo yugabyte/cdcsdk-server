@@ -134,9 +134,7 @@ public class PostgresSinkConsumerIT extends CdcsdkTestBase {
     @Test
     @Order(2)
     public void verifyRecordsInPostgresFromKafka() throws Exception {
-        // Adding Thread.sleep() here because apparently Awaitility didn't seem to work as expected.
-        // TODO Vaibhav: Replace the Thread.sleep() function with Awaitility
-        Thread.sleep(10000);
+        pgHelper.waitTillRecordsAreVerified(recordsToBeInserted, 10000);
 
         ResultSet rs = pgHelper.executeAndGetResultSet(String.format("SELECT * FROM %s;", DEFAULT_TABLE_NAME));
         List<Map<String, Object>> postgresRecords = new ArrayList<>();

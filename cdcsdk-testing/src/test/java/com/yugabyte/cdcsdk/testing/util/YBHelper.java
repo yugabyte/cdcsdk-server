@@ -135,6 +135,24 @@ public class YBHelper {
     }
 
     /**
+     * Insert records in the range [startIndex, endIndex) in the source table
+     * @param startIndex start index for insertion
+     * @param endIndex end index for insertion - exclusive
+     * @throws SQLException if the connection cannot be created or statement cannot be executed
+     */
+    public void insertBulk(int startIndex, int endIndex) throws SQLException {
+        try (Connection conn = getConnection()) {
+            Statement st = conn.createStatement();
+            for (int i = startIndex; i < endIndex; ++i) {
+                st.execute(UtilStrings.getInsertStmt(sourceTableName, i, "first_" + i, "last_" + i, 23.45));
+            }
+        }
+        catch (SQLException e) {
+            throw e;
+        }
+    }
+
+    /**
      * Get a {@link YBClient} instance for the source database
      * @return the YBClient instance
      * @see YBClient

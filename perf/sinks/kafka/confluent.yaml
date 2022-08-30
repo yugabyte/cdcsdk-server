@@ -5,7 +5,7 @@ services:
     image: confluentinc/cp-zookeeper:7.2.1
     hostname: zookeeper
     container_name: zookeeper
-    user: ${UID}
+    user: ${USERID}
     ports:
       - "2181:2181"
     environment:
@@ -19,12 +19,13 @@ services:
     image: confluentinc/cp-server:7.2.1
     hostname: broker
     container_name: broker
-    user: ${UID}
+    user: ${USERID}
     depends_on:
       - zookeeper
     ports:
       - "9092:9092"
       - "9101:9101"
+      - "7071:7071"
       - 19092:19092
     environment:
       KAFKA_BROKER_ID: 1
@@ -49,8 +50,11 @@ services:
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_OPTS: "-javaagent:/usr/local/bin/jmx_prometheus_javaagent-0.9.jar=7071:/etc/jmx-exporter/kafka-2_0_0.yml"
     volumes:
       - $PWD/volumes/kafka/kafka-data:/var/lib/kafka/data
+      - ./jmx-exporter/kafka-2_0_0.yml:/etc/jmx-exporter/kafka-2_0_0.yml
+      - ./jmx-exporter/jmx_prometheus_javaagent-0.9.jar:/usr/local/bin/jmx_prometheus_javaagent-0.9.jar
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.2.1
@@ -125,3 +129,15 @@ services:
       KAFKA_REST_BOOTSTRAP_SERVERS: 'broker:29092'
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
       KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+
+  prometheus:
+    ports:
+      - 9090:9090
+    image: prom/prometheus
+    volumes:
+      - ./kafka-prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000

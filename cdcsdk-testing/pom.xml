@@ -3,14 +3,14 @@
   <parent>
     <groupId>com.yugabyte</groupId>
     <artifactId>cdcsdk-parent</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
 	  <relativePath>../cdcsdk-parent/pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.yugabyte</groupId>
   <artifactId>cdcsdk-testing</artifactId>
-  <version>0.8.0-SNAPSHOT</version>
+  <version>0.9.0-SNAPSHOT</version>
   <name>cdcsdk-testing</name>
 
 
@@ -18,6 +18,9 @@
     <junit.jupiter.version>5.8.1</junit.jupiter.version>
     <junit.platform.version>1.8.1</junit.platform.version>
     <version.ybclient>0.8.19-20220531.235858-1</version.ybclient>
+    <java.version>17</java.version>
+    <test.compiler.source>17</test.compiler.source>
+    <test.compiler.target>17</test.compiler.target>
   </properties>
 
   <distributionManagement>
@@ -125,7 +128,7 @@
     <dependency>
       <groupId>io.debezium</groupId>
       <artifactId>debezium-testing-testcontainers</artifactId>
-      <version>1.9.4.Final</version>
+      <version>1.9.5.Final</version>
       <scope>test</scope>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
@@ -163,6 +166,12 @@
         <version>3.2.0</version>
         <scope>test</scope>
     </dependency>
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>5.8.1</version>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -174,7 +183,14 @@
         </plugin>
         <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>${test.compiler.source}</source>
+            <target>${test.compiler.target}</target>
+            <testSource>${test.compiler.source}</testSource>
+            <testTarget>${test.compiler.target}</testTarget>
+          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-failsafe-plugin</artifactId>
