@@ -15,9 +15,7 @@ services:
       ADVERTISED_HOST_NAME: ${DOCKER_IP}
       KAFKA_JMX_PORT: '9875'
       KAFKA_OPTS: "-javaagent:/kafka/etc/jmx_prometheus_javaagent-0.9.jar=9876:/etc/jmx-exporter/kafka-connect.yml"
-    volumes:
-      - ./jmx-exporter/kafka-connect.yml:/etc/jmx-exporter/kafka-connect.yml
-
+ 
   prometheus:
     ports:
       - 9090:9090

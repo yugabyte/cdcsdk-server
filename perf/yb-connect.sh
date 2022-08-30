@@ -29,7 +29,7 @@ payload() {
         "value.converter.schemas.enable":"false",
         "transforms":"unwrap",
         "transforms.unwrap.type":"io.debezium.connector.yugabytedb.transforms.YBExtractNewRecordState",
-        "snapshot.mode":"initial"
+        "snapshot.mode":"${SNAPSHOT_MODE}"
     }
 }
 EOF
