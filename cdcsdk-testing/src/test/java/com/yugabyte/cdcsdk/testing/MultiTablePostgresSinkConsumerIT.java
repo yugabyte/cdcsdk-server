@@ -102,7 +102,6 @@ public class MultiTablePostgresSinkConsumerIT extends CdcsdkTestBase {
         kafkaHelper.deleteTopicInKafka(ybHelper.getKafkaTopicName());
         kafkaHelper.deleteTopicInKafka(ybHelper2.getKafkaTopicName());
 
-        // TODO: Drop tables
         dropTablesAfterEachTest(TABLE_1);
         dropTablesAfterEachTest(TABLE_2);
     }
