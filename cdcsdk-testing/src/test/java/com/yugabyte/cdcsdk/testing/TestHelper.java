@@ -8,8 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 
 import com.github.dockerjava.api.model.ExposedPort;
@@ -29,8 +27,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class TestHelper {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
-
     public static GenericContainer<?> getCdcsdkContainerForS3Sink(YBHelper ybHelper, String tableIncludeList) throws Exception {
         return new CdcsdkContainer()
                 .withDatabaseHostname(ybHelper.getHostName())
