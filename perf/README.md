@@ -63,16 +63,12 @@ Rest of the instructions assume the name is `settings.env`
 
 ##  Running with Kafka-Connect
 
-### Go to the directory yb-connect
-
-    cd yb-connect
-
 ### Start Kafka-Connect with Kafka + PG on local system
 
-    docker compose -f cdcsdk-server/perf/sinks/kafka/confluent.yaml --env-file <path to>/settings.env up -d
-    docker compose -f cdcsdk-server/perf/sinks/kafka/kafka-connect-pg.yaml --env-file <path to>/settings.env up -d
-    docker compose -f yb-connect.yaml --env-file <path to>/settings.env up -d
-    ./yb-connect.sh <path to>/settings.env
+    docker compose -f sinks/kafka/confluent.yaml --env-file <path to>/settings.env up -d
+    docker compose -f sinks/kafka/kafka-connect-pg.yaml --env-file <path to>/settings.env up -d
+    docker compose -f yb-connect/yb-connect.yaml --env-file <path to>/settings.env up -d
+    ./yb-connect/yb-connect.sh <path to>/settings.env
 
 
 ## Configure and Run Workloads
