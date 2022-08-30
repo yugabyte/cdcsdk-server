@@ -228,7 +228,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         ybHelper.insertBulk(-100, 0);
 
         // When the container is started, it would take a snapshot again
-        // TODO: this snapshot may contain some rows which were inserted while the cdcsdk server was stopped
+        // Note: this snapshot may contain some rows which were inserted while the cdcsdk server was stopped
         cdcsdkContainer.start();
 
         Awaitility.await()
