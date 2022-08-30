@@ -45,20 +45,31 @@ Rest of the instructions assume the name is `settings.env`
 |WORKLOAD| One of the workloads in the `workload` directory|
 |TOPIC_PREFIX|Prefix for kafka topic. Default is `dbserver1`|
 |UID| uid that docker processes should use. Get from `id -u ${USER}`|
+|SNAPSHOT_MODE| Whether to use snapshot mode or not|
 
 ##  Running with CDCSDK
 
 ### Start CDCSDK Server with NullChangeConsumer
 
     # Start CDCSDK Server
-    docker compose -f cdcsdk-base.yaml -f cdcsdk-null.yaml --env-file settings.env up -d
+    docker compose -f cdcsdk-base.yaml -f cdcsdk-null.yaml --env-file <path to>/settings.env -d
 
 ### Start CDCSDK Server with Kafka + PG on local system.
 
-    docker compose -f sinks/kafka/confluent.yaml --env-file settings.env up -d
-    docker compose -f sinks/kafka/kafka-pg.yaml --env-file settings.env up -d
+    docker compose -f sinks/kafka/confluent.yaml --env-file <path to>/settings.env up -d
+    docker compose -f sinks/kafka/kafka-connect-pg.yaml --env-file <path to>/settings.env up -d
     docker compose -f cdcsdk-base.yaml -f cdcsdk-kafka-local.yaml --env-file \
-        settings.env up -d
+        <path to>/settings.env up -d
+
+##  Running with Kafka-Connect
+
+### Start Kafka-Connect with Kafka + PG on local system
+
+    docker compose -f sinks/kafka/confluent.yaml --env-file <path to>/settings.env up -d
+    docker compose -f sinks/kafka/kafka-connect-pg.yaml --env-file <path to>/settings.env up -d
+    docker compose -f yb-connect/yb-connect.yaml --env-file <path to>/settings.env up -d
+    ./yb-connect/yb-connect.sh <path to>/settings.env
+
 
 ##  Running with Kafka-Connect
 
@@ -83,5 +94,4 @@ the following commands.
 
 ### Setup and run workloads
 
-    ./workloads/${WORKLOAD}/setup_workloads.sh <path to settings file>
     ./workloads/${WORKLOAD}/run.sh <path to settings file>

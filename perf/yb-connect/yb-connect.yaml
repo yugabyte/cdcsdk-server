@@ -1,0 +1,35 @@
+services:
+  connect:
+    build:
+      context: ./jmx-exporter
+    container_name: yb-connect
+    ports:
+      - 8083:8083
+      - 9875:9875
+      - 9876:9876
+    environment:
+      BOOTSTRAP_SERVERS: ${KAFKA_HOST}
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: my-connect-configs
+      OFFSET_STORAGE_TOPIC: my-connect-offsets 
+      HOST_NAME: "0.0.0.0"
+      ADVERTISED_HOST_NAME: ${DOCKER_IP}
+      KAFKA_JMX_PORT: '9875'
+      KAFKA_OPTS: "-javaagent:/kafka/etc/jmx_prometheus_javaagent-0.9.jar=9876:/etc/jmx-exporter/kafka-connect.yml"
+ 
+  prometheus:
+    ports:
+      - 9090:9090
+    image: prom/prometheus
+    volumes:
+      - ./yb-connect-prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    build:
+      context: ./grafana-dashboard
+    ports:
+      - 3000:3000
+    links:
+      - prometheus
+    environment:
+      - DS_PROMETHEUS=prometheus
