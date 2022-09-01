@@ -21,8 +21,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -44,8 +42,6 @@ import com.yugabyte.cdcsdk.testing.util.UtilStrings;
  */
 
 public class S3ConsumerRelIT extends CdcsdkTestBase {
-    private static final Logger LOGGER = LoggerFactory.getLogger(S3ConsumerRelIT.class);
-
     private S3SinkConnectorConfig s3Config;
     private ConfigSourceS3 testConfig;
     private S3Storage storage;

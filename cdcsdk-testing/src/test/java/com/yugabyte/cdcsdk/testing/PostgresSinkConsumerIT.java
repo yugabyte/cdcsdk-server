@@ -3,7 +3,6 @@ package com.yugabyte.cdcsdk.testing;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.Double;
-import java.lang.Integer;
 import java.lang.String;
 import java.sql.ResultSet;
 import java.time.Duration;
@@ -69,10 +68,10 @@ public class PostgresSinkConsumerIT extends CdcsdkTestBase {
         // Initialise expected_data.
         for (int i = 0; i < recordsToBeInserted; i++) {
             Map<String, Object> expectedRecord = new LinkedHashMap<String, Object>();
-            expectedRecord.put("id", new Integer(i));
+            expectedRecord.put("id", i);
             expectedRecord.put("first_name", new String("first_" + i));
             expectedRecord.put("last_name", new String("last_" + i));
-            expectedRecord.put("days_worked", new Double(23.45));
+            expectedRecord.put("days_worked", Double.valueOf(23.45));
             expectedDataInKafka.add(expectedRecord);
         }
 
