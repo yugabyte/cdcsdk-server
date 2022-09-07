@@ -1,6 +1,6 @@
 #!/bin/bash
 build_dir_in_container=/opt/cdcsdk-server
-docker run -it \
+docker run -t \
   --cap-add=SYS_PTRACE \
   -e DOCKER_IMAGE \
   -e YB_VERSION_TO_TEST_AGAINST \
@@ -9,7 +9,6 @@ docker run -it \
   --mount type=bind,source="$PWD",target="$build_dir_in_container" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   "$DOCKER_IMAGE" \
-  bash
   bash -c '
     set -euo pipefail -x
     export YUGABYTE_SRC=/home/yugabyte
