@@ -4,6 +4,7 @@ docker run -t \
   --cap-add=SYS_PTRACE \
   -e DOCKER_IMAGE \
   -e YB_VERSION_TO_TEST_AGAINST \
+  -e PKG_VERSION \
   "-w=$build_dir_in_container" \
   --privileged \
   --mount type=bind,source="$PWD",target="$build_dir_in_container" \
@@ -24,4 +25,9 @@ docker run -t \
     yugabyted start --advertise_address $(hostname -i)
     # Run tests
     mvn clean integration-test -PreleaseTests -Dit.test=MultiOpsPostgresSinkConsumerIT
+    SHORT_COMMIT=$(git rev-parse --short HEAD)
+    cd cdcsdk-server/cdcsdk-server-dist/target
+    mv cdcsdk-server-dist-${PKG_VERSION}.tar.gz cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz
+    sha1sum cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz > cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz.sha
+    md5sum cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz > cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz.md5
   '
