@@ -24,7 +24,7 @@ docker run -t \
     export PATH=$YUGABYTE_SRC/yugabyte-$YB_VERSION/bin:/usr/local/bin:$PATH
     yugabyted start --advertise_address $(hostname -i)
     # Run tests
-    mvn clean integration-test -PreleaseTests -Dit.test=MultiOpsPostgresSinkConsumerIT
+    mvn clean integration-test -PreleaseTests 
     SHORT_COMMIT=$(git rev-parse --short HEAD)
     cd cdcsdk-server/cdcsdk-server-dist/target
     mv cdcsdk-server-dist-${PKG_VERSION}.tar.gz cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz
