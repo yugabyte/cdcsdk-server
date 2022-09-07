@@ -12,7 +12,7 @@ docker run -t \
   bash -c '
     set -euo pipefail -x
     export YUGABYTE_SRC=/home/yugabyte
-    YB_VERSION=`echo ${YB_VERSION_TO_TEST_AGAINST}| awk -F'-' '{print $1}'`
+    YB_VERSION=`echo ${YB_VERSION_TO_TEST_AGAINST}| awk -F"-" "{print $1}"`
     # Install dependent packages
     yum -y -q install java-11-openjdk-devel
     alternatives --set java java-11-openjdk.x86_64
