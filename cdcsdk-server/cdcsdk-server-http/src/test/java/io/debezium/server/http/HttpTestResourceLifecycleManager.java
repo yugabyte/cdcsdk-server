@@ -32,7 +32,7 @@ public class HttpTestResourceLifecycleManager implements QuarkusTestResourceLife
     public Map<String, String> start() {
         init();
 
-        return Collections.singletonMap("debezium.sink.http.url", getURL());
+        return Collections.singletonMap("cdcsdk.sink.http.url", getURL());
     }
 
     @Override
