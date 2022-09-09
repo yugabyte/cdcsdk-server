@@ -41,7 +41,7 @@ import io.debezium.server.BaseChangeConsumer;
 public class HttpChangeConsumer extends BaseChangeConsumer implements DebeziumEngine.ChangeConsumer<ChangeEvent<Object, Object>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpChangeConsumer.class);
 
-    private static final String PROP_PREFIX = "debezium.sink.http.";
+    private static final String PROP_PREFIX = "cdcsdk.sink.http.";
     private static final String PROP_WEBHOOK_URL = "url";
     private static final String PROP_CLIENT_TIMEOUT = "timeout.ms";
 
@@ -57,7 +57,7 @@ public class HttpChangeConsumer extends BaseChangeConsumer implements DebeziumEn
     @PostConstruct
     void connect() throws URISyntaxException {
         String sinkUrl;
-        String contentType;
+        String contentType = "application/json";
 
         client = HttpClient.newHttpClient();
         final Config config = ConfigProvider.getConfig();
@@ -73,18 +73,6 @@ public class HttpChangeConsumer extends BaseChangeConsumer implements DebeziumEn
 
         config.getOptionalValue(PROP_PREFIX + PROP_CLIENT_TIMEOUT, String.class)
                 .ifPresent(t -> timeoutDuration = Duration.ofMillis(Long.parseLong(t)));
-
-        switch (config.getValue("cdcsdk.format.value", String.class)) {
-            case "avro":
-                contentType = "avro/bytes";
-                break;
-            case "cloudevents":
-                contentType = "application/cloudevents+json";
-                break;
-            default:
-                // Note: will default to JSON if it cannot be determined, but should not reach this point
-                contentType = "application/json";
-        }
 
         LOGGER.info("Using http content-type type {}", contentType);
         LOGGER.info("Using sink URL: {}", sinkUrl);
