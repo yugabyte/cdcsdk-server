@@ -4,6 +4,7 @@
 Yugabyte CDCSDK Server is an open source project that provides a streaming platform for change data capture from YugabyteDb. The server is based on the [Debezium](debezium.io).
 CDCSDK Server uses [debezium-yugabytedb-connector](https://github.com/yugabyte/debezium-connector-yugabytedb) to capture change data events.
 It supports a YugabyteDb instance as a source and supports the following sinks:
+
 * Kafka
 * HTTP REST Endpoint
 * AWS S3
@@ -38,49 +39,47 @@ It supports a YugabyteDb instance as a source and supports the following sinks:
 
 ## Basic architecture
 
-### Engine is the Unit of Work
-A [Debezium Engine](https://debezium.io/documentation/reference/1.9/development/engine.html) implementation is the unit of work. It implements a pipeline consisting of a source, sink and simple transforms. The only supported source is YugabyteDB.
-The source is assigned a set of tablets that is polled at a configurable interval. An engine’s workflow is as follows:
+### Engine
+
+A [Debezium Engine](https://debezium.io/documentation/reference/1.9/development/engine.html) implementation is the unit of work. It implements a pipeline consisting of a source, sink and simple transforms. The only supported source is YugabyteDB. The source is assigned a set of tablets that is polled at a configurable interval. An engine’s workflow is as follows:
+
 * Connect to CDCSDK stream
 * Get a list of tables and filter based on the include list.
 * Get and record a list of tablets.
 * Poll tablets in sequence every polling interval
 
-### CDCSDK Server
-A Debezium Engine is hosted within the CDCSDK server.The implementation is based on the [Debezium Server](https://debezium.io/documentation/reference/1.9/operations/debezium-server.html).
-It uses the Quarkus framework and extensions to provide a server shell, metrics and alerts.
-By default, a server runs one Engine implementation within a thread. A server can also run in multi-threaded mode wherein multiple engines are assigned to a thread each.
-The server splits tablets into groups in a deterministic manner. Each group of tablets is assigned to an Engine.
+### Server
 
-## Quick Start
+The CDCSDK server hosts a Debezium Engine. The implementation is based on the [Debezium Server](https://debezium.io/documentation/reference/1.9/operations/debezium-server.html). It uses the Quarkus framework and extensions to provide a server shell, metrics, and alerts. By default, a server runs one Engine implementation in a thread. A server can also run in multi-threaded mode wherein multiple engines are assigned to a thread each. The server splits tablets into groups in a deterministic manner. Each group of tablets is assigned to an Engine.
 
-### Create a CDCSDK Stream in Yugabytedb
+## Quick start
 
-Use [yb-admin create_change_data_stream](https://docs.yugabyte.com/preview/admin/yb-admin/#create-change-data-stream) to create CDC Stream.
-A successful operation returns a message with the Stream ID. Take note of the ID for later steps. For example:
+### Create a CDCSDK stream in YugabyteDB
 
-```
+Use [yb-admin](../../../admin/yb-admin/#create-change-data-stream) to create a CDC stream. If successful, the operation returns the stream ID; note the ID, as it is used in later steps. For example:
+
+```output
 CDC Stream ID: d540f5e4890c4d3b812933cbfd703ed3
 ```
 
-### Run CDCSDK Server using Docker
+### Run CDCSDK server using Docker
 
-    docker pull quay.io/yugabyte/cdcsdk-server:latest
-    docker run -it --rm --name cdcsdk-server -p 8080:8080 \
-       -e <CONFIGURATION>
-    quay.io/yugabyte/cdcsdk-server:latest
+You can run the CDCSDK server inside a Docker container, and pass all the configuration properties to the container in the form of environment variables. For more information, refer to [Configuration](#configure-using-environment-variables).
 
+```sh
+docker run -it --rm --name cdcsdk-server -p 8080:8080 \
+  -e <CONFIGURATION>
+  quay.io/yugabyte/cdcsdk-server:latest
+```
 
-The docker container has to be configured using environment variables. Check [Configuration](#configuration) for more information.
+### Download and run CDCSDK server
 
-
-### Download and run CDCSDK Server
-CDCSDK Server distribution archives are available in [Github Releases](https://github.com/yugabyte/cdcsdk-server/releases) of the project.
-Each of the releases has a tar.gz labelled as CDCSDK Server.
+CDCSDK server distribution archives are available in [Releases](https://github.com/yugabyte/cdcsdk-server/releases) of the project.
+Each of the releases has a tar.gz named CDCSDK server.
 
 The archive has the following layout:
 
-```
+```output
   cdcsdk-server
   |-- conf
   |-- cdcsdk-server-dist-<CDCSDK VERSION>-runner.jar
@@ -88,33 +87,37 @@ The archive has the following layout:
   |-- run.sh
 ```
 
-### Unpack and Run Instructions.
+### Unpack and run the application
 
-    export CDCSDK_VERSION=<x.y.z>
-    wget https://github.com/yugabyte/cdcsdk-server/releases/download/v${CDCSDK_VERSION}/cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
+```sh
+export CDCSDK_VERSION=<x.y.z>
+wget https://github.com/yugabyte/cdcsdk-server/releases/download/v${CDCSDK_VERSION}/cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
 
-    # OR Using gh cli
+# OR Using gh cli
 
-    gh release download v{CDCSDK_VERSION} -A tar.gz --repo yugabyte/cdcsdk-server
+gh release download v{CDCSDK_VERSION} -A tar.gz --repo yugabyte/cdcsdk-server
 
-    tar xvf cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
-    cd cdcsdk-server
+tar xvf cdcsdk-server-dist-${CDCSDK_VERSION}.tar.gz
+cd cdcsdk-server
 
-    # Configure the application. Check next section
-    touch conf/application.properties
+# Configure the application. Check next section
+touch conf/application.properties
 
-    # Run the application
-    ./run.sh
+# Run the application
+./run.sh
+```
+
 ## Configuration
 
-The main configuration file is conf/application.properties. There are multiple sections configured:
-* `cdcsdk.server` is for server configuration
-* `cdcsdk.source` is for source connector configuration; each instance of Debezium Server runs exactly one connector
-* `cdcsdk.sink` is for the sink system configuration
+The main configuration file is `conf/application.properties`, which includes the following sections:
 
-An example configuration file can look like so:
+* `cdcsdk.source` is for configuring the source connector.
+* `cdcsdk.sink` is for the sink system configuration.
+* `cdcsdk.transforms` is for the configuration of message transformations.
 
-```
+Following is an example configuration file:
+
+```conf
 cdcsdk.sink.type=kafka
 cdcsdk.sink.kafka.producer.bootstrap.servers=127.0.0.1:9092
 cdcsdk.sink.kafka.producer.key.serializer=org.apache.kafka.common.serialization.StringSerializer
@@ -132,35 +135,37 @@ cdcsdk.source.database.master.addresses=127.0.0.1:7100
 cdcsdk.source.snapshot.mode=never
 ```
 
-### Configuration using Environment Variables
+### Configuration using environment variables
 
-Configuration using environment variables maybe useful when running in containers. The rule of thumb
-is to convert the keys to UPPER CASE and replace `.` with `_`. For example, `cdcsdk.source.database.port`
-has to be changed to `CDCSDK_SOURCE_DATABASE_PORT`
+Using environment variables for configuration can be useful when running in containers. The rule of thumb is to convert the keys to UPPER CASE and replace `.` with `_`. For example, change `cdcsdk.source.database.port` to `CDCSDK_SOURCE_DATABASE_PORT`.
 
 ### Server configuration
-|Property|Default|Description|
-|--------|-------|-----------|
-|cdcsdk.server.transforms||Transformations to apply. [Use FLATTEN to get only the payload.](#record-structure)|
 
+| Property | Default | Description |
+ | :--- | :--- | :--- |
+ | `cdcsdk.server.transforms` | | Transformations to apply. |
 
-Additional configuration:
-|Property|Default|Description|
-|--------|-------|-----------|
-|quarkus.http.port|8080|The port on which CDCSDK Server exposes Microprofile Health endpoint and other exposed status information.|
-|quarkus.log.level|INFO|The default log level for every log category.|
-|quarkus.log.console.json|true|Determine whether to enable the JSON console formatting extension, which disables "normal" console formatting.|
+**Additional configuration:**
 
-### Kafka Client/Confluent Cloud
-The Kafka Client will stream changes to a Kafka Message Broker or to Confluent Cloud.
+ | Property | Default | Description |
+ | :--- | :--- | :--- |
+ | `quarkus.http.port` | 8080 | The port on which the CDCSDK server exposes Microprofile Health endpoint and other exposed status information. |
+ | `quarkus.log.level` | INFO | The default log level for every log category. |
+ | `quarkus.log.console.json` | true | Determines whether to enable the JSON console formatting extension, which disables "normal" console formatting. |
+
+### Kafka client/Confluent cloud
+
+The Kafka client will stream changes to a Kafka message broker or to Confluent Cloud.
 
 |Property|Default|Description|
 |--------|-------|-----------|
 |cdcsdk.sink.type||Must be set to `kafka`|
 |cdcsdk.sink.kafka.producer.*||The Kafka sink adapter supports pass-through configuration. This means that all Kafka producer configuration properties are passed to the producer with the prefix removed.At least `bootstrap.servers`, `key.serializer` and `value.serializer` properties must be provided. At least `bootstrap.servers`, `key.serializer` and `value.serializer` properties must be provided. The topic is set by CDCSDK Server.|
 
-### HTTP Client
-The HTTP Client will stream changes to any HTTP Server for additional processing.
+### HTTP client
+
+The HTTP client will stream changes to any HTTP server for additional processing.
+
 |Property|Default|Description|
 |--------|-------|-----------|
 |cdcsdk.sink.type||Must be set to `http`|
@@ -169,10 +174,10 @@ The HTTP Client will stream changes to any HTTP Server for additional processing
 
 ### Amazon S3
 
-The Amazon S3 Sink streams changes to an AWS S3 bucket. Only **Inserts** are supported.
+The Amazon S3 sink streams changes to an AWS S3 bucket. Only **Inserts** are supported.
 
 > **Note**
-> Amazon S3 Sink supports a single table at a time. Specifically cdcsdk.source.table.include.list should contain only one table at a time. If multiple tables need to be exported to Amazon S3, multiple CDCSDK servers that read from the same CDC Stream ID but write to different S3 locations should be setup.
+> Amazon S3 Sink supports a single table at a time. Specifically `cdcsdk.source.table.include.list` should contain only one table at a time. If multiple tables need to be exported to Amazon S3, multiple CDCSDK servers that read from the same CDC Stream ID but write to different S3 locations should be setup.
 
 The available configuration options are:
 
@@ -188,31 +193,30 @@ The available configuration options are:
 |cdcsdk.sink.s3.flush.sizeMB|200|Trigger Data File Rollover on file size|
 |cdcsdk.sink.s3.flush.records|10000|Trigger Data File Rolloever on number of records|
 
-
-### Mapping Records to S3 Objects
+### Mapping records to S3 objects
 
 The Amazon S3 Sink only supports [create events](https://docs.yugabyte.com/preview/explore/change-data-capture/debezium-connector-yugabytedb/#create-events)
 in the CDC Stream. It writes `payload.after` fields to a file in S3.
 
-The filename in S3 is generated as `${cdcsdk.sink.s3.basedir}/${cdcsdk.sink.s3.pattern}`. Pattern can contain placeholders to customize the filenames. It
-supports the following placeholders:
+The filename in S3 is generated as `${cdcsdk.sink.s3.basedir}/${cdcsdk.sink.s3.pattern}`. The pattern can contain placeholders to customize the filenames, as follows:
 
-* `{YEAR}`: Year in which the sync was writing the output data in.
-* `{MONTH}`: Month in which the sync was writing the output data in.
-* `{DAY}`: Day in which the sync was writing the output data in.
-* `{HOUR}`: Hour in which the sync was writing the output data in.
-* `{MINUTE}`: Minute in which the sync was writing the output data in.
-* `{SECOND}`: Second in which the sync was writing the output data in.
-* `{MILLISECOND}`: Millisecond in which the sync was writing the output data in.
-* `{EPOCH}`: Milliseconds since Epoch in which the sync was writing the output data in.
-* `{UUID}`: random uuid string
+* {YEAR}: Year in which the sync was writing the output data in.
+* {MONTH}: Month in which the sync was writing the output data in.
+* {DAY}: Day in which the sync was writing the output data in.
+* {HOUR}: Hour in which the sync was writing the output data in.
+* {MINUTE}: Minute in which the sync was writing the output data in.
+* {SECOND}: Second in which the sync was writing the output data in.
+* {MILLISECOND}: Millisecond in which the sync was writing the output data in.
+* {EPOCH}: Milliseconds since Epoch in which the sync was writing the output data in.
+* {UUID}: Random UUID string.
 
-For example, the following pattern can be used to create hourly partitions with multiple files each of which are no greater than 200MB
+ For example, the following pattern can be used to create hourly partitions with multiple files, each of which is no greater than 200MB:
 
-    {YEAR}-{MONTH}-{DAY}-{HOUR}/data-{UUID}.jsonl
+ ```output
+ {YEAR}-{MONTH}-{DAY}-{HOUR}/data-{UUID}.jsonl
+ ```
 
-
-#### IAM Policy
+#### IAM policy
 
 The AWS user account accessing the S3 bucket must have the following permissions:
 
@@ -225,11 +229,11 @@ The AWS user account accessing the S3 bucket must have the following permissions
 * ListMultipartUploadParts
 * ListBucketMultipartUploads
 
-Copy the following JSON to create the IAM policy for the user account. Change <bucket-name> to a real bucket name. For more information, see Create and attach a policy to an IAM user.
+Copy the following JSON to create the IAM policy for the user account. Change to a real bucket name. For more information, see [Create and attach a policy to an IAM user](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-and-attach-iam-policy.html).
 
 Note: This is the IAM policy for the user account and not a bucket policy.
 
-```
+```json
 {
    "Version":"2012-10-17",
    "Statement":[
@@ -264,32 +268,28 @@ Note: This is the IAM policy for the user account and not a bucket policy.
 }
 ```
 
-## Record Structure
+## Record structure
 
-By default, the YugabyteDB connector generates a [complex record](https://docs.yugabyte.com/preview/explore/change-data-capture/debezium-connector-yugabytedb/#data-change-events)
-in JSON with key and value information including payload.
-A sophisticated sink can use the information to generate appropriate commands in the receiving system.
+By default, the YugabyteDB connector generates a [complex record](../debezium-connector-yugabytedb/#data-change-events) in JSON with key and value information including payload. A sophisticated sink can use the information to generate appropriate commands in the receiving system.
 
+Simple sinks expect simple key/value JSON objects, where key is the column name and value is the contents of the column. For simple sinks, set `cdcsdk.server.transforms=FLATTEN`. With this configuration, the record structure will only emit the payload as simple JSON.
 
-Simple sinks expect simple key/value JSON object where key is the column name and value is the contents of the column.
-For simple sinks, set `cdcsdk.server.transforms=FLATTEN`. With this configuration, the record structure will only emit the payload as a simple JSON.
+With `FLATTEN`, the following simple format is emitted:
 
-With `FLATTEN`, the simple format below is emitted.
-
-```
-  {
-    "id":...,
-    "first_name":...,
-    "last_name":...,
-    "email":...
-  }
+```output
+ {
+   "id":...,
+   "first_name":...,
+   "last_name":...,
+   "email":...
+ }
 ```
 
 ## Operations
 
 ### Topology
-![CDCSDK Server Topology](topology.svg)
 
+![CDCSDK Server Topology](topology.svg)
 
 * A universe can have multiple namespaces.
 * Each namespace can have multiple CDCSDK streams
@@ -297,10 +297,9 @@ With `FLATTEN`, the simple format below is emitted.
 
 ### Networking
 
-A CDCSDK Server requires access to open ports in Yugabytedb. Therefore it has to run in the same VPC (or peered VPC) as the Yugabytedb.
-The server also requires access to sinks in the case of Kafka or HTTP REST Endpoint and the appropriate credentials for writing to AWS S3.
+The CDCSDK server requires access to open ports in YugabyteDB. Therefore it has to run in the same VPC (or peered VPC) as the YugabyteDB database. The server also requires access to sinks in the case of Kafka or an HTTP REST Endpoint and the appropriate credentials for writing to AWS S3.
 
-### Healthchecks
+### Health checks
 
 CDCSDK Server exposes a simple health check REST API. Currently the health check only ensures that the
 server is up and running.
@@ -310,21 +309,16 @@ server is up and running.
 The following REST endpoints are exposed:
 
 * `/q/health/live` - The application is up and running.
-
 * `/q/health/ready` - The application is ready to serve requests.
-
 
 All of the health REST endpoints return a simple JSON object with two fields:
 
-status — the overall result of all the health check procedures
+* `status` — The overall result of all the health check procedures.
+* `checks` — An array of individual checks.
 
-checks — an array of individual checks
+ The general status of the health check is computed as a logical AND of all the declared health check procedures.
 
-The general status of the health check is computed as a logical AND of all the declared health check procedures.
-
-Example output:
-
-```
+```output
 curl http://localhost:8080/q/health/live
 
 {
@@ -348,15 +342,17 @@ curl http://localhost:8080/q/health/ready
 
 ### Metrics
 
-CDCSDK Server exposes metrics through a REST ENDPOINT: `q/metrics`. To view metrics, execute
+CDCSDK server exposes metrics through a REST ENDPOINT, `q/metrics`. To view metrics, execute the following:
 
-    curl localhost:8080/q/metrics/
+```sh
+curl localhost:8080/q/metrics/
+```
 
-Refer to [Quarkus-Micrometer docs](https://quarkus.io/guides/micrometer#configuration-reference) for configuration options.
+Refer to the [Quarkus-Micrometer docs](https://quarkus.io/guides/micrometer#configuration-reference) for configuration options.
 
-#### System Metrics
+#### System metrics
 
-There are a number of system metrics to monitor JVM performance such as
+There are a number of system metrics to monitor JVM performance such as the following:
 
 * jvm_gc_*
 * jvm_memory_*
@@ -366,23 +362,22 @@ There are a number of system metrics to monitor JVM performance such as
 
 Application metrics have the prefix `cdcsdk_`. The following metrics for the application are available.
 
-
-|Metric|Description|
-|------|-----------|
-|cdcsdk_server_health|A status code for the health of the server. 0: Healthy, 1: Not Healthy. In the future, more states will be available for different causes|
-|cdcsdk_sink_totalBytesWritten|No. of bytes written by the sink since the start of the application|
-|cdcsdk_sink_totalRecordsWritten|No. of records written by the sink since the start of the application|
+| Metric | Description |
+ | :--- | :--- |
+ | `cdcsdk_server_health` | A status code for the health of the server.<br> `0`: Healthy<br> `1`: Not Healthy<br><br> In the future, more states will be available for different causes. |
+ | `cdcsdk_sink_totalBytesWritten` | Number of bytes written by the sink since the start of the application. |
+ | `cdcsdk_sink_totalRecordsWritten` | Number of records written by the sink since the start of the application. |
 
 #### Integration with Prometheus
 
-Prometheus uses a pull model to get metrics from applications. This means that Prometheus will scrape or watch endpoints to pull metrics from.
-The following job configuration will enable prometheus installation to scrape from CDCSDK Server
+Prometheus uses a pull model to get metrics from applications, this means that Prometheus will scrape or watch endpoints to pull the metrics from.
 
+ The following job configuration will enable prometheus installation to scrape from CDCSDK server:
 
-```
-- job_name: 'cdcsdk-server-metrics'
-   metrics_path: '/q/metrics'
-   scrape_interval: 3s
-   static_configs:
-     - targets: ['HOST:8080']
-```
+ ```yaml
+ - job_name: 'cdcsdk-server-metrics'
+    metrics_path: '/q/metrics'
+    scrape_interval: 3s
+    static_configs:
+      - targets: ['HOST:8080']
+ ```
