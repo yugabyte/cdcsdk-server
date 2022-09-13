@@ -18,21 +18,10 @@ pipeline {
         RELEASE_BUCKET_PATH = "s3://releases.yugabyte.com/cdcsdk-server"
     }
     stages {
-        stage('Clean Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
-        stage('Clone Project') {
-            steps {                  
-                git branch: '${BRANCH}', url: 'https://github.com/yugabyte/cdcsdk-server.git'
-            }
-        }
         stage('Build and Test') {
             steps {
                 script{
                     env.PKG_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    sh 'sudo chmod 666 /var/run/docker.sock'
                     sh './.github/scripts/linux_build.sh'
                 }
             }
@@ -52,6 +41,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: '**/*IT.txt,**/failsafe-summary.xml', fingerprint: true
+            // cleanWs()
         }
     }
 }
