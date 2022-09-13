@@ -41,7 +41,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: '**/*IT.txt,**/failsafe-summary.xml', fingerprint: true
-            // cleanWs()
+            cleanWs()
         }
     }
 }

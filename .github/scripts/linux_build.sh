@@ -26,7 +26,6 @@ docker run -t \
   bash -c '
     set -ex
     YUGABYTE_SRC=/home/yugabyte
-    #YB_VERSION=${YB_VERSION_TO_TEST_AGAINST[0]%-*}
     ./.github/scripts/install_start_yugabyte.sh ${YB_VERSION_TO_TEST_AGAINST} ${YUGABYTE_SRC}
     ./.github/scripts/build_test_cdcsdk.sh ${PKG_VERSION}
   '
