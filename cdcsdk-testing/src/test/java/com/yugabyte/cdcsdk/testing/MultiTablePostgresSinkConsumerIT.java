@@ -69,6 +69,10 @@ public class MultiTablePostgresSinkConsumerIT extends CdcsdkTestBase {
 
     @BeforeEach
     public void beforeEachTest() throws Exception {
+        // Drop tables before each test if they exist to ensure proper test flow
+        ybHelper.execute(UtilStrings.getDropTableStmt(TABLE_1));
+        ybHelper2.execute(UtilStrings.getDropTableStmt(TABLE_2));
+
         // Create table in the YugabyteDB database
         ybHelper.execute(UtilStrings.getCreateTableYBStmt(TABLE_1, 10));
 

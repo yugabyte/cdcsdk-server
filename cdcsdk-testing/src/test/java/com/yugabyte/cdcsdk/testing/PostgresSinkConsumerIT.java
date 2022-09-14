@@ -62,6 +62,9 @@ public class PostgresSinkConsumerIT extends CdcsdkTestBase {
         // setConnectorConfiguration();
         kafkaConnectContainer.registerConnector("test-connector", connector);
 
+        // Drop table if exists to ensure proper test flow
+        ybHelper.execute(UtilStrings.getDropTableStmt(DEFAULT_TABLE_NAME));
+
         // Assuming that yugabyted is running.
         ybHelper.execute(UtilStrings.getCreateTableYBStmt(DEFAULT_TABLE_NAME));
 
