@@ -56,6 +56,9 @@ public class S3ConsumerRelIT extends CdcsdkTestBase {
 
     @BeforeEach
     public void beforeEachTest() throws Exception {
+        // Drop table if exists to ensure proper test flow
+        ybHelper.execute(UtilStrings.getDropTableStmt(DEFAULT_TABLE_NAME));
+
         ybHelper.execute(UtilStrings.getCreateTableYBStmt(DEFAULT_TABLE_NAME));
     }
 
