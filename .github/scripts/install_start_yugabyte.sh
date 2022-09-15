@@ -35,6 +35,9 @@ if [[ "${ID_LIKE:-}" == "rhel fedora" ]]; then
   alternatives --set java java-11-openjdk.x86_64
 elif [[ "${ID_LIKE:-}" == "debian" ]]; then
   apt-get -y install openjdk-11-jdk
+else
+  echo "OS not supported"
+  exit 1
 fi
 
 show_help() {
