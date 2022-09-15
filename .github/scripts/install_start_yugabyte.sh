@@ -30,7 +30,7 @@ if [[ $ARCHITECTURE == "aarch64" ]]; then
   export MOS="el8"
 fi
 
-if [[ "${ID_LIKE:-}" == "rhel fedora" ]]; then
+if [[ "${ID_LIKE:-}" == *rhel* ]]; then
   yum -y -q install java-11-openjdk-devel
   alternatives --set java java-11-openjdk.x86_64
 elif [[ "${ID_LIKE:-}" == "debian" ]]; then
