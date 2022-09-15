@@ -13,6 +13,9 @@
 # under the License.
 
 set -exo pipefail
+
+. /etc/os-release
+
 export ARCHITECTURE=`uname -m`
 export MOS=`uname|tr '[:upper:]' '[:lower:]'`
 
@@ -22,7 +25,16 @@ if [[ $ARCHITECTURE != "x86_64" && $ARCHITECTURE != "aarch64" ]]; then
 fi
 
 if [[ $ARCHITECTURE == "aarch64" ]]; then
+  # For aarch64 yugabyte build we have el8 in build name
+  # e.g: yugabyte-2.15.1.0-b175-el8-aarch64.tar.gz & yugabyte-2.15.1.0-b175-linux-x86_64.tar.gz
   export MOS="el8"
+fi
+
+if [[ "${ID_LIKE:-}" == "rhel fedora" ]]; then
+  yum -y -q install java-11-openjdk-devel
+  alternatives --set java java-11-openjdk.x86_64
+elif [[ "${ID_LIKE:-}" == "debian" ]]; then
+  apt-get -y install openjdk-11-jdk
 fi
 
 show_help() {
@@ -42,9 +54,6 @@ YUGABYTE_SRC=${2:-/home/yugabyte}
 
 YB_VERSION=`echo $YB_VERSION_BUILD| awk -F'-' '{print $1}'`
 URL="https://downloads.yugabyte.com/releases/$YB_VERSION/yugabyte-$YB_VERSION_BUILD-$MOS-$ARCHITECTURE.tar.gz"
-
-yum -y -q install java-11-openjdk-devel
-alternatives --set java java-11-openjdk.x86_64
 
 rm -rf $YUGABYTE_SRC
 mkdir -p $YUGABYTE_SRC
