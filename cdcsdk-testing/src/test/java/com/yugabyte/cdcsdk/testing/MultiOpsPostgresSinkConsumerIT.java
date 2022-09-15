@@ -49,9 +49,6 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
 
     @BeforeEach
     public void beforeEachTest() throws Exception {
-        // Drop tables before each test if they exist to ensure proper test flow
-        ybHelper.execute(UtilStrings.getDropTableStmt(DEFAULT_TABLE_NAME));
-
         // Create table in the YugabyteDB database
         ybHelper.execute(UtilStrings.getCreateTableYBStmt(DEFAULT_TABLE_NAME, 10));
 

@@ -72,9 +72,6 @@ public class YBBootstrapPostgresSinkConsumerIT extends CdcsdkTestBase {
 
     @Test
     public void testSourceBootstrap() throws Exception {
-        // Drop table if exists to ensure proper test flow
-        ybHelper.execute(UtilStrings.getDropTableStmt(DEFAULT_TABLE_NAME));
-
         ybHelper.execute(UtilStrings.getCreateTableYBStmt(DEFAULT_TABLE_NAME));
 
         // Insert some records before starting the CDCSDK container

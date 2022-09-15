@@ -63,9 +63,6 @@ public class ElasticsearchSinkConsumerIT extends CdcsdkTestBase {
 
     @BeforeEach
     public void beforeEachTest() throws Exception {
-        // Drop tables before each test if they exist to ensure proper test flow
-        ybHelper.execute(UtilStrings.getDropTableStmt(DEFAULT_TABLE_NAME));
-
         ybHelper.execute(UtilStrings.getCreateTableYBStmt(DEFAULT_TABLE_NAME));
 
         cdcsdkContainer = getCdcsdkContainerWithoutTransforms();
