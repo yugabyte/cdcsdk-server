@@ -24,20 +24,18 @@ if [[ $ARCHITECTURE != "x86_64" && $ARCHITECTURE != "aarch64" ]]; then
   exit 1
 fi
 
+if [[ "${ID_LIKE:-}" == *rhel* ]]; then
+  yum -y -q install java-11-openjdk-devel
+  alternatives --set java java-11-openjdk.x86_64
+else
+  echo "OS not supported"
+  exit 1
+fi
+
 if [[ $ARCHITECTURE == "aarch64" ]]; then
   # For aarch64 yugabyte build we have el8 in build name
   # e.g: yugabyte-2.15.1.0-b175-el8-aarch64.tar.gz & yugabyte-2.15.1.0-b175-linux-x86_64.tar.gz
   export MOS="el8"
-fi
-
-if [[ "${ID_LIKE:-}" == *rhel* ]]; then
-  yum -y -q install java-11-openjdk-devel
-  alternatives --set java java-11-openjdk.x86_64
-elif [[ "${ID_LIKE:-}" == "debian" ]]; then
-  apt-get -y install openjdk-11-jdk
-else
-  echo "OS not supported"
-  exit 1
 fi
 
 show_help() {
