@@ -22,6 +22,7 @@ pipeline {
             steps {
                 script{
                     env.PKG_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    env.JENKINS_AGENT_IP = sh(script: "hostname -i", returnStdout: true).trim()
                     sh './.github/scripts/linux_build.sh'
                 }
             }
