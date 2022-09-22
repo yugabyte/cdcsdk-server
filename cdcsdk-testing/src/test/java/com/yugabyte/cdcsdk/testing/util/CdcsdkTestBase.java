@@ -72,7 +72,7 @@ public class CdcsdkTestBase {
      */
     protected static void initHelpers(boolean initYBHelper, boolean initKafkaHelper, boolean initPgHelper) throws Exception {
         if (initYBHelper) {
-            ybHelper = new YBHelper(InetAddress.getLocalHost().getHostAddress(), DEFAULT_TABLE_NAME);
+            ybHelper = new YBHelper(getYBHostAddress(), DEFAULT_TABLE_NAME);
         }
 
         if (initKafkaHelper) {
@@ -92,6 +92,14 @@ public class CdcsdkTestBase {
      */
     protected static void initHelpers() throws Exception {
         initHelpers(true, true, true);
+    }
+
+    protected static String getYBHostAddress() throws Exception {
+        if (System.getenv("JENKINS_AGENT_IP") != null) {
+            return System.getenv("JENKINS_AGENT_IP");
+        }
+
+        return InetAddress.getLocalHost().getHostAddress();
     }
 
     /**

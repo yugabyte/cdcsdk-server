@@ -18,6 +18,7 @@ docker run -t \
   -e DOCKER_IMAGE \
   -e YB_VERSION_TO_TEST_AGAINST \
   -e PKG_VERSION \
+  -e JENKINS_AGENT_IP \
   "-w=$build_dir_in_container" \
   --privileged \
   --mount type=bind,source="$PWD",target="$build_dir_in_container" \
