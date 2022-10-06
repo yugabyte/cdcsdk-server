@@ -22,20 +22,20 @@ public class EventHubsTestConfigSource extends TestConfigSource {
         Map<String, String> eventHubsTest = new HashMap<>();
 
         // event hubs sink config
-        eventHubsTest.put("debezium.sink.type", "eventhubs");
-        eventHubsTest.put("debezium.sink.eventhubs.connectionstring", getEventHubsConnectionString());
-        eventHubsTest.put("debezium.sink.eventhubs.hubname", getEventHubsName());
+        eventHubsTest.put("cdcsdk.sink.type", "eventhubs");
+        eventHubsTest.put("cdcsdk.sink.eventhubs.connectionstring", getEventHubsConnectionString());
+        eventHubsTest.put("cdcsdk.sink.eventhubs.hubname", getEventHubsName());
 
         // postgresql source config
 
-        eventHubsTest.put("debezium.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
+        eventHubsTest.put("cdcsdk.source.connector.class", "io.debezium.connector.postgresql.PostgresConnector");
 
-        eventHubsTest.put("debezium.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
+        eventHubsTest.put("cdcsdk.source." + StandaloneConfig.OFFSET_STORAGE_FILE_FILENAME_CONFIG,
                 OFFSET_STORE_PATH.toAbsolutePath().toString());
-        eventHubsTest.put("debezium.source.offset.flush.interval.ms", "0");
-        eventHubsTest.put("debezium.source.database.server.name", "testc");
-        eventHubsTest.put("debezium.source.schema.include.list", "inventory");
-        eventHubsTest.put("debezium.source.table.include.list", "inventory.customers");
+        eventHubsTest.put("cdcsdk.source.offset.flush.interval.ms", "0");
+        eventHubsTest.put("cdcsdk.source.database.server.name", "testc");
+        eventHubsTest.put("cdcsdk.source.schema.include.list", "inventory");
+        eventHubsTest.put("cdcsdk.source.table.include.list", "inventory.customers");
 
         config = eventHubsTest;
     }

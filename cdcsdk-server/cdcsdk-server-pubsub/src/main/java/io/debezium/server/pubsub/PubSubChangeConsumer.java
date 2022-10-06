@@ -52,7 +52,7 @@ public class PubSubChangeConsumer extends BaseChangeConsumer implements Debezium
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PubSubChangeConsumer.class);
 
-    private static final String PROP_PREFIX = "debezium.sink.pubsub.";
+    private static final String PROP_PREFIX = "cdcsdk.sink.pubsub.";
     private static final String PROP_PROJECT_ID = PROP_PREFIX + "project.id";
 
     public static interface PublisherBuilder {

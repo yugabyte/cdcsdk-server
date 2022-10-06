@@ -35,7 +35,7 @@ public class PulsarTestResourceLifecycleManager implements QuarkusTestResourceLi
         container.start();
 
         Map<String, String> params = new ConcurrentHashMap<>();
-        params.put("debezium.sink.pulsar.client.serviceUrl", getPulsarServiceUrl());
+        params.put("cdcsdk.sink.pulsar.client.serviceUrl", getPulsarServiceUrl());
 
         return params;
     }
