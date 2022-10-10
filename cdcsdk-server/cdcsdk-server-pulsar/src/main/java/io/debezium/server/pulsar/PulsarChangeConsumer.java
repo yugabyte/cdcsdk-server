@@ -44,7 +44,7 @@ public class PulsarChangeConsumer extends BaseChangeConsumer implements Debezium
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PulsarChangeConsumer.class);
 
-    private static final String PROP_PREFIX = "debezium.sink.pulsar.";
+    private static final String PROP_PREFIX = "cdcsdk.sink.pulsar.";
     private static final String PROP_CLIENT_PREFIX = PROP_PREFIX + "client.";
     private static final String PROP_PRODUCER_PREFIX = PROP_PREFIX + "producer.";
 
