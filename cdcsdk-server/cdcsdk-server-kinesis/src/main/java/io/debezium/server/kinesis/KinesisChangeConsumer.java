@@ -47,7 +47,7 @@ public class KinesisChangeConsumer extends BaseChangeConsumer implements Debeziu
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KinesisChangeConsumer.class);
 
-    private static final String PROP_PREFIX = "debezium.sink.kinesis.";
+    private static final String PROP_PREFIX = "cdcsdk.sink.kinesis.";
     private static final String PROP_REGION_NAME = PROP_PREFIX + "region";
     private static final String PROP_ENDPOINT_NAME = PROP_PREFIX + "endpoint";
 

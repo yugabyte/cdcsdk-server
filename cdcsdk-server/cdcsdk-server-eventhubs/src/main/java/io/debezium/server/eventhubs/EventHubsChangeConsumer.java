@@ -46,7 +46,7 @@ public class EventHubsChangeConsumer extends BaseChangeConsumer
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EventHubsChangeConsumer.class);
 
-    private static final String PROP_PREFIX = "debezium.sink.eventhubs.";
+    private static final String PROP_PREFIX = "cdcsdk.sink.eventhubs.";
     private static final String PROP_CONNECTION_STRING_NAME = PROP_PREFIX + "connectionstring";
     private static final String PROP_EVENTHUB_NAME = PROP_PREFIX + "hubname";
     private static final String PROP_PARTITION_ID = PROP_PREFIX + "partitionid";
