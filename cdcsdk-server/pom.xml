@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.yugabyte</groupId>
         <artifactId>cdcsdk-parent</artifactId>
-        <version>0.8.2</version>
+        <version>0.8.3-SNAPSHOT</version>
 	<relativePath>../cdcsdk-parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
