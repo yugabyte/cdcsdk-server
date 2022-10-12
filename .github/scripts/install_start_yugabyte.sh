@@ -73,4 +73,7 @@ if [[ ! -f "/usr/bin/python" ]]; then
     ln -s /usr/bin/python3 /usr/bin/python
 fi
 export PATH=$YUGABYTE_SRC/yugabyte-$YB_VERSION/bin:/usr/local/bin:$PATH
-yugabyted start --advertise_address $(hostname -i)
+
+if [[  `yugabyted status | grep 'not running'` ]] ; then
+  yugabyted start --advertise_address $(hostname -i)
+fi

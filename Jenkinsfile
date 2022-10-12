@@ -10,19 +10,24 @@ properties([
 
 pipeline {
      agent {
-        node { label 'ybc-docker-agent' }
+        node { label 'cdc-docker-agent' }
     }
     environment {
         YB_VERSION_TO_TEST_AGAINST = "${params.YB_VERSION_TO_TEST_AGAINST}"
         DOCKER_IMAGE = "yugabyteci/yb_build_infra_almalinux8_x86_64:v2022-05-28T06_27_35"
         RELEASE_BUCKET_PATH = "s3://releases.yugabyte.com/cdcsdk-server"
+        YUGABYTE_SRC = "/home/yugabyte"
     }
     stages {
         stage('Build and Test') {
             steps {
                 script{
-                    env.PKG_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    sh './.github/scripts/linux_build.sh'
+                    sh 'sudo chmod 666 /var/run/docker.sock'
+                    sh 'sudo ./.github/scripts/install_start_yugabyte.sh ${YB_VERSION_TO_TEST_AGAINST} ${YUGABYTE_SRC}'
+                    sh '''
+                    PKG_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+                    ./.github/scripts/build_test_cdcsdk.sh ${PKG_VERSION}
+                    '''
                 }
             }
         }
@@ -30,7 +35,7 @@ pipeline {
             steps {
                 script {
                     dir ("${env.WORKSPACE}/cdcsdk-server/cdcsdk-server-dist") {
-                        if (env.PUBLISH_TO_S3) {
+                        if (params.PUBLISH_TO_S3) {
                             sh 'aws s3 cp --recursive --exclude="*" --include="*.gz" --include="*.gz.sha" --include="*.gz.md5" target ${RELEASE_BUCKET_PATH}/${PKG_VERSION}'
                         }
                     }
