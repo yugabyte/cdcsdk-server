@@ -26,6 +26,9 @@ It supports a YugabyteDb instance as a source and supports the following sinks:
     - [Amazon S3](#amazon-s3)
     - [Mapping Records to S3 Objects](#mapping-records-to-s3-objects)
       - [IAM Policy](#iam-policy)
+    - [Google Pub/Sub](#google-pubsub)
+    - [Amazon Kinesis](#amazon-kinesis)
+    - [Azure Event Hubs](#azure-event-hubs)
   - [Record Structure](#record-structure)
   - [Operations](#operations)
     - [Topology](#topology)
@@ -267,6 +270,39 @@ Note: This is the IAM policy for the user account and not a bucket policy.
    ]
 }
 ```
+
+### Google Pub/Sub
+
+The pubsub client streams changes to a Google Pub/Sub topic.
+
+|Property|Default|Description|
+|--------|-------|-----------|
+|cdcsdk.sink.type||Must be set to `pubsub`|
+|cdcsdk.sink.pubsub.project.id|system-wide default project id|A project name in which the target topics are created.|
+|cdcsdk.sink.pubsub.ordering.enabled|`true`|Pub/Sub can optionally use a message key to guarantee the delivery of the messages in the same order as were sent for messages with the same order key. This feature can be disabled.|
+|cdcsdk.sink.pubsub.null.key|`default`|Tables without primary key sends messages with null key. This is not supported by Pub/Sub so a surrogate key must be used.|
+
+### Amazon Kinesis
+
+The configurations to stream changes to Amazon Kinesis are :
+
+|Property|Default|Description|
+|--------|-------|-----------|
+|cdcsdk.sink.type||Must be set to `kinesis`|
+|cdcsdk.sink.kinesis.region||A region name in which the Kinesis target streams are provided.|
+|cdcsdk.sink.kinesis.credentials.profile|`default`|A credentials profile name used to communicate with Amazon API.|
+|cdcsdk.sink.kinesis.null.key|`default`|Kinesis does not support the notion of messages without key. So this string will be used as message key for messages from tables without primary key.|
+
+### Azure Event Hubs
+
+The configurations to stream changes to Azure Event Hubs are :
+
+|Property|Default|Description|
+|--------|-------|-----------|
+|cdcsdk.sink.type||Must be set to `eventhubs`|
+|cdcsdk.sink.eventhubs.connectionstring||[Connection string](https://learn.microsoft.com/en-gb/azure/event-hubs/event-hubs-get-connection-string) required to communicate with Event Hubs. The format is: Endpoint=sb://<NAMESPACE>/;SharedAccessKeyName=<ACCESS_KEY_NAME>;SharedAccessKey=<ACCESS_KEY_VALUE>|
+|cdcsdk.sink.eventhubs.hubname||Name of the Event hub|
+|cdcsdk.sink.eventhubs.maxbatchsize||Sets the maximum size for the batch of events, in bytes.|
 
 ## Record structure
 
