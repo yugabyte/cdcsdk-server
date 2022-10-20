@@ -10,7 +10,7 @@ properties([
 
 pipeline {
      agent {
-        node { label 'cdc-docker-agent' }
+        node { label 'cdcsdk-docker-agent' }
     }
     environment {
         YB_VERSION_TO_TEST_AGAINST = "${params.YB_VERSION_TO_TEST_AGAINST}"
