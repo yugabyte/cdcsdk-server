@@ -282,6 +282,12 @@ The pubsub client streams changes to a Google Pub/Sub topic.
 |cdcsdk.sink.pubsub.ordering.enabled|`true`|Pub/Sub can optionally use a message key to guarantee the delivery of the messages in the same order as were sent for messages with the same order key. This feature can be disabled.|
 |cdcsdk.sink.pubsub.null.key|`default`|Tables without primary key sends messages with null key. This is not supported by Pub/Sub so a surrogate key must be used.|
 
+> **Note**
+> The CDCSDK server works fine with Pub/Sub sink when both of them are under same project id. If you want to run them under different projects then :
+>* Run `gcloud auth application-default login` . This will prompt you to log in and will save the credentials at `~/.config/gcloud/application_default_credentials.json`.
+>* Now assign this path to the environment variable `GOOGLE_APPLICATION_CREDENTIALS` by adding the following line to \~/.bashrc `GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/application_default_credentials.json`.
+>* After adding the line, run `source ~/.bashrc`
+
 ### Amazon Kinesis
 
 The configurations to stream changes to Amazon Kinesis are :
