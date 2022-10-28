@@ -2,7 +2,7 @@ package com.yugabyte.cdcsdk.testing.util;
 
 /**
  * Helper class for providing various strings for DMLs and DDLs
- * 
+ *
  * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
  */
 public class UtilStrings {
@@ -18,6 +18,10 @@ public class UtilStrings {
 
     // Format string with customizable table name and the values for the columns
     private static final String INSERT_FORMAT = "INSERT INTO %s VALUES (%d, '%s', '%s', %f);";
+
+    private static final String DELETE_FORMAT = "DELETE FROM %s WHERE id = %d;";
+
+    private static final String UPDATE_FORMAT = "UPDATE %s SET days_worked = %d WHERE id = %d";
 
     public static final String DATABASE_SERVER_NAME = "dbserver1";
 
@@ -43,7 +47,7 @@ public class UtilStrings {
 
     /**
      * Get a create table statement for table to be created in YugabyteDB database
-     * 
+     *
      * @param tableName       name of the table
      * @param numberOfTablets number of tablets the table should be split into
      * @return the CREATE TABLE query
@@ -55,7 +59,7 @@ public class UtilStrings {
     /**
      * Wrapper function around {@link #getCreateTableYBStmt(String, int)} to get a
      * create table statement with 1 tablet
-     * 
+     *
      * @param tableName name of the table
      * @return the CREATE TABLE query for a single tablet
      */
@@ -65,7 +69,7 @@ public class UtilStrings {
 
     /**
      * Get a create table statement for table to be created in Postgres database
-     * 
+     *
      * @param tableName name of the table
      * @return the CREATE TABLE query
      */
@@ -76,7 +80,7 @@ public class UtilStrings {
     /**
      * Get a drop table statement for table to be dropped. Works for both YugabyteDB
      * and Postgres database
-     * 
+     *
      * @param tableName name of the table
      * @return the DROP TABLE query
      */
@@ -87,7 +91,7 @@ public class UtilStrings {
     /**
      * Get an insert table statement for values to be inserted into the provided
      * table
-     * 
+     *
      * @param tableName  name of the table
      * @param id         value of the column 'id'
      * @param firstName  value of the column 'first_name'
@@ -97,5 +101,13 @@ public class UtilStrings {
      */
     public static String getInsertStmt(String tableName, int id, String firstName, String lastName, double daysWorked) {
         return String.format(INSERT_FORMAT, tableName, id, firstName, lastName, daysWorked);
+    }
+
+    public static String getDeleteStmt(String tableName, int id) {
+        return String.format(DELETE_FORMAT, tableName, id);
+    }
+
+    public static String getUpdateStmt(String tableName, int id, int days_worked) {
+        return String.format(UPDATE_FORMAT, tableName, days_worked, id);
     }
 }
