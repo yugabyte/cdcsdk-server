@@ -53,15 +53,6 @@ public class PubSubConsumerIT extends CdcsdkTestBase {
     @BeforeEach
     public void beforeEachTest() throws Exception {
         ybHelper.execute(UtilStrings.getCreateTableYBStmt(DEFAULT_TABLE_NAME));
-    }
-
-    @AfterEach
-    public void dropTable() throws Exception {
-        ybHelper.execute(UtilStrings.getDropTableStmt(DEFAULT_TABLE_NAME));
-    }
-
-    @Test
-    public void automationOfPubSubAssertions() throws Exception {
 
         cdcsdkContainer = TestHelper
                 .getCdcsdkContainerForPubSubSink(ybHelper, projectId, "public." + DEFAULT_TABLE_NAME)
