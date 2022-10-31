@@ -235,7 +235,10 @@ public class CdcsdkContainer {
         return configs;
     }
 
-    public GenericContainer<?> build(GenericContainer<?> cdcsdkContainer) throws Exception {
+    public GenericContainer<?> build(Map<String, String> env) throws Exception {
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
+        cdcsdkContainer.withEnv(env);
+
         cdcsdkContainer.withExposedPorts(8080);
         if (this.waitForLiveCheck) {
             cdcsdkContainer.waitingFor(Wait.forHttp("/q/health/live"));
@@ -250,20 +253,14 @@ public class CdcsdkContainer {
     }
 
     public GenericContainer<?> buildForKafkaSink() throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
-        cdcsdkContainer.withEnv(getConfigMapForKafka());
-        return build(cdcsdkContainer);
+        return build(getConfigMapForKafka());
     }
 
     public GenericContainer<?> buildForS3Sink() throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
-        cdcsdkContainer.withEnv(getConfigMapForS3());
-        return build(cdcsdkContainer);
+        return build(getConfigMapForS3());
     }
 
     public GenericContainer<?> buildForPubSubSink() throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
-        cdcsdkContainer.withEnv(getConfigMapForPubSub());
-        return build(cdcsdkContainer);
+        return build(getConfigMapForPubSub());
     }
 }
