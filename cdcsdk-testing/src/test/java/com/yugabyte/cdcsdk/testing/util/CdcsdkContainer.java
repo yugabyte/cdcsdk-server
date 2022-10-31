@@ -235,7 +235,10 @@ public class CdcsdkContainer {
         return configs;
     }
 
-    public GenericContainer<?> build(GenericContainer<?> cdcsdkContainer) throws Exception {
+    public GenericContainer<?> build(Map<String, String> env) throws Exception {
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
+        cdcsdkContainer.withEnv(env);
+
         cdcsdkContainer.withExposedPorts(8080);
         if (this.waitForLiveCheck) {
             cdcsdkContainer.waitingFor(Wait.forHttp("/q/health/live"));
