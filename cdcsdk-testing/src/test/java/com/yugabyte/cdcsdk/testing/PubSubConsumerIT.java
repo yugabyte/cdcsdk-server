@@ -8,14 +8,12 @@ package com.yugabyte.cdcsdk.testing;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,15 +50,6 @@ public class PubSubConsumerIT extends CdcsdkTestBase {
     @BeforeEach
     public void beforeEachTest() throws Exception {
         ybHelper.execute(UtilStrings.getCreateTableYBStmt(DEFAULT_TABLE_NAME));
-    }
-
-    @AfterEach
-    public void dropTable() throws Exception {
-        ybHelper.execute(UtilStrings.getDropTableStmt(DEFAULT_TABLE_NAME));
-    }
-
-    @Test
-    public void automationOfPubSubAssertions() throws Exception {
 
         cdcsdkContainer = TestHelper
                 .getCdcsdkContainerForPubSubSink(ybHelper, projectId, "public." + DEFAULT_TABLE_NAME)
@@ -74,16 +63,23 @@ public class PubSubConsumerIT extends CdcsdkTestBase {
 
         assertTrue(cdcsdkContainer.isRunning());
 
+    }
+
+    @AfterEach
+    public void dropTable() throws Exception {
+        ybHelper.execute(UtilStrings.getDropTableStmt(DEFAULT_TABLE_NAME));
+    }
+
+    @Test
+    public void automationOfPubSubAssertions() throws Exception {
+
         int recordsInserted = 1;
         for (int i = 0; i < recordsInserted; ++i) {
             ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, i, "first_" + i, "last_" + i, 23.45));
-            Awaitility.await().atMost(Duration.ofSeconds(10));
         }
         ybHelper.execute(UtilStrings.getUpdateStmt(DEFAULT_TABLE_NAME, 0, 25));
-        Awaitility.await().atMost(Duration.ofSeconds(10));
 
         ybHelper.execute(UtilStrings.getDeleteStmt(DEFAULT_TABLE_NAME, 0));
-        Awaitility.await().atMost(Duration.ofSeconds(10));
 
         List<String> expected_data = List.of(
                 "{\"id\":0,\"first_name\":\"first_0\",\"last_name\":\"last_0\",\"days_worked\":23.45,\"__deleted\":\"false\"}",

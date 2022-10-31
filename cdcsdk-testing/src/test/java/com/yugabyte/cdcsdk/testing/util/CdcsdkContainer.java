@@ -235,50 +235,35 @@ public class CdcsdkContainer {
         return configs;
     }
 
-    public GenericContainer<?> buildForKafkaSink() throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
-        cdcsdkContainer.withEnv(getConfigMapForKafka());
+    public GenericContainer<?> build(GenericContainer<?> cdcsdkContainer) throws Exception {
         cdcsdkContainer.withExposedPorts(8080);
         if (this.waitForLiveCheck) {
             cdcsdkContainer.waitingFor(Wait.forHttp("/q/health/live"));
         }
         else {
-            cdcsdkContainer.waitingFor(Wait.forLogMessage(String.format(".*%s.*\\n", bootstrapLogLineRegex), this.bootstrapLogLineCount));
+            cdcsdkContainer.waitingFor(
+                    Wait.forLogMessage(String.format(".*%s.*\\n", bootstrapLogLineRegex), this.bootstrapLogLineCount));
         }
         cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
 
         return cdcsdkContainer;
+    }
+
+    public GenericContainer<?> buildForKafkaSink() throws Exception {
+        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
+        cdcsdkContainer.withEnv(getConfigMapForKafka());
+        return build(cdcsdkContainer);
     }
 
     public GenericContainer<?> buildForS3Sink() throws Exception {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
         cdcsdkContainer.withEnv(getConfigMapForS3());
-        cdcsdkContainer.withExposedPorts(8080);
-        if (this.waitForLiveCheck) {
-            cdcsdkContainer.waitingFor(Wait.forHttp("/q/health/live"));
-        }
-        else {
-            cdcsdkContainer.waitingFor(
-                    Wait.forLogMessage(String.format(".*%s.*\\n", bootstrapLogLineRegex), this.bootstrapLogLineCount));
-        }
-        cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
-
-        return cdcsdkContainer;
+        return build(cdcsdkContainer);
     }
 
     public GenericContainer<?> buildForPubSubSink() throws Exception {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
         cdcsdkContainer.withEnv(getConfigMapForPubSub());
-        cdcsdkContainer.withExposedPorts(8080);
-        if (this.waitForLiveCheck) {
-            cdcsdkContainer.waitingFor(Wait.forHttp("/q/health/live"));
-        }
-        else {
-            cdcsdkContainer.waitingFor(
-                    Wait.forLogMessage(String.format(".*%s.*\\n", bootstrapLogLineRegex), this.bootstrapLogLineCount));
-        }
-        cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
-
-        return cdcsdkContainer;
+        return build(cdcsdkContainer);
     }
 }
