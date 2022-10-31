@@ -39,6 +39,16 @@ public class TestHelper {
                 .buildForS3Sink();
     }
 
+    public static GenericContainer<?> getCdcsdkContainerForPubSubSink(YBHelper ybHelper, String projectId, String tableIncludeList) throws Exception {
+        return new CdcsdkContainer()
+                .withDatabaseHostname(ybHelper.getHostName())
+                .withMasterPort(String.valueOf(ybHelper.getMasterPort()))
+                .withProjectId(projectId)
+                .withStreamId(ybHelper.getNewDbStreamId(ybHelper.getDatabaseName()))
+                .withTableIncludeList(tableIncludeList)
+                .buildForPubSubSink();
+    }
+
     public static String executeShellCommand(String command) throws Exception {
         Process process = Runtime.getRuntime().exec(command);
         String stdOutput = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
@@ -79,10 +89,10 @@ public class TestHelper {
 
     /**
      * Helper function to register connectors to the Kafka Connect container.
-     * 
+     *
      * We cannot use {@code kafkaConnectContainer.registerConnector()} since the command doesn't work
      * after the containers were restarted i.e. in the backend the command still refers to the
-     * mapped ports before the restart. 
+     * mapped ports before the restart.
      * @param connectorsEndpoint connector URI
      * @param connectorName name of the connector
      * @param config configuration for the connector to be deployed
@@ -124,7 +134,7 @@ public class TestHelper {
     /**
      * Helper function to retrieve the mapped port on the host machine for the given port in the docker container
      * @param container the container instance
-     * @param port the exposed port in docker container 
+     * @param port the exposed port in docker container
      * @return the mapped port on host machine
      */
     public static int getContainerMappedPortFor(GenericContainer<?> container, int port) {
