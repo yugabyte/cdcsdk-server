@@ -48,5 +48,19 @@ pipeline {
             archiveArtifacts artifacts: '**/*IT.txt,**/failsafe-summary.xml', fingerprint: true
             cleanWs()
         }
+        success {
+            slackSend(
+                color: "good",
+                channel: "#cdc-jenkins-runs",
+                message: "CDC SDK daily master test Job Passed - ${BUILD_URL}."
+            )
+        }
+        failure {
+            slackSend(
+                color: "danger",
+                channel: "#cdc-jenkins-runs",
+                message: "CDC SDK daily master test Job Failed - ${BUILD_URL}."
+            )
+        }
     }
 }
