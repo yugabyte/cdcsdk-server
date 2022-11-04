@@ -49,6 +49,7 @@ public class TestHelper {
                 .buildForPubSubSink();
     }
 
+
     public static GenericContainer<?> getCdcsdkContainerForKinesisSink(YBHelper ybHelper, String tableIncludeList) throws Exception {
         return new CdcsdkContainer()
                 .withDatabaseHostname(ybHelper.getHostName())
@@ -57,6 +58,7 @@ public class TestHelper {
                 .withTableIncludeList(tableIncludeList)
                 .buildForKinesisSink();
     }
+
 
     public static String executeShellCommand(String command) throws Exception {
         Process process = Runtime.getRuntime().exec(command);

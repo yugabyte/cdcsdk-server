@@ -59,6 +59,7 @@ public class CdcsdkContainer {
     private String cdcsdkSinkKinesisCredentialsProfile = "default";
     private String cdcsdkSinkKinesisNullKey = "null";
 
+
     // Wait until the given number of times this log line is encountered.
     // This line will be printed for each tablet so basically the count is equal to the total number
     // of tablets the CDCSDK Server is going to fetch the changes from.
@@ -290,4 +291,5 @@ public class CdcsdkContainer {
     public GenericContainer<?> buildForKinesisSink() throws Exception {
         return build(getConfigMapForKinesis());
     }
+
 }
