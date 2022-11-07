@@ -27,7 +27,8 @@ if [[ "${PKG_VERSION}x" == "x" ]]; then
     exit 1
 fi
 
-mvn clean integration-test -PreleaseTests 
+mvn clean integration-test -PreleaseTests
+mvn verify
 SHORT_COMMIT=$(git rev-parse --short HEAD)
 cd cdcsdk-server/cdcsdk-server-dist/target
 mv cdcsdk-server-dist-${PKG_VERSION}.tar.gz cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz
