@@ -77,6 +77,8 @@ public class KinesisConsumerIT extends CdcsdkTestBase {
     public void automationOfKinesisAssertions() throws Exception {
 
         int recordsInserted = 1;
+
+        // Kinesis stores the records for minimum 24 hours. Hence to identify the current records we are using UUID
         String uuid = getUUID().substring(0, 8);
         for (int i = 0; i < recordsInserted; ++i) {
             ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, i, uuid, "last_" + i, 23.45));
@@ -101,10 +103,9 @@ public class KinesisConsumerIT extends CdcsdkTestBase {
 
         AmazonKinesisClient client = new AmazonKinesisClient(awsCredentials);
 
-        client.setEndpoint("https://kinesis.ap-south-1.amazonaws.com/");
+        client.setEndpoint(System.getenv("AWS_ENDPOINT"));
 
-        final int INTERVAL = 2000;
-        ;
+        final int INTERVAL = 2;
 
         List<Shard> initialShardData = client.describeStream(stream_name).getStreamDescription().getShards();
 
@@ -139,16 +140,14 @@ public class KinesisConsumerIT extends CdcsdkTestBase {
                 }
             });
 
-            if (recordResult.getRecords().size() == 0)
-                break;
-            try {
-                Thread.sleep(INTERVAL);
-            }
-            catch (InterruptedException exception) {
-                System.out.println("Receving InterruptedException. Exiting ...");
-                return;
-            }
             shardIterator = recordResult.getNextShardIterator();
+
+            if (recordResult.getRecords().size() == 0 || shardIterator == null)
+                break;
+                
+            // waiting time between two reads
+            Awaitility.await().atMost(Duration.ofSeconds(INTERVAL));
+
         }
 
         assertTrue(validateRecords(expected_data, actual_data));
