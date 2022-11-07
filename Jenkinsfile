@@ -55,6 +55,13 @@ pipeline {
                 message: "CDC SDK daily master test Job Passed - ${BUILD_URL}."
             )
         }
+        aborted {
+            slackSend(
+                color: "danger",
+                channel: "#cdc-jenkins-runs",
+                message: "CDC SDK daily master test Job Aborted - ${BUILD_URL}."
+            )
+        }
         failure {
             slackSend(
                 color: "danger",
