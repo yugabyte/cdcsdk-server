@@ -19,6 +19,11 @@ pipeline {
         YUGABYTE_SRC = "/home/yugabyte"
     }
     stages {
+        stage("Cache Dependencies") {
+            cache(path: "$HOME/.m2/repository", key: "cdcsdk-${hashFiles('**/pom.xml')}") {
+                sh './mvn package'
+            }
+        }
         stage('Build and Test') {
             steps {
                 script{
