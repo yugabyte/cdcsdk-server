@@ -20,8 +20,10 @@ pipeline {
     }
     stages {
         stage("Cache Dependencies") {
-            cache(path: "$HOME/.m2/repository", key: "cdcsdk-${hashFiles('**/pom.xml')}") {
-                sh './mvn package'
+            steps {
+                cache(path: "$HOME/.m2/repository", key: "cdcsdk-${hashFiles('**/pom.xml')}") {
+                    sh './mvn package'
+                }
             }
         }
         stage('Build and Test') {
