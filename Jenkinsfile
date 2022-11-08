@@ -21,8 +21,8 @@ pipeline {
     stages {
         stage("Cache Dependencies") {
             steps {
-                cache(path: "$HOME/.m2/repository", key: "cdcsdk-${hashFiles('**/pom.xml')}") {
-                    sh './mvn package'
+                cache (path: "$HOME/.m2/repository", key: "cdcsdk-${hashFiles('pom.xml')}") {
+                    sh 'mvn dependency:resolve'
                 }
             }
         }
