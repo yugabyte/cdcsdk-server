@@ -304,9 +304,9 @@
                         <artifactId>maven-checkstyle-plugin</artifactId>
                         <dependencies>
                             <dependency>
-                                <groupId>io.debezium</groupId>
-                                <artifactId>debezium-checkstyle</artifactId>
-                                <version>${version.debezium}</version>
+                                <groupId>com.yugabyte</groupId>
+                                <artifactId>cdcsdk-checkstyle</artifactId>
+                                <version>${project.version}</version>
                             </dependency>
                         </dependencies>
                         <configuration>

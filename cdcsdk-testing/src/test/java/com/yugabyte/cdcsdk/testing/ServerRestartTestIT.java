@@ -1,8 +1,8 @@
 package com.yugabyte.cdcsdk.testing;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.lang.String;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -26,7 +26,7 @@ import com.yugabyte.cdcsdk.testing.util.CdcsdkContainer;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
 import com.yugabyte.cdcsdk.testing.util.IOT;
 
-import io.debezium.testing.testcontainers.*;
+import io.debezium.testing.testcontainers.ConnectorConfiguration;
 
 /**
  * Release test that verifies basic reading from a YugabyteDB database and
