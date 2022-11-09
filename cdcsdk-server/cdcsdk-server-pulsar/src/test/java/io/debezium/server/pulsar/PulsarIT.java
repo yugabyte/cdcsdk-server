@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
 
 import com.yugabyte.cdcsdk.server.TestConfigSource;
 
-import io.debezium.config.Configuration;
 import io.debezium.connector.postgresql.connection.PostgresConnection;
+import io.debezium.jdbc.JdbcConfiguration;
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.testing.testcontainers.PostgresTestResourceLifecycleManager;
@@ -94,14 +94,14 @@ public class PulsarIT {
             records.add(consumer.receive());
             return records.size() >= MESSAGE_COUNT;
         });
-        final Configuration config = Configuration.create()
+        final JdbcConfiguration config = JdbcConfiguration.create()
                 .with("hostname", dbHostname)
                 .with("port", dbPort)
                 .with("user", dbUser)
                 .with("password", dbPassword)
                 .with("dbname", dbName)
                 .build();
-        try (final PostgresConnection connection = new PostgresConnection(config)) {
+        try (final PostgresConnection connection = new PostgresConnection(config, "Debezium Pulsar Test")) {
             connection.execute(
                     "CREATE TABLE inventory.nokey (val INT);",
                     "INSERT INTO inventory.nokey VALUES (1)",
