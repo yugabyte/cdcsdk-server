@@ -77,8 +77,7 @@
         <version.zookeeper>3.5.9</version.zookeeper>
         <version.jackson>2.10.5</version.jackson>
         <version.jackson.databind>2.10.5.1</version.jackson.databind>
-        <version.org.slf4j>1.7.30</version.org.slf4j>
-        <version.log4j>1.2.17</version.log4j>
+        <version.org.slf4j>1.7.36</version.org.slf4j>
         <version.netty>4.1.51.Final</version.netty>
 
         <!-- Scala version used to build Kafka -->
@@ -100,10 +99,10 @@
     </properties>
 
     <modules>
-        <module>cdcsdk-parent</module>
         <module>support/checkstyle</module>
         <module>support/ide-configs</module>
         <module>support/revapi</module>
+        <module>cdcsdk-parent</module>
         <module>cdcsdk-engine</module>
         <module>cdcsdk-server</module>
         <module>cdcsdk-testing</module>
@@ -428,3 +427,4 @@
         </profile>
     </profiles>
 </project>
+

@@ -65,8 +65,9 @@ public class RollingOutputStreamTest {
     @AfterEach
     void cleanTempDir() {
         for (File file : testDir.toFile().listFiles()) {
-            if (!file.isDirectory())
+            if (!file.isDirectory()) {
                 file.delete();
+            }
         }
     }
 

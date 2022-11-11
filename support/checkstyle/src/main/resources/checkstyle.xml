@@ -16,7 +16,7 @@
         <!-- Exclude any classes that keep their own copyright and header -->
         <property name="excludedClasses" value="io.debezium.util.VariableLatch"/>
         <!-- Exclude any directories that contain completely different headers -->
-        <property name="excludedFilesRegex" value="io/debezium/annotation/.*"/>
+        <property name="excludedFilesRegex" value="(io/debezium/annotation/.*)|(com/yugabyte/.*)"/>
     </module>
 
     <module name="TreeWalker">
@@ -174,3 +174,4 @@
     </module>
 
 </module>
+
