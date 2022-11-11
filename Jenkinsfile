@@ -14,7 +14,6 @@ pipeline {
     }
     environment {
         YB_VERSION_TO_TEST_AGAINST = "${params.YB_VERSION_TO_TEST_AGAINST}"
-        DOCKER_IMAGE = "yugabyteci/yb_build_infra_almalinux8_x86_64:v2022-05-28T06_27_35"
         RELEASE_BUCKET_PATH = "s3://releases.yugabyte.com/cdcsdk-server"
         YUGABYTE_SRC = "/home/yugabyte"
     }
