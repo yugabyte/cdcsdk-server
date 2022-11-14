@@ -12,6 +12,9 @@ pipeline {
      agent {
         node { label 'cdcsdk-docker-agent' }
     }
+    options {
+        timeout(time: 2, unit: 'HOURS')
+    }
     environment {
         YB_VERSION_TO_TEST_AGAINST = "${params.YB_VERSION_TO_TEST_AGAINST}"
         RELEASE_BUCKET_PATH = "s3://releases.yugabyte.com/cdcsdk-server"
