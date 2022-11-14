@@ -1,9 +1,8 @@
 package com.yugabyte.cdcsdk.testing;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import java.lang.Double;
-import java.lang.String;
 import java.sql.ResultSet;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -13,7 +12,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
 import com.yugabyte.cdcsdk.testing.util.UtilStrings;
 
-import io.debezium.testing.testcontainers.*;
+import io.debezium.testing.testcontainers.ConnectorConfiguration;
 
 /**
  * Release test that verifies basic reading from a YugabyteDB database and
