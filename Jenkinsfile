@@ -25,6 +25,14 @@ pipeline {
                 }
             }
         }
+        stage("Check environment") {
+            steps {
+                script{
+                    sh 'java -version'
+                    sh 'mvn -version'
+                }
+            }
+        }
         stage("Cache Dependencies") {
             steps {
                 cache (path: "$HOME/.m2/repository", key: "cdcsdk-${hashFiles('pom.xml')}") {
