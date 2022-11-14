@@ -14,22 +14,15 @@
 
 set -exo pipefail
 
-show_help() {
-cat <<-EOT
-Usage: ${0##*/} <PKG_VERSION>
-EOT
-}
+. /etc/os-release
 
-PKG_VERSION=$1
-
-if [[ "${PKG_VERSION}x" == "x" ]]; then
-    show_help
-    exit 1
+if [[ "${ID_LIKE:-}" == *rhel* ]]; then
+  sudo yum -y -q install java-11-openjdk-devel
+  sudo alternatives --set java java-11-openjdk.x86_64
+else
+  echo "OS not supported"
+  exit 1
 fi
 
-mvn clean verify -PreleaseTests
-SHORT_COMMIT=$(git rev-parse --short HEAD)
-cd cdcsdk-server/cdcsdk-server-dist/target
-mv cdcsdk-server-dist-${PKG_VERSION}.tar.gz cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz
-sha1sum cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz > cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz.sha
-md5sum cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz > cdcsdk-server-dist-${PKG_VERSION}-${SHORT_COMMIT}.tar.gz.md5
+# Set docker permissions
+sudo chmod 666 /var/run/docker.sock

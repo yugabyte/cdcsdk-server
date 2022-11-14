@@ -15,9 +15,16 @@ pipeline {
     environment {
         YB_VERSION_TO_TEST_AGAINST = "${params.YB_VERSION_TO_TEST_AGAINST}"
         RELEASE_BUCKET_PATH = "s3://releases.yugabyte.com/cdcsdk-server"
-        YUGABYTE_SRC = "/home/yugabyte"
+        YUGABYTE_SRC = "/home/centos/yugabyte"
     }
     stages {
+        stage("Setup environment") {
+            steps {
+                script{
+                    sh './.github/scripts/install_prerequisites.sh'
+                }
+            }
+        }
         stage("Cache Dependencies") {
             steps {
                 cache (path: "$HOME/.m2/repository", key: "cdcsdk-${hashFiles('pom.xml')}") {
@@ -28,8 +35,7 @@ pipeline {
         stage('Build and Test') {
             steps {
                 script{
-                    sh 'sudo chmod 666 /var/run/docker.sock'
-                    sh 'sudo ./.github/scripts/install_start_yugabyte.sh ${YB_VERSION_TO_TEST_AGAINST} ${YUGABYTE_SRC}'
+                    sh './.github/scripts/install_start_yugabyte.sh ${YB_VERSION_TO_TEST_AGAINST} ${YUGABYTE_SRC}'
                     sh '''
                     PKG_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
                     ./.github/scripts/build_test_cdcsdk.sh ${PKG_VERSION}
