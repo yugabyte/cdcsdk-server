@@ -272,35 +272,6 @@ public class CdcsdkContainer {
         }
         cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
 
-        configs.put("CDCSDK_SINK_TYPE", "pubsub");
-
-        configs.put("CDCSDK_SINK_PUBSUB_PROJECT_ID", this.cdcsdkSinkPubSubProjectId);
-        configs.put("CDCSDK_SINK_PUBSUB_Ordering_Enabled", this.cdcsdkSinkPubSubOrderingEnabled);
-        configs.put("CDCSDK_SINK_PUBSUB_NULL_KEY", this.cdcsdkSinkPubSubNullKey);
-
-        configs.put("CDCSDK_SERVER_TRANSFORMS", "unwrap");
-        configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DROP_TOMBSTONES", this.cdcsdkServerTransformsUnwrapDropTombstones);
-        configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_TYPE", this.cdcsdkServerTransformsUnwrapType);
-        configs.put("CDCSDK_SERVER_FORMAT_VALUE_CONVERTER_SCHEMAS_ENABLE", "false");
-        configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DELETE_HANDLING_MODE", "rewrite");
-
-        return configs;
-    }
-
-    public GenericContainer<?> build(Map<String, String> env) throws Exception {
-        GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
-        cdcsdkContainer.withEnv(env);
-
-        cdcsdkContainer.withExposedPorts(8080);
-        if (this.waitForLiveCheck) {
-            cdcsdkContainer.waitingFor(Wait.forHttp("/q/health/live"));
-        }
-        else {
-            cdcsdkContainer.waitingFor(
-                    Wait.forLogMessage(String.format(".*%s.*\\n", bootstrapLogLineRegex), this.bootstrapLogLineCount));
-        }
-        cdcsdkContainer.withStartupTimeout(Duration.ofSeconds(120));
-
         return cdcsdkContainer;
     }
 

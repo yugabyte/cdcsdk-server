@@ -144,7 +144,7 @@ public class KinesisConsumerIT extends CdcsdkTestBase {
 
             if (recordResult.getRecords().size() == 0 || shardIterator == null)
                 break;
-                
+
             // waiting time between two reads
             Awaitility.await().atMost(Duration.ofSeconds(INTERVAL));
 
