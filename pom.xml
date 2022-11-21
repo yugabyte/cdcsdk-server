@@ -75,8 +75,8 @@
         <!-- Kafka and it's dependencies MUST reflect what the Kafka version uses -->
         <version.kafka>3.2.0</version.kafka>
         <version.zookeeper>3.6.3</version.zookeeper>
-        <version.jackson>2.13.2</version.jackson>
-        <version.jackson.databind>2.13.2.2</version.jackson.databind>
+        <version.jackson>2.13.4</version.jackson>
+        <version.jackson.databind>2.13.4</version.jackson.databind>
         <version.org.slf4j>1.7.36</version.org.slf4j>
         <version.netty>4.1.73.Final</version.netty>
 
@@ -427,4 +427,3 @@
         </profile>
     </profiles>
 </project>
-

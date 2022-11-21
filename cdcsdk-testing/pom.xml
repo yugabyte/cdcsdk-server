@@ -177,6 +177,28 @@
         <artifactId>google-cloud-pubsub</artifactId>
         <scope>test</scope>
     </dependency>
+    <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk</artifactId>
+        <version>1.11.1015</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>amazon-kinesis-client</artifactId>
+        <version>1.0.0</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${version.jackson}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-cbor</artifactId>
+        <version>${version.jackson}</version>
+    </dependency>
   </dependencies>
 
   <dependencyManagement>
