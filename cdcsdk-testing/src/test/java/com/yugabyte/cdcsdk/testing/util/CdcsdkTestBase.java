@@ -1,6 +1,7 @@
 package com.yugabyte.cdcsdk.testing.util;
 
 import java.net.InetAddress;
+import java.util.List;
 
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
@@ -11,11 +12,11 @@ import io.debezium.testing.testcontainers.DebeziumContainer;
 
 // NOTE FOR ANYBODY WRITING TESTS:
 // Make sure the name of the source table and sink table are the same, if you need them to be
-// different for any reason at all, you will need to modify/add the relevant helper functions. 
+// different for any reason at all, you will need to modify/add the relevant helper functions.
 
 /**
  * Base class for common test related configurations.
- * 
+ *
  * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
  */
 public class CdcsdkTestBase {
@@ -107,4 +108,19 @@ public class CdcsdkTestBase {
         ybHelper.execute(UtilStrings.getDropTableStmt(tableName));
         pgHelper.execute(UtilStrings.getDropTableStmt(tableName));
     }
+
+    protected Boolean validateRecords(List<String> expectedData, List<String> actualData) {
+        Boolean result = true;
+        for (String expected : expectedData) {
+            Boolean match = false;
+            for (String actual : actualData) {
+                match = expected.equals(actual);
+                if (match)
+                    break;
+            }
+            result = result && match;
+        }
+        return result;
+    }
+
 }

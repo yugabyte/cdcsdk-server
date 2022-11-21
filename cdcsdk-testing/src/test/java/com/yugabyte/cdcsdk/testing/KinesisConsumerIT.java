@@ -105,8 +105,16 @@ public class KinesisConsumerIT extends CdcsdkTestBase {
 
         client.setEndpoint(System.getenv("AWS_ENDPOINT"));
 
-        final int INTERVAL = 2;
+        Awaitility.await().atMost(Duration.ofSeconds(600)).until(() -> checkRecords(client, expected_data, actual_data));
 
+    }
+
+    public String getUUID() {
+        UUID uuid = UUID.randomUUID();
+        return uuid.toString();
+    }
+
+    public Boolean checkRecords(AmazonKinesisClient client, List<String> expectedData, List<String> actualData) throws Exception {
         List<Shard> initialShardData = client.describeStream(stream_name).getStreamDescription().getShards();
 
         // Getting shardIterators (at beginning sequence number) for reach shard
@@ -132,7 +140,7 @@ public class KinesisConsumerIT extends CdcsdkTestBase {
             recordResult.getRecords().forEach(record -> {
                 try {
                     String rec = new String(record.getData().array(), "UTF-8");
-                    actual_data.add(rec);
+                    actualData.add(rec);
                 }
                 catch (UnsupportedEncodingException e) {
                     System.out.println("Could not decode message from Kinesis stream result");
@@ -142,35 +150,11 @@ public class KinesisConsumerIT extends CdcsdkTestBase {
 
             shardIterator = recordResult.getNextShardIterator();
 
-            if (recordResult.getRecords().size() == 0 || shardIterator == null)
-                break;
+            if (validateRecords(expectedData, actualData))
+                return true;
 
-            // waiting time between two reads
-            Awaitility.await().atMost(Duration.ofSeconds(INTERVAL));
-
+            if (shardIterator == null)
+                throw new Exception("ShardIterator reached the end of the shard");
         }
-
-        assertTrue(validateRecords(expected_data, actual_data));
-
     }
-
-    public String getUUID() {
-        UUID uuid = UUID.randomUUID();
-        return uuid.toString();
-    }
-
-    public Boolean validateRecords(List<String> expectedData, List<String> actualData) {
-        Boolean result = true;
-        for (String expected : expectedData) {
-            Boolean match = false;
-            for (String actual : actualData) {
-                match = expected.equals(actual);
-                if (match)
-                    break;
-            }
-            result = result && match;
-        }
-        return result;
-    }
-
 }
