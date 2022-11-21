@@ -14,7 +14,7 @@
     <description>Parent POM for all modules and connectors</description>
     <packaging>pom</packaging>
     <properties>
-        <version.debezium>1.7.0.Final</version.debezium>
+        <version.debezium>1.9.5.Final</version.debezium>
 
         <!-- Maven Plugins -->
         <version.compiler.plugin>3.8.1</version.compiler.plugin>
