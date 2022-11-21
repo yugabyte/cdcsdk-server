@@ -192,12 +192,12 @@
     <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
-        <version>2.13.4</version>
+        <version>${version.jackson}</version>
     </dependency>
     <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-cbor</artifactId>
-        <version>2.13.4</version>
+        <version>${version.jackson}</version>
     </dependency>
   </dependencies>
 
