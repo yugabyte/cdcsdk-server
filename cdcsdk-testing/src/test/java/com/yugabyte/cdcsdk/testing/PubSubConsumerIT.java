@@ -6,7 +6,8 @@
 
 package com.yugabyte.cdcsdk.testing;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,8 +38,10 @@ import com.yugabyte.cdcsdk.testing.util.UtilStrings;
  */
 
 public class PubSubConsumerIT extends CdcsdkTestBase {
-    private static String projectId = System.getenv("GCLOUD_PROJECT");// We are using project id ="yugabyte";
-    private static String subscriptionId = System.getenv("SUBSCRIPTION_ID");// We are using subscription id"dbserver1.public.test_table-sub";
+    // We are using project id ="yugabyte";
+    private static String projectId = System.getenv("GCLOUD_PROJECT");
+    // We are using subscription id"dbserver1.public.test_table-sub";
+    private static String subscriptionId = System.getenv("SUBSCRIPTION_ID");
 
     @BeforeAll
     public static void beforeClass() throws Exception {
