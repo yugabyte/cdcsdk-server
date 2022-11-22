@@ -59,6 +59,7 @@ public class CdcsdkContainer {
     private String cdcsdkSinkKinesisCredentialsProfile = "default";
     private String cdcsdkSinkKinesisNullKey = "null";
 
+
     // Configurations related to Event Hubs sink
     private String cdcsdkSinkEventHubsConnectionstring;
     private String cdcsdkSinkEventHubsHubname;
@@ -273,6 +274,7 @@ public class CdcsdkContainer {
         return configs;
     }
 
+
     public Map<String, String> getConfigMapForEventHub() throws Exception {
         Map<String, String> configs = getDatabaseConfigMap();
 
@@ -289,6 +291,7 @@ public class CdcsdkContainer {
 
         return configs;
     }
+
 
     public GenericContainer<?> build(Map<String, String> env) throws Exception {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
@@ -322,6 +325,7 @@ public class CdcsdkContainer {
     public GenericContainer<?> buildForKinesisSink() throws Exception {
         return build(getConfigMapForKinesis());
     }
+
 
     public GenericContainer<?> buildForEventHubSink() throws Exception {
         return build(getConfigMapForEventHub());
