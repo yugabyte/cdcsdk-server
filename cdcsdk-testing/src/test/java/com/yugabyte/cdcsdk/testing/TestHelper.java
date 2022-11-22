@@ -58,6 +58,18 @@ public class TestHelper {
                 .buildForKinesisSink();
     }
 
+    public static GenericContainer<?> getCdcsdkContainerForEventHubSink(YBHelper ybHelper, String tableIncludeList, String connectionString, String hubName)
+            throws Exception {
+        return new CdcsdkContainer()
+                .withDatabaseHostname(ybHelper.getHostName())
+                .withMasterPort(String.valueOf(ybHelper.getMasterPort()))
+                .withStreamId(ybHelper.getNewDbStreamId(ybHelper.getDatabaseName()))
+                .withTableIncludeList(tableIncludeList)
+                .withConnectionString(connectionString)
+                .withHubName(hubName)
+                .buildForEventHubSink();
+    }
+
     public static String executeShellCommand(String command) throws Exception {
         Process process = Runtime.getRuntime().exec(command);
         String stdOutput = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);

@@ -199,6 +199,11 @@
         <artifactId>jackson-dataformat-cbor</artifactId>
         <version>${version.jackson}</version>
     </dependency>
+    <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-messaging-eventhubs</artifactId>
+        <version>5.15.0</version>
+    </dependency>
   </dependencies>
 
   <dependencyManagement>
