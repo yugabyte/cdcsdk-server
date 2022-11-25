@@ -64,6 +64,6 @@ if [[ ! -f "/usr/bin/python" ]]; then
 fi
 export PATH=$YUGABYTE_SRC/yugabyte-$YB_VERSION/bin:/usr/local/bin:$PATH
 
-if [[  `yugabyted status | grep 'not running'` ]] ; then
+if [[  `yugabyted status | grep 'not running\|Stopped'` ]] ; then
   yugabyted start --advertise_address $(hostname -i)
 fi
