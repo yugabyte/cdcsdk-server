@@ -54,6 +54,16 @@ public class CdcsdkContainer {
     private String cdcsdkSinkPubSubOrderingEnabled = "true";
     private String cdcsdkSinkPubSubNullKey = "null";
 
+    // Configurations related to Kinesis sink
+    private String cdcsdkSinkKinesisRegion = "ap-south-1";
+    private String cdcsdkSinkKinesisCredentialsProfile = "default";
+    private String cdcsdkSinkKinesisNullKey = "null";
+
+
+    // Configurations related to Event Hubs sink
+    private String cdcsdkSinkEventHubsConnectionstring;
+    private String cdcsdkSinkEventHubsHubname;
+
     // Wait until the given number of times this log line is encountered.
     // This line will be printed for each tablet so basically the count is equal to the total number
     // of tablets the CDCSDK Server is going to fetch the changes from.
@@ -124,6 +134,17 @@ public class CdcsdkContainer {
 
     public CdcsdkContainer withNullKey(String nullKey) {
         this.cdcsdkSinkPubSubNullKey = nullKey;
+        return this;
+    }
+
+    // Event Hubs related configuration setters
+    public CdcsdkContainer withConnectionString(String connectionString) {
+        this.cdcsdkSinkEventHubsConnectionstring = connectionString;
+        return this;
+    }
+
+    public CdcsdkContainer withHubName(String hubName) {
+        this.cdcsdkSinkEventHubsHubname = hubName;
         return this;
     }
 
@@ -235,6 +256,43 @@ public class CdcsdkContainer {
         return configs;
     }
 
+    public Map<String, String> getConfigMapForKinesis() throws Exception {
+        Map<String, String> configs = getDatabaseConfigMap();
+
+        configs.put("CDCSDK_SINK_TYPE", "kinesis");
+
+        configs.put("CDCSDK_SINK_KINESIS_REGION", this.cdcsdkSinkKinesisRegion);
+        configs.put("CDCSDK_SINK_KINESIS_CREDENTIALS_PROFILE", this.cdcsdkSinkKinesisCredentialsProfile);
+        configs.put("CDCSDK_SINK_KINESIS_NULL_KEY", this.cdcsdkSinkKinesisNullKey);
+
+        configs.put("CDCSDK_SERVER_TRANSFORMS", "unwrap");
+        configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DROP_TOMBSTONES", this.cdcsdkServerTransformsUnwrapDropTombstones);
+        configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_TYPE", this.cdcsdkServerTransformsUnwrapType);
+        configs.put("CDCSDK_SERVER_FORMAT_VALUE_CONVERTER_SCHEMAS_ENABLE", "false");
+        configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DELETE_HANDLING_MODE", "rewrite");
+
+        return configs;
+    }
+
+
+    public Map<String, String> getConfigMapForEventHub() throws Exception {
+        Map<String, String> configs = getDatabaseConfigMap();
+
+        configs.put("CDCSDK_SINK_TYPE", "eventhubs");
+
+        configs.put("CDCSDK_SINK_EVENTHUBS_CONNECTIONSTRING", this.cdcsdkSinkEventHubsConnectionstring);
+        configs.put("CDCSDK_SINK_EVENTHUBS_HUBNAME", this.cdcsdkSinkEventHubsHubname);
+
+        configs.put("CDCSDK_SERVER_TRANSFORMS", "unwrap");
+        configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DROP_TOMBSTONES", this.cdcsdkServerTransformsUnwrapDropTombstones);
+        configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_TYPE", this.cdcsdkServerTransformsUnwrapType);
+        configs.put("CDCSDK_SERVER_FORMAT_VALUE_CONVERTER_SCHEMAS_ENABLE", "false");
+        configs.put("CDCSDK_SERVER_TRANSFORMS_UNWRAP_DELETE_HANDLING_MODE", "rewrite");
+
+        return configs;
+    }
+
+
     public GenericContainer<?> build(Map<String, String> env) throws Exception {
         GenericContainer<?> cdcsdkContainer = new GenericContainer<>(TestImages.CDCSDK_SERVER);
         cdcsdkContainer.withEnv(env);
@@ -263,4 +321,14 @@ public class CdcsdkContainer {
     public GenericContainer<?> buildForPubSubSink() throws Exception {
         return build(getConfigMapForPubSub());
     }
+
+    public GenericContainer<?> buildForKinesisSink() throws Exception {
+        return build(getConfigMapForKinesis());
+    }
+
+
+    public GenericContainer<?> buildForEventHubSink() throws Exception {
+        return build(getConfigMapForEventHub());
+    }
+
 }

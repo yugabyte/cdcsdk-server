@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -88,7 +87,6 @@ public class PubSubConsumerIT extends CdcsdkTestBase {
                 "{\"id\":0,\"first_name\":\"first_0\",\"last_name\":\"last_0\",\"days_worked\":23.45,\"__deleted\":\"false\"}",
                 "{\"id\":0,\"days_worked\":25.0,\"__deleted\":\"false\"}",
                 "{\"id\":0,\"__deleted\":\"true\"}");
-        Iterator<String> expected = expected_data.iterator();
 
         List<String> actual_data = new ArrayList<>();
 
@@ -116,9 +114,7 @@ public class PubSubConsumerIT extends CdcsdkTestBase {
 
         assertEquals(expected_data.size(), actual_data.size());
 
-        for (String s : actual_data) {
-            assertEquals(s, expected.next());
-        }
+        assertTrue(validateRecords(expected_data, actual_data));
 
     }
 

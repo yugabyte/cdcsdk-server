@@ -7,7 +7,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.time.Duration;
 
+import org.awaitility.Awaitility;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -126,6 +128,7 @@ public class RollingOutputStreamTest {
         outputStream.flush();
         outputStream.close();
 
-        assertEquals(4, testDir.toFile().listFiles().length);
+        Awaitility.await().atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> assertEquals(4, testDir.toFile().listFiles().length));
     }
 }

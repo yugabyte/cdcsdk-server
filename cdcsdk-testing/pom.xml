@@ -3,14 +3,14 @@
   <parent>
     <groupId>com.yugabyte</groupId>
     <artifactId>cdcsdk-parent</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>0.9.0</version>
 	  <relativePath>../cdcsdk-parent/pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.yugabyte</groupId>
   <artifactId>cdcsdk-testing</artifactId>
-  <version>0.9.0-SNAPSHOT</version>
+  <version>0.9.0</version>
   <name>cdcsdk-testing</name>
 
 
@@ -176,6 +176,33 @@
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-pubsub</artifactId>
         <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk</artifactId>
+        <version>1.11.1015</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>amazon-kinesis-client</artifactId>
+        <version>1.0.0</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${version.jackson}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-cbor</artifactId>
+        <version>${version.jackson}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-messaging-eventhubs</artifactId>
+        <version>5.15.0</version>
     </dependency>
   </dependencies>
 
