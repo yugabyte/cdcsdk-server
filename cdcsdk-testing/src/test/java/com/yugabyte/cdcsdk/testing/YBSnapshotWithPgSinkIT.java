@@ -13,6 +13,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
@@ -79,6 +80,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         kafkaContainer.stop();
     }
 
+    @Disabled
     @Test
     public void verifyBasicSnapshotStreaming() throws Exception {
         int rowsToBeInserted = 100;
@@ -95,6 +97,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         pgHelper.assertRecordCountInPostgres(rowsToBeInserted);
     }
 
+    @Disabled
     @Test
     public void performStreamingAfterSnapshotAndPerformInsUpdDelOps() throws Exception {
         int rowsToBeInserted = 100;
@@ -144,6 +147,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         pgHelper.waitTillRecordsAreVerified(0, 10000);
     }
 
+    @Disabled
     @Test
     public void restartCdcsdkServerWhileSnapshotInProgress() throws Exception {
         int rowsToBeInserted = 10000;
@@ -177,6 +181,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         pgHelper.assertRecordCountInPostgres(rowsToBeInserted);
     }
 
+    @Disabled
     @Test
     public void restartSnapshotOnceCompleted() throws Exception {
         int rowsToBeInserted = 1000;
@@ -201,6 +206,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         pgHelper.assertRecordCountInPostgres(rowsToBeInserted);
     }
 
+    @Disabled
     @Test
     public void performOpsWhileCdcsdkServerIsStopped() throws Exception {
         int rowsToBeInserted = 10000;
@@ -252,6 +258,7 @@ public class YBSnapshotWithPgSinkIT extends CdcsdkTestBase {
         pgHelper.assertRecordCountInPostgres(rowsToBeInserted + 100 /* records inserted while cdcsdk container was stopped */);
     }
 
+    @Disabled
     @Test
     public void verifySnapshotForAllSupportedDatatypes() throws Exception {
         final String tableName = UtilStrings.ALL_TYPES_TABLE_NAME;
