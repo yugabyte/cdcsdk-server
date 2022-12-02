@@ -115,8 +115,9 @@ public class CdcsdkTestBase {
             Boolean match = false;
             for (String actual : actualData) {
                 match = expected.equals(actual);
-                if (match)
+                if (match) {
                     break;
+                }
             }
             result = result && match;
         }
