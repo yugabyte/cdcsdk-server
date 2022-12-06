@@ -37,7 +37,6 @@
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.release>11</maven.compiler.release>
 
-        <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <!-- Enforce JDK 11 for building (handled via JBoss parent POM)-->
