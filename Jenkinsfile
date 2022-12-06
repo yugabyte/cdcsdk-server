@@ -56,19 +56,17 @@ pipeline {
             steps {
                 script{
                     dir("${CDCSDK_SERVER_HOME}") {
+                        env.PKG_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
                         sh './.github/scripts/install_start_yugabyte.sh ${YB_VERSION_TO_TEST_AGAINST} ${YUGABYTE_SRC}'
-                        sh '''
-                        PKG_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-                        ./.github/scripts/build_cdcsdk.sh ${PKG_VERSION}
-                        '''
+                        sh './.github/scripts/build_cdcsdk.sh ${PKG_VERSION}'
                     }
                 }
             }
         }
         stage('Testing') {
             steps {
-                dir("${CDCSDK_TESTING_HOME}") {
-                    script{
+                script{
+                     dir("${CDCSDK_TESTING_HOME}") {
                         env.CDCSDK_SERVER_IMAGE="quay.io/yugabyte/cdcsdk-server:latest"
                         sh 'mvn integration-test -Drun.releaseTests'
                     }
