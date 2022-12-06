@@ -6,7 +6,7 @@
 
 package com.yugabyte.cdcsdk.testing;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.UnsupportedEncodingException;
 import java.time.Duration;
@@ -150,11 +150,13 @@ public class KinesisConsumerIT extends CdcsdkTestBase {
 
             shardIterator = recordResult.getNextShardIterator();
 
-            if (validateRecords(expectedData, actualData))
+            if (validateRecords(expectedData, actualData)) {
                 return true;
+            }
 
-            if (shardIterator == null)
+            if (shardIterator == null) {
                 throw new Exception("ShardIterator reached the end of the shard");
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -19,7 +20,7 @@ import io.debezium.testing.testcontainers.ConnectorConfiguration;
 /**
  * Release tests that verify the integrity of the pipeline in case Kafka restarts or goes down
  * for any reason
- * 
+ *
  * @author Vaibhav Kushwaha (vkushwaha@yugabyte.com)
  */
 public class KafkaRestartIT extends CdcsdkTestBase {
@@ -133,6 +134,7 @@ public class KafkaRestartIT extends CdcsdkTestBase {
         pgHelper.waitTillRecordsAreVerified(15, 30000);
     }
 
+    @Disabled
     @Test
     public void insertRecordsWhileKafkaIsDown() throws Exception {
         int rowsToBeInsertedBeforeStopping = 5;

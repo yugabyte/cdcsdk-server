@@ -14,6 +14,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.yugabyte.cdcsdk.testing.util.CdcsdkTestBase;
@@ -99,6 +100,7 @@ public class MultiOpsPostgresSinkConsumerIT extends CdcsdkTestBase {
         pgHelper.assertRecordCountInPostgres(0);
     }
 
+    @Disabled
     @Test
     public void verifyUpdatesBeingPropagatedProperly() throws Exception {
         ybHelper.execute(UtilStrings.getInsertStmt(DEFAULT_TABLE_NAME, 1, "Vaibhav", "Kushwaha", 23.456));

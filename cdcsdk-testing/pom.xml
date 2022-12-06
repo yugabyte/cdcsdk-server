@@ -3,24 +3,24 @@
   <parent>
     <groupId>com.yugabyte</groupId>
     <artifactId>cdcsdk-parent</artifactId>
-    <version>0.9.0</version>
+    <version>1.0.0.RC1</version>
 	  <relativePath>../cdcsdk-parent/pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.yugabyte</groupId>
   <artifactId>cdcsdk-testing</artifactId>
-  <version>0.9.0</version>
+  <version>1.0.0.RC1</version>
   <name>cdcsdk-testing</name>
 
 
   <properties>
     <junit.jupiter.version>5.8.1</junit.jupiter.version>
     <junit.platform.version>1.8.1</junit.platform.version>
-    <version.ybclient>0.8.19-20220531.235858-1</version.ybclient>
-    <java.version>17</java.version>
-    <test.compiler.source>17</test.compiler.source>
-    <test.compiler.target>17</test.compiler.target>
+    <version.ybclient>0.8.34-20221128.060633-1</version.ybclient>
+    <java.version>11</java.version>
+    <test.compiler.source>11</test.compiler.source>
+    <test.compiler.target>11</test.compiler.target>
   </properties>
 
   <distributionManagement>
