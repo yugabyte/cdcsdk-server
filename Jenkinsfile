@@ -59,7 +59,7 @@ pipeline {
                         sh './.github/scripts/install_start_yugabyte.sh ${YB_VERSION_TO_TEST_AGAINST} ${YUGABYTE_SRC}'
                         sh '''
                         PKG_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-                        ./.github/scripts/build_test_cdcsdk.sh ${PKG_VERSION}
+                        ./.github/scripts/build_cdcsdk.sh ${PKG_VERSION}
                         '''
                     }
                 }
