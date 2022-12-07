@@ -14,21 +14,11 @@
 
 set -exo pipefail
 
-. /etc/os-release
-
 export ARCHITECTURE=`uname -m`
 export MOS=`uname|tr '[:upper:]' '[:lower:]'`
 
 if [[ $ARCHITECTURE != "x86_64" && $ARCHITECTURE != "aarch64" ]]; then
   echo "Arch $ARCHITECTURE not yet supported"
-  exit 1
-fi
-
-if [[ "${ID_LIKE:-}" == *rhel* ]]; then
-  yum -y -q install java-11-openjdk-devel
-  alternatives --set java java-11-openjdk.x86_64
-else
-  echo "OS not supported"
   exit 1
 fi
 
@@ -74,6 +64,6 @@ if [[ ! -f "/usr/bin/python" ]]; then
 fi
 export PATH=$YUGABYTE_SRC/yugabyte-$YB_VERSION/bin:/usr/local/bin:$PATH
 
-if [[  `yugabyted status | grep 'not running'` ]] ; then
+if [[  `yugabyted status | grep 'not running\|Stopped'` ]] ; then
   yugabyted start --advertise_address $(hostname -i)
 fi
