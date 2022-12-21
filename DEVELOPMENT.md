@@ -59,15 +59,18 @@ CDCSDK Server is distributed as an archive (tar.gz) and a Docker image. Use the
 following commands to create and deploy both these artifacts.
 
 
-    # Create cdcsdk-server-dist-<project.version>.tar.gz and
+    # Create cdcsdk-server-dist-<project.version>.tar.gz.
+    # Upload to s3://releases.yugabyte.com/releases/
     # yugabyte/cdcsdk-server:<project.version>
 
-    mvn package
+    mvn release:clean
+    mvn --batch-mode -Dtag=$TAG release:prepare \
+                 -DreleaseVersion=$RELVERSION \
+                 -DdevelopmentVersion=$DEVVERSION \
+                 -DignoreSnapshots=True -Darguments="-DskipTests -DskipITs -Dmaven.javadoc.skip=true -DgenerateBackupPoms=false"
 
-    # Deploy docker image
+    mvn release:perform -DignoreSnapshots=True -Darguments="-DskipTests -DskipITs -Dmaven.javadoc.skip=true"
 
-    mvn deploy
-
-    # Deploy archive to github project
+    # Deploy archive to github project (optional)
 
     gh release create v<project.version> --generate-notes --title <An informative title about the major feature/bug> 'cdcsdk-server/cdcsdk-server-dist/target/cdcsdk-server-dist-<project.version>.tar.gz#CDCSDK Server'
