@@ -4,7 +4,7 @@ properties([
     parameters([
         string(defaultValue: 'main', description: 'Specify the cdcsdk server branch name', name: 'SERVER_BRANCH'),
         string(defaultValue: 'main', description: 'Specify the cdcsdk testing branch name', name: 'TESTING_BRANCH'),
-        string(defaultValue: 'main', description: 'Specify the cdcsdk testing branch name', name: 'DEBEZIUM_CONNECTOR_BRANCH'),
+        string(defaultValue: 'main', description: 'Specify the debezium connector branch name', name: 'DEBEZIUM_CONNECTOR_BRANCH'),
         string(defaultValue: '2.15.1.0-b175', description: 'Set the yugabyte version to test cdcsdk-server against e.g: 2.15.1.0-b175', name: 'YB_VERSION_TO_TEST_AGAINST'),
         booleanParam(defaultValue: false, description: 'If checked release builds are uploaded to s3 bucket. (cdcsdk-server -> s3://releases.yugabyte.com/cdcsdk-server)', name: 'PUBLISH_TO_S3')
     ])
