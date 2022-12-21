@@ -119,17 +119,8 @@
             </snapshots>
         </repository>
         <repository>
-            <id>ossrh</id>
-            <name>OSS Sonatype Nexus</name>
-            <url>${release.endpoint}/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
         </repository>
         <repository>
             <id>maven.release.yugabyte.repo</id>
@@ -138,6 +129,10 @@
         <repository>
             <id>maven.yugabyte.repo</id>
             <url>s3://repository.yugabyte.com/maven/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
         </repository>
     </repositories>
 
