@@ -10,7 +10,7 @@
 
     <groupId>com.yugabyte</groupId>
     <artifactId>cdcsdk-build-parent</artifactId>
-    <version>1.0.0.RC2</version>
+    <version>1.0.0.RC3-SNAPSHOT</version>
     <name>CDCSDK Build Aggregator</name>
     <description>Yugabyte CDCSDK Server is a streaming platform for change data capture from YugabyteDB</description>
     <packaging>pom</packaging>
@@ -95,6 +95,8 @@
         <version.mongo.server>3.6</version.mongo.server>
         <version.cassandra>3.11.10</version.cassandra>
 
+        <!-- Deploy -->
+        <version.s3.wagon>0.1.3</version.s3.wagon>
     </properties>
 
     <modules>
@@ -139,6 +141,21 @@
             <url>s3://repository.yugabyte.com/maven/</url>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <site>
+            <id>s3.site</id>
+            <url>s3://repository.yugabyte.com/maven/site</url>
+        </site>
+        <repository>
+            <id>s3.release</id>
+            <url>s3://repository.yugabyte.com/maven/release</url>
+        </repository>
+        <snapshotRepository>
+        <id>s3.snapshot</id>
+            <url>s3://repository.yugabyte.com/snapshot</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <build>
          <extensions>

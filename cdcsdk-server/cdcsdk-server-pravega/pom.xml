@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.yugabyte</groupId>
     <artifactId>cdcsdk-server</artifactId>
-    <version>1.0.0.RC2</version>
+    <version>1.0.0.RC3-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>cdcsdk-server-pravega</artifactId>
