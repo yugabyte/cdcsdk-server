@@ -10,7 +10,7 @@
 
     <groupId>com.yugabyte</groupId>
     <artifactId>cdcsdk-build-parent</artifactId>
-    <version>1.0.0.RC3-SNAPSHOT</version>
+    <version>1.0.0.RC7-SNAPSHOT</version>
     <name>CDCSDK Build Aggregator</name>
     <description>Yugabyte CDCSDK Server is a streaming platform for change data capture from YugabyteDB</description>
     <packaging>pom</packaging>
@@ -20,7 +20,7 @@
         <connection>scm:git:git@github.com:yugabyte/cdcsdk-server.git</connection>
         <developerConnection>scm:git:git@github.com:yugabyte/cdcsdk-server.git</developerConnection>
         <url>https://github.com/yugabyte/cdcsdk-server</url>
-        <tag>HEAD</tag>
+        <tag>v1.0.0RC3</tag>
     </scm>
 
     <licenses>
@@ -54,7 +54,6 @@
         <version.assembly.plugin>3.4.1</version.assembly.plugin>
         <version.war.plugin>2.5</version.war.plugin>
         <version.google.formatter.plugin>0.4</version.google.formatter.plugin>
-        <version.docker.maven.plugin>0.31.0</version.docker.maven.plugin>
         <version.protoc.maven.plugin>3.8.0</version.protoc.maven.plugin>
         <version.javadoc.plugin>3.3.2</version.javadoc.plugin>
         <version.code.formatter>2.16.0</version.code.formatter>
@@ -120,17 +119,8 @@
             </snapshots>
         </repository>
         <repository>
-            <id>ossrh</id>
-            <name>OSS Sonatype Nexus</name>
-            <url>${release.endpoint}/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
         </repository>
         <repository>
             <id>maven.release.yugabyte.repo</id>
@@ -139,6 +129,10 @@
         <repository>
             <id>maven.yugabyte.repo</id>
             <url>s3://repository.yugabyte.com/maven/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
         </repository>
     </repositories>
 
@@ -245,11 +239,6 @@
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>${version.build-helper.plugin}</version>
                 </plugin>
-                <plugin>
-                    <groupId>io.fabric8</groupId>
-                    <artifactId>docker-maven-plugin</artifactId>
-                    <version>0.40.1</version>
-                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -257,8 +246,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <pushChanges>false</pushChanges>
-                    <releaseProfiles>docs,assembly,release-sign-artifacts,release</releaseProfiles>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <releaseProfiles>quick,release</releaseProfiles>
                 </configuration>
             </plugin>
             <plugin>
@@ -299,21 +289,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <images>
-                        <image>
-                            <name>yugabyte/cdcsdk-server:${project.version}</name>
-                            <build>
-                                <dockerFile>Dockerfile</dockerFile>
-                            </build>
-                            </image>
-                        </images>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -346,100 +321,8 @@
         <profile>
             <id>release</id>
             <properties>
-                <skipLongRunningTests>false</skipLongRunningTests>
+                <skipLongRunningTests>true</skipLongRunningTests>
             </properties>
-        </profile>
-        <profile>
-            <id>performance</id>
-            <properties>
-                <skipLongRunningTests>false</skipLongRunningTests>
-            </properties>
-        </profile>
-        <profile>
-            <id>docs</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-                <property>
-                    <name>docs</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>${version.javadoc.plugin}</version>
-                        <configuration>
-                            <show>private</show>
-                            <nohelp>true</nohelp>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>attach-test-javadocs</id>
-                                <goals>
-                                    <goal>test-jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>release-sign-artifacts</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                                <configuration>
-                                    <gpgArguments>
-                                        <arg>--pinentry-mode</arg>
-                                        <arg>loopback</arg>
-                                    </gpgArguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>jdk11</id>
-            <activation>
-                <jdk>11</jdk>
-            </activation>
-            <properties>
-                <modules.argline>--illegal-access=permit</modules.argline>
-                <maven.compiler.release>11</maven.compiler.release>
-            </properties>
-        </profile>
-        <profile>
-            <id>oracle</id>
-            <modules>
-                <module>debezium-connector-oracle</module>
-                <module>debezium-microbenchmark-oracle</module>
-            </modules>
         </profile>
     </profiles>
 </project>

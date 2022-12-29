@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.yugabyte</groupId>
         <artifactId>cdcsdk-server</artifactId>
-        <version>1.0.0.RC3-SNAPSHOT</version>
+        <version>1.0.0.RC7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -161,4 +161,8 @@
             </properties>
         </profile>
     </profiles>
+
+  <scm>
+    <tag>v1.0.0RC3</tag>
+  </scm>
 </project>
