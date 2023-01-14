@@ -48,10 +48,10 @@ pipeline {
                     sh 'chmod 600 $HOME/.docker/config.json'
                 }
                 script{
-                    dir("${CDCSDK_SERVER_HOME}") {
+                    //dir("${CDCSDK_SERVER_HOME}") {
                         sh './.github/scripts/install_prerequisites.sh'
                         sh './.github/scripts/install_start_yugabyte.sh ${YB_VERSION_TO_TEST_AGAINST} ${YUGABYTE_SRC}'
-                    }
+                    //}
                 }
             }
         }
