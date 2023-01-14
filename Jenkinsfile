@@ -5,7 +5,7 @@ properties([
         string(defaultValue: 'main', description: 'Specify the cdcsdk server branch name', name: 'SERVER_BRANCH'),
         string(defaultValue: 'main', description: 'Specify the cdcsdk testing branch name', name: 'TESTING_BRANCH'),
         string(defaultValue: 'main', description: 'Specify the debezium connector branch name', name: 'DEBEZIUM_CONNECTOR_BRANCH'),
-        string(defaultValue: '2.15.1.0-b175', description: 'Set the yugabyte version to test cdcsdk-server against e.g: 2.15.1.0-b175', name: 'YB_VERSION_TO_TEST_AGAINST'),
+        string(defaultValue: '2.17.1.0', description: 'Set the yugabyte version to test cdcsdk-server against e.g: 2.17.1.0', name: 'YB_VERSION_TO_TEST_AGAINST'),
         booleanParam(defaultValue: false, description: 'If checked release builds are uploaded to s3 bucket. (cdcsdk-server -> s3://releases.yugabyte.com/cdcsdk-server)', name: 'PUBLISH_TO_S3')
     ])
 ])
@@ -50,6 +50,7 @@ pipeline {
                 script{
                     dir("${CDCSDK_SERVER_HOME}") {
                         sh './.github/scripts/install_prerequisites.sh'
+                        sh './.github/scripts/install_start_yugabyte.sh ${YB_VERSION_TO_TEST_AGAINST} ${YUGABYTE_SRC}'
                     }
                 }
             }
@@ -90,12 +91,11 @@ pipeline {
                                 }
                             }
                         }
-                        stage('cdcsdk Build ') {
+                        stage('cdcsdk Build') {
                             steps {
                                 script{
                                     dir("${CDCSDK_SERVER_HOME}") {
                                         env.CDCSDK_PKG_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                                        sh './.github/scripts/install_start_yugabyte.sh ${YB_VERSION_TO_TEST_AGAINST} ${YUGABYTE_SRC}'
                                         sh './.github/scripts/build_cdcsdk.sh ${CDCSDK_PKG_VERSION}'
                                     }
                                 }
