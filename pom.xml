@@ -105,7 +105,6 @@
         <module>cdcsdk-parent</module>
         <module>cdcsdk-engine</module>
         <module>cdcsdk-server</module>
-        <module>cdcsdk-testing</module>
     </modules>
 
     <repositories>
