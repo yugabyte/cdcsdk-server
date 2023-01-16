@@ -49,10 +49,6 @@
         </dependency>
         <dependency>
             <groupId>com.yugabyte</groupId>
-            <artifactId>cdcsdk-server-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.yugabyte</groupId>
             <artifactId>cdcsdk-server-kinesis</artifactId>
         </dependency>
         <dependency>
@@ -128,7 +124,7 @@
                         </goals>
                         <configuration>
                             <appendAssemblyId>false</appendAssemblyId>
-                            <attach>true</attach>  <!-- we want attach & deploy these to Maven -->
+                            <attach>true</attach>  <!-- we want to attach & deploy these to Maven -->
                             <descriptors>
                                 <descriptor>src/main/resources/assemblies/${assembly.descriptor}.xml</descriptor>
                             </descriptors>

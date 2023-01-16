@@ -12,7 +12,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <wiremock.version>2.32.0</wiremock.version>
+        <wiremock.version>2.35.0</wiremock.version>
     </properties>
 
     <dependencies>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20220320</version>
+            <version>20220924</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
