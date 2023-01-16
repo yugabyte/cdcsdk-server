@@ -111,7 +111,7 @@ pipeline {
                      dir("${CDCSDK_TESTING_HOME}") {
                         env.CDCSDK_SERVER_IMAGE="quay.io/yugabyte/cdcsdk-server:latest"
                         env.KAFKA_CONNECT_IMAGE="quay.io/yugabyte/debezium-connector:${DEBEZIUM_PKG_VERSION}"
-                        sh 'mvn integration-test -Drun.releaseTests'
+                        sh 'mvn verify -Drun.releaseTests'
                     }
                 }
             }
