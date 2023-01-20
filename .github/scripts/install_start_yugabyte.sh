@@ -15,44 +15,39 @@
 set -exo pipefail
 
 export ARCHITECTURE=`uname -m`
-export MOS=`uname|tr '[:upper:]' '[:lower:]'`
 
 if [[ $ARCHITECTURE != "x86_64" && $ARCHITECTURE != "aarch64" ]]; then
   echo "Arch $ARCHITECTURE not yet supported"
   exit 1
 fi
 
-if [[ $ARCHITECTURE == "aarch64" ]]; then
-  # For aarch64 yugabyte build we have el8 in build name
-  # e.g: yugabyte-2.15.1.0-b175-el8-aarch64.tar.gz & yugabyte-2.15.1.0-b175-linux-x86_64.tar.gz
-  export MOS="el8"
-fi
-
 show_help() {
 cat <<-EOT
-Usage: ${0##*/} <YB_VERSION_BUILD>
+Usage: ${0##*/} <YB_VERSION>
 EOT
 }
 
-YB_VERSION_BUILD=$1
+YB_VERSION=$1
 
-if [[ "${YB_VERSION_BUILD}x" == "x" ]]; then
+if [[ "${YB_VERSION}x" == "x" ]]; then
   show_help
   exit 1
 fi
 
 YUGABYTE_SRC=${2:-/home/yugabyte}
 
-YB_VERSION=`echo $YB_VERSION_BUILD| awk -F'-' '{print $1}'`
-URL="https://downloads.yugabyte.com/releases/$YB_VERSION/yugabyte-$YB_VERSION_BUILD-$MOS-$ARCHITECTURE.tar.gz"
+YB_BUILD_NUMBER=$(curl -sk http://release.dev.yugabyte.com/releases/latest?version=${YB_VERSION})
+YB_VERSION_BUILD="${YB_VERSION}-b${YB_BUILD_NUMBER}"
+
+S3_URL="s3://releases.yugabyte.com/${YB_VERSION_BUILD}/yugabyte-${YB_VERSION_BUILD}-centos-${ARCHITECTURE}.tar.gz"
+file="yugabyte-${YB_VERSION_BUILD}-centos-${ARCHITECTURE}.tar.gz"
 
 rm -rf $YUGABYTE_SRC
 mkdir -p $YUGABYTE_SRC
-rm -rf "yugabyte-$YB_VERSION_BUILD-$MOS-$ARCHITECTURE.tar.gz"
-wget -q $URL
-file=yugabyte-$YB_VERSION_BUILD-$MOS-$ARCHITECTURE.tar.gz
+rm -rf "yugabyte-${YB_VERSION_BUILD}-centos-${ARCHITECTURE}.tar.gz"
+aws s3 cp $S3_URL $file
 tar -xf $file -C $YUGABYTE_SRC
-rm -rf "yugabyte-$YB_VERSION_BUILD-$MOS-$ARCHITECTURE.tar.gz"
+rm -rf $file
 $YUGABYTE_SRC/yugabyte-$YB_VERSION/bin/post_install.sh >/dev/null 2>&1
 mkdir -p $YUGABYTE_SRC/build/latest
 ln -s $YUGABYTE_SRC/yugabyte-$YB_VERSION/bin $YUGABYTE_SRC/bin
