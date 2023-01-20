@@ -124,6 +124,7 @@ pipeline {
                     script{
                         dir("${CDCSDK_TESTING_HOME}") {
                             sh'''
+                            mkdir -p $HOME/.aws
                             echo "[default]\naws_access_key_id = ${AWS_ACCESS_KEY_ID}\naws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" | tee $HOME/.aws/credentials
                             '''
                             env.USERID = sh(script: "id -u", returnStdout: true).trim()
