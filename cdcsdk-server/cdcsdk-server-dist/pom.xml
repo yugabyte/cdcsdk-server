@@ -44,12 +44,12 @@
             <artifactId>debezium-connector-yugabytedb</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.yugabyte</groupId>
-            <artifactId>cdcsdk-engine</artifactId>
-        </dependency>
+             <groupId>com.yugabyte</groupId>
+             <artifactId>cdcsdk-server-core</artifactId>
+         </dependency>
         <dependency>
             <groupId>com.yugabyte</groupId>
-            <artifactId>cdcsdk-server-core</artifactId>
+            <artifactId>cdcsdk-engine</artifactId>
         </dependency>
         <dependency>
             <groupId>com.yugabyte</groupId>
@@ -128,7 +128,7 @@
                         </goals>
                         <configuration>
                             <appendAssemblyId>false</appendAssemblyId>
-                            <attach>true</attach>  <!-- we want attach & deploy these to Maven -->
+                            <attach>true</attach>  <!-- we want to attach & deploy these to Maven -->
                             <descriptors>
                                 <descriptor>src/main/resources/assemblies/${assembly.descriptor}.xml</descriptor>
                             </descriptors>
