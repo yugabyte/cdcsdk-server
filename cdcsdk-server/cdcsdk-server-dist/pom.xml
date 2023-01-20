@@ -44,6 +44,10 @@
             <artifactId>debezium-connector-yugabytedb</artifactId>
         </dependency>
         <dependency>
+             <groupId>com.yugabyte</groupId>
+             <artifactId>cdcsdk-server-core</artifactId>
+         </dependency>
+        <dependency>
             <groupId>com.yugabyte</groupId>
             <artifactId>cdcsdk-engine</artifactId>
         </dependency>
