@@ -19,12 +19,14 @@ pipeline {
         parallelsAlwaysFailFast()
     }
     environment {
+        GCLOUD_PROJECT = "yugabyte"
         YB_VERSION_TO_TEST_AGAINST = "${params.YB_VERSION_TO_TEST_AGAINST}"
         RELEASE_BUCKET_PATH = "s3://releases.yugabyte.com/cdcsdk-server"
         YUGABYTE_SRC = "/home/centos/yugabyte"
         CDCSDK_SERVER_HOME = "$WORKSPACE/cdcsdk-server"
         CDCSDK_TESTING_HOME = "$WORKSPACE/cdcsdk-testing"
         DEBEZIUM_CONNECTOR_HOME = "$WORKSPACE/debezium-connector-yugabytedb"
+        SUBSCRIPTION_ID = "dbserver1.public.test_table-sub"
     }
     stages {
         stage('Clone Project') {
@@ -107,8 +109,20 @@ pipeline {
         }
         stage('Testing') {
             steps {
-                script{
-                     dir("${CDCSDK_TESTING_HOME}") {
+                withCredentials([
+                    file(
+                        credentialsId: '1854cb11-fa77-4b43-a2f9-aa8c038d30f0',
+                        variable: 'GOOGLE_APPLICATION_CREDENTIALS'
+                    ),
+                    [
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: '28669ca6-7fb9-489d-82c4-be9fa7104d9b',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]
+                ]) {
+                    dir("${CDCSDK_TESTING_HOME}") {
+                        env.USERID = sh(script: "id -u", returnStdout: true).trim()
                         env.CDCSDK_SERVER_IMAGE="quay.io/yugabyte/cdcsdk-server:latest"
                         env.KAFKA_CONNECT_IMAGE="quay.io/yugabyte/debezium-connector:${DEBEZIUM_PKG_VERSION}"
                         sh 'mvn verify -Drun.releaseTests'
