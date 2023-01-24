@@ -124,9 +124,10 @@ pipeline {
                     script{
                         dir("${CDCSDK_TESTING_HOME}") {
                             sh'''
-                            mkdir -p $HOME/.aws
-                            echo "[default]\naws_access_key_id = ${AWS_ACCESS_KEY_ID}\naws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" | tee $HOME/.aws/credentials
+                            mkdir -p ${CDCSDK_TESTING_HOME}/.aws
+                            echo "[default]\naws_access_key_id = ${AWS_ACCESS_KEY_ID}\naws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" | tee ${CDCSDK_TESTING_HOME}/.aws/credentials
                             '''
+                            env.AWS_SHARED_CREDENTIALS_FILE="$CDCSDK_TESTING_HOME/.aws/credentials"
                             env.USERID = sh(script: "id -u", returnStdout: true).trim()
                             env.CDCSDK_SERVER_IMAGE="quay.io/yugabyte/cdcsdk-server:latest"
                             env.KAFKA_CONNECT_IMAGE="quay.io/yugabyte/debezium-connector:${DEBEZIUM_PKG_VERSION}"
