@@ -22,7 +22,7 @@ pipeline {
         GCLOUD_PROJECT = "yugabyte"
         YB_VERSION_TO_TEST_AGAINST = "${params.YB_VERSION_TO_TEST_AGAINST}"
         RELEASE_BUCKET_PATH = "s3://releases.yugabyte.com/cdcsdk-server"
-        YUGABYTE_SRC = "/home/centos/yugabyte"
+        YUGABYTE_SRC = "/home/ec2-user/yugabyte"
         CDCSDK_SERVER_HOME = "$WORKSPACE/cdcsdk-server"
         CDCSDK_TESTING_HOME = "$WORKSPACE/cdcsdk-testing"
         DEBEZIUM_CONNECTOR_HOME = "$WORKSPACE/debezium-connector-yugabytedb"
