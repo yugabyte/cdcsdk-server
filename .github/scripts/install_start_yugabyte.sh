@@ -36,7 +36,7 @@ fi
 
 YUGABYTE_SRC=${2:-/home/yugabyte}
 
-YB_BUILD_NUMBER=$(curl -sk http://release.dev.yugabyte.com/releases/latest?version=${YB_VERSION})
+YB_BUILD_NUMBER=$(curl -sk https://release.dev.yugabyte.com/releases/latest?version=${YB_VERSION})
 YB_VERSION_BUILD="${YB_VERSION}-b${YB_BUILD_NUMBER}"
 
 S3_URL="s3://releases.yugabyte.com/${YB_VERSION_BUILD}/yugabyte-${YB_VERSION_BUILD}-centos-${ARCHITECTURE}.tar.gz"
